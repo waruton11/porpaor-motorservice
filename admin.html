@@ -542,9 +542,12 @@ function renderModelTable() {
     if (filterCat !== '' && parseInt(filterCat) !== ci) return;
     cat.models.forEach((m, mi) => {
       const basePrice = m.variants[0].price;
-      const colorDots = (m.colors||[]).map(c =>
-        `<span class="color-dot" style="background:${c.hex};${c.border?'border:1.5px solid #ccc;':''}" title="${c.name}"></span>`
-      ).join('');
+      const colorDots = (m.colors||[]).map(c => {
+        const bg = c.hex2
+          ? `linear-gradient(135deg,${c.hex} 50%,${c.hex2} 50%)`
+          : c.hex;
+        return `<span class="color-dot" style="background:${bg};${c.border?'border:1.5px solid #ccc;':''}" title="${c.name}"></span>`;
+      }).join('');
       const variantText = m.variants.length > 1
         ? m.variants.map(v=>v.name).join(', ')
         : '-';
@@ -574,7 +577,7 @@ function openAddModel() {
   document.getElementById('variantRows').innerHTML = '';
   document.getElementById('colorRows').innerHTML = '';
   addVariantRow('มาตรฐาน', '', '');
-  addColorRow('', '#cc0000', '');
+  addColorRow('', '#cc0000', '', '');
   document.getElementById('modelModal').classList.add('open');
 }
 
@@ -593,7 +596,7 @@ function openEditModel(ci, mi) {
   });
   // colors
   document.getElementById('colorRows').innerHTML = '';
-  (m.colors||[]).forEach(c => addColorRow(c.name, c.hex, c.img||''));
+  (m.colors||[]).forEach(c => addColorRow(c.name, c.hex, c.hex2||'', c.img||''));
   document.getElementById('modelModal').classList.add('open');
 }
 
@@ -612,20 +615,31 @@ function addVariantRow(name='', price='', downs='') {
   document.getElementById('variantRows').appendChild(div);
 }
 
-function addColorRow(name='', hex='#cc0000', img='') {
+function addColorRow(name='', hex='#cc0000', hex2='', img='') {
   const div = document.createElement('div');
   div.className = 'color-row';
   div.style.cssText = 'background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;padding:0.75rem;margin-bottom:0.6rem;';
   const safeImg = img ? img.replace(/"/g, '&quot;') : '';
+  const previewBg = hex2
+    ? `linear-gradient(135deg,${hex} 50%,${hex2} 50%)`
+    : hex;
   div.innerHTML = `
     <div style="display:flex;gap:0.75rem;align-items:flex-start;flex-wrap:wrap;">
       <div style="flex:1;min-width:120px;">
         <label style="font-size:0.8rem;font-weight:600;color:#555;display:block;margin-bottom:3px;">ชื่อสี</label>
         <input class="cname" value="${name}" placeholder="เช่น แดง-ดำ" style="width:100%;padding:0.5rem;border:1.5px solid #e0e0e0;border-radius:6px;font-family:inherit;font-size:0.88rem;">
       </div>
-      <div style="flex:0 0 70px;">
-        <label style="font-size:0.8rem;font-weight:600;color:#555;display:block;margin-bottom:3px;">รหัสสี</label>
-        <input class="chex" type="color" value="${hex}" style="width:100%;height:38px;padding:2px;border:1.5px solid #e0e0e0;border-radius:6px;cursor:pointer;">
+      <div style="flex:0 0 auto;">
+        <label style="font-size:0.8rem;font-weight:600;color:#555;display:block;margin-bottom:3px;">สี 1</label>
+        <input class="chex" type="color" value="${hex}" style="width:54px;height:38px;padding:2px;border:1.5px solid #e0e0e0;border-radius:6px;cursor:pointer;">
+      </div>
+      <div style="flex:0 0 auto;">
+        <label style="font-size:0.8rem;font-weight:600;color:#555;display:block;margin-bottom:3px;">สี 2 <span style="font-weight:400;color:#aaa;">(ถ้ามี)</span></label>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <input class="chex2" type="color" value="${hex2||'#ffffff'}" style="width:54px;height:38px;padding:2px;border:1.5px solid #e0e0e0;border-radius:6px;cursor:pointer;" ${hex2?'':'data-empty="1"'}>
+          <button type="button" class="chex2-clear" onclick="clearHex2(this)" style="font-size:0.7rem;color:#999;background:none;border:none;cursor:pointer;padding:2px;" title="ล้างสี 2">${hex2?'✕':''}</button>
+        </div>
+        <div class="chex2-preview" style="width:54px;height:8px;border-radius:3px;margin-top:3px;background:${previewBg};border:1px solid #e0e0e0;"></div>
       </div>
       <div style="flex:2;min-width:200px;">
         <label style="font-size:0.8rem;font-weight:600;color:#555;display:block;margin-bottom:3px;">
@@ -656,6 +670,32 @@ function previewColorUrl(input) {
   wrap.innerHTML = `<img src="${url}" style="height:64px;max-width:120px;object-fit:contain;border-radius:6px;background:#f0f0f0;border:1px solid #e0e0e0;" onerror="this.outerHTML='<span style=\'font-size:0.75rem;color:#e53935;\'>โหลดรูปไม่ได้ — ลอง URL อื่น</span>'">`;
 }
 
+function clearHex2(btn) {
+  const row = btn.closest('.color-row');
+  const inp = row.querySelector('.chex2');
+  inp.dataset.empty = '1';
+  btn.textContent = '';
+  const c1 = row.querySelector('.chex').value;
+  row.querySelector('.chex2-preview').style.background = c1;
+}
+
+// อัปเดต preview gradient เมื่อเปลี่ยนสี
+document.addEventListener('input', function(e) {
+  if (e.target.classList.contains('chex') || e.target.classList.contains('chex2')) {
+    const row = e.target.closest('.color-row');
+    if (!row) return;
+    if (e.target.classList.contains('chex2')) {
+      delete e.target.dataset.empty;
+      row.querySelector('.chex2-clear').textContent = '✕';
+    }
+    const c1 = row.querySelector('.chex').value;
+    const c2el = row.querySelector('.chex2');
+    const c2 = (!c2el.dataset.empty) ? c2el.value : '';
+    const bg = c2 ? `linear-gradient(135deg,${c1} 50%,${c2} 50%)` : c1;
+    row.querySelector('.chex2-preview').style.background = bg;
+  }
+});
+
 function saveModel() {
   const ci = parseInt(document.getElementById('m_cat').value);
   const name = document.getElementById('m_name').value.trim();
@@ -674,8 +714,14 @@ function saveModel() {
   document.querySelectorAll('.color-row').forEach(row => {
     const cname = row.querySelector('.cname').value.trim();
     const chex = row.querySelector('.chex').value;
+    const chex2el = row.querySelector('.chex2');
+    const chex2 = (chex2el && !chex2el.dataset.empty) ? chex2el.value : '';
     const cimg = row.querySelector('.cimg')?.value || '';
-    if (cname) colors.push({ name: cname, hex: chex, img: cimg });
+    if (cname) {
+      const colorObj = { name: cname, hex: chex, img: cimg };
+      if (chex2) colorObj.hex2 = chex2;
+      colors.push(colorObj);
+    }
   });
 
   const model = {
@@ -1090,7 +1136,7 @@ function dS(e,ci){e.preventDefault();dd[ci]={x:e.clientX};document.getElementByI
 function oM(ci,mi){modalModel=categories[ci].models[mi];modalVariantIdx=0;modalColorIdx=0;document.getElementById('mName').textContent=modalModel.name;rV();rC();uT();document.getElementById('calcResult').style.display='none';document.getElementById('modalOverlay').classList.add('open');document.body.style.overflow='hidden';}
 function rV(){const w=document.getElementById('mVariants');const b=document.getElementById('mVariantBtns');if(!modalModel.variants||modalModel.variants.length<=1){w.style.display='none';return;}w.style.display='block';b.innerHTML=modalModel.variants.map((v,i)=>'<button class="variant-btn'+(i===0?' active':'')+'" onclick="sV('+i+')">'+v.name+'</button>').join('');}
 function sV(i){modalVariantIdx=i;document.querySelectorAll('.variant-btn').forEach((b,j)=>b.classList.toggle('active',j===i));uT();}
-function rC(){const w=document.getElementById('mColors');const s=document.getElementById('mColorSwatches');const n=document.getElementById('mColorName');if(!modalModel.colors||!modalModel.colors.length){w.style.display='none';document.getElementById('mCarImg').innerHTML='<span style="font-size:4rem">'+modalModel.icon+'</span>';return;}w.style.display='block';s.innerHTML=modalModel.colors.map((c,i)=>'<div class="color-swatch'+(i===0?' active':'')+'" style="background:'+c.hex+';'+(c.border?'border:2px solid #bbb;':'')+'" title="'+c.name+'" onclick="sC('+i+')"></div>').join('');n.textContent='สี: '+modalModel.colors[0].name;updCarImg(0);}
+function rC(){const w=document.getElementById('mColors');const s=document.getElementById('mColorSwatches');const n=document.getElementById('mColorName');if(!modalModel.colors||!modalModel.colors.length){w.style.display='none';document.getElementById('mCarImg').innerHTML='<span style="font-size:4rem">'+modalModel.icon+'</span>';return;}w.style.display='block';s.innerHTML=modalModel.colors.map((c,i)=>{const bg=c.hex2?'linear-gradient(135deg,'+c.hex+' 50%,'+c.hex2+' 50%)':c.hex;return'<div class="color-swatch'+(i===0?' active':'')+'" style="background:'+bg+';'+(c.border?'border:2px solid #bbb;':'')+'" title="'+c.name+'" onclick="sC('+i+')"></div>';}).join('');n.textContent='สี: '+modalModel.colors[0].name;updCarImg(0);}
 function sC(i){modalColorIdx=i;document.querySelectorAll('.color-swatch').forEach((s,j)=>s.classList.toggle('active',j===i));document.getElementById('mColorName').textContent='สี: '+modalModel.colors[i].name;updCarImg(i);}
 function updCarImg(i){const c=modalModel.colors[i];const area=document.getElementById('mCarImg');if(c&&c.img){area.innerHTML='<img src="'+c.img+'" style="max-height:160px;max-width:100%;object-fit:contain;">';}else{area.innerHTML='<span style="font-size:4rem">'+modalModel.icon+'</span>';}}
 function uT(){const d=modalModel.variants[modalVariantIdx];document.getElementById('mPrice').textContent='฿'+fmt(d.price);document.getElementById('calcPrice').value=d.price;const months=[12,24,36,48];document.getElementById('mTableBody').innerHTML=d.downs.map(dn=>'<tr><td>'+fmt(dn)+'</td>'+months.map(mo=>'<td>'+fmt(calcInst(d.price,dn,mo))+' บ./เดือน</td>').join('')+'</tr>').join('');}
