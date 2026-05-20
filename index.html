@@ -6,395 +6,134 @@
 <title>ป.เปา มอเตอร์เซอร์วิส | Honda</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --red: #cc0000;
-    --red-dark: #990000;
-    --black: #1a1a1a;
-    --gray: #f5f5f5;
-    --gray2: #e0e0e0;
-    --white: #ffffff;
-    --text: #222;
-    --text2: #555;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Sarabun', sans-serif; color: var(--text); background: var(--white); font-size: 16px; }
-
-  /* NAV */
-  nav {
-    background: var(--white);
-    border-bottom: 3px solid var(--red);
-    position: sticky; top: 0; z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  }
-  .nav-inner {
-    max-width: 1200px; margin: 0 auto;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 1.5rem; height: 64px;
-  }
-  .nav-brand {
-    font-family: 'Kanit', sans-serif;
-    font-size: 1.1rem; font-weight: 700; color: var(--red);
-    text-decoration: none; line-height: 1.2;
-  }
-  .nav-brand span { display: block; font-size: 0.75rem; font-weight: 400; color: var(--text2); }
-  .nav-links { display: flex; gap: 0; list-style: none; }
-  .nav-links a {
-    display: block; padding: 0.5rem 1rem;
-    text-decoration: none; color: var(--text);
-    font-size: 0.9rem; font-weight: 500;
-    border-bottom: 3px solid transparent;
-    transition: color 0.2s, border-color 0.2s;
-  }
-  .nav-links a:hover { color: var(--red); border-bottom-color: var(--red); }
-  .hamburger { display: none; cursor: pointer; flex-direction: column; gap: 5px; }
-  .hamburger span { width: 24px; height: 2px; background: var(--text); transition: 0.3s; }
-  .mobile-menu {
-    display: none; background: var(--white);
-    border-top: 1px solid var(--gray2);
-    padding: 1rem 1.5rem;
-  }
-  .mobile-menu.open { display: block; }
-  .mobile-menu a {
-    display: block; padding: 0.75rem 0;
-    border-bottom: 1px solid var(--gray2);
-    text-decoration: none; color: var(--text); font-weight: 500;
-  }
-
-  /* HERO */
-  .hero {
-    background: linear-gradient(135deg, #1a1a1a 60%, #cc0000);
-    color: white; text-align: center;
-    padding: 5rem 1.5rem 4rem;
-  }
-  .hero h1 {
-    font-family: 'Kanit', sans-serif;
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    font-weight: 700; line-height: 1.2; margin-bottom: 1rem;
-  }
-  .hero h1 span { color: var(--red); }
-  .hero p { font-size: 1.1rem; opacity: 0.85; margin-bottom: 2rem; }
-  .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
-  .btn {
-    padding: 0.75rem 2rem; border-radius: 4px;
-    font-family: 'Sarabun', sans-serif; font-size: 1rem;
-    font-weight: 600; cursor: pointer;
-    text-decoration: none; display: inline-block;
-    transition: transform 0.15s, opacity 0.15s;
-    border: none;
-  }
-  .btn:hover { transform: translateY(-2px); opacity: 0.9; }
-  .btn-red { background: var(--red); color: white; }
-  .btn-outline { background: transparent; color: white; border: 2px solid white; }
-
-  /* SECTION */
-  section { padding: 4rem 1.5rem; }
-  .section-inner { max-width: 1200px; margin: 0 auto; }
-  .section-title {
-    font-family: 'Kanit', sans-serif;
-    font-size: 1.8rem; font-weight: 700;
-    margin-bottom: 0.5rem; color: var(--text);
-  }
-  .section-title::after {
-    content: ''; display: block; width: 48px; height: 4px;
-    background: var(--red); margin-top: 8px;
-  }
-  .section-sub { color: var(--text2); margin-bottom: 2.5rem; margin-top: 0.5rem; }
-
-  /* MODELS SECTION */
-  #models { background: #fafafa; padding: 3rem 0 4rem; }
-  #models .section-inner { max-width: 1100px; }
-  .cat-row { margin-bottom: 3rem; }
-  .cat-row-header {
-    display: flex; align-items: center; gap: 1rem;
-    padding: 0 1rem; margin-bottom: 1.25rem;
-  }
-  .cat-icon-wrap {
-    width: 52px; height: 52px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.5rem; flex-shrink: 0;
-  }
-  .cat-row-title { font-family: 'Kanit', sans-serif; font-size: 1.15rem; font-weight: 700; }
-  .cat-row-sub { font-size: 0.8rem; color: var(--text2); }
-  .cat-divider { flex: 1; height: 1px; background: var(--gray2); }
-
-  /* SLOT CAROUSEL */
-  .slot-wrap {
-    position: relative; overflow: hidden;
-    padding: 1.5rem 0;
-    cursor: grab;
-    user-select: none;
-  }
-  .slot-wrap.grabbing { cursor: grabbing; }
-  .slot-track {
-    display: flex; align-items: center;
-    gap: 1rem; padding: 0 calc(50% - 120px);
-    transition: transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94);
-    will-change: transform;
-  }
-  .slot-track.no-transition { transition: none; }
-
-  .mcard {
-    flex: 0 0 220px; border-radius: 14px;
-    background: white; border: 1.5px solid var(--gray2);
-    padding: 1rem 1rem 1.25rem;
-    transition: transform 0.4s ease, opacity 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
-    transform: scale(0.82); opacity: 0.5;
-    cursor: pointer; position: relative;
-  }
-  .mcard.active {
-    transform: scale(1); opacity: 1;
-    box-shadow: 0 12px 36px rgba(204,0,0,0.18);
-    border-color: var(--red);
-    z-index: 2;
-  }
-  .mcard.adj {
-    transform: scale(0.9); opacity: 0.75;
-  }
-  .mcard-img {
-    height: 140px; display: flex; align-items: center;
-    justify-content: center; font-size: 4rem;
-    margin-bottom: 0.75rem; position: relative;
-  }
-  .mcard-badge {
-    position: absolute; top: 0; right: 0;
-    background: var(--red); color: white;
-    font-size: 0.65rem; font-weight: 800;
-    padding: 3px 8px; border-radius: 4px; letter-spacing: 1px;
-  }
-  .mcard-name { font-family: 'Kanit', sans-serif; font-size: 0.95rem; font-weight: 700; margin-bottom: 0.15rem; }
-  .mcard-price { color: var(--red); font-size: 0.9rem; font-weight: 700; }
-  .mcard-down { color: var(--text2); font-size: 0.75rem; margin-top: 0.1rem; }
-  .mcard-btn {
-    display: none; margin-top: 0.75rem; width: 100%;
-    background: var(--red); color: white; border: none;
-    border-radius: 6px; padding: 0.5rem;
-    font-family: 'Sarabun', sans-serif; font-size: 0.85rem;
-    font-weight: 600; cursor: pointer;
-  }
-  .mcard.active .mcard-btn { display: block; }
-
-  /* DOTS */
-  .slot-dots {
-    display: flex; justify-content: center; gap: 6px; margin-top: 0.5rem;
-  }
-  .slot-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--gray2); transition: background 0.3s, width 0.3s;
-    cursor: pointer;
-  }
-  .slot-dot.active { background: var(--red); width: 18px; border-radius: 3px; }
-
-  /* ARROW BTNS (desktop only) */
-  .slot-arrows {
-    display: flex; justify-content: center; gap: 1rem; margin-top: 0.75rem;
-  }
-  .slot-arr {
-    width: 40px; height: 40px; border-radius: 50%;
-    border: 1.5px solid var(--gray2); background: white;
-    font-size: 1.1rem; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: background 0.2s, border-color 0.2s; color: var(--text);
-  }
-  .slot-arr:hover { background: var(--red); border-color: var(--red); color: white; }
-
-  @media (max-width: 768px) {
-    .slot-arrows { display: none; }
-    .mcard { flex: 0 0 180px; }
-    .slot-track { padding: 0 calc(50% - 90px); }
-  }
-
-  /* COLOR SWATCHES */
-  .color-swatch {
-    width: 32px; height: 32px; border-radius: 50%;
-    cursor: pointer; border: 2px solid transparent;
-    transition: transform 0.15s, border-color 0.15s;
-    flex-shrink: 0;
-  }
-  .color-swatch:hover { transform: scale(1.15); }
-  .color-swatch.active { border-color: var(--red); transform: scale(1.15); box-shadow: 0 0 0 2px white, 0 0 0 4px var(--red); }
-
-  /* VARIANT BTNS */
-  .variant-btn {
-    padding: 0.4rem 1rem; border-radius: 4px;
-    border: 1.5px solid var(--gray2); background: white;
-    font-family: 'Sarabun', sans-serif; font-size: 0.88rem;
-    cursor: pointer; color: var(--text); transition: all 0.2s;
-  }
-  .variant-btn.active { background: var(--red); color: white; border-color: var(--red); }
-  .variant-btn:hover:not(.active) { border-color: var(--red); color: var(--red); }
-
-  /* MODAL */
-  .modal-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.6); z-index: 200;
-    align-items: center; justify-content: center; padding: 1rem;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: white; border-radius: 12px;
-    width: 100%; max-width: 700px; max-height: 90vh;
-    overflow-y: auto; padding: 2rem;
-    position: relative;
-  }
-  .modal-close {
-    position: absolute; top: 1rem; right: 1rem;
-    background: none; border: none; font-size: 1.5rem;
-    cursor: pointer; color: var(--text2);
-  }
-  .modal h2 { font-family: 'Kanit', sans-serif; font-size: 1.5rem; margin-bottom: 0.25rem; }
-  .modal-price { color: var(--red); font-size: 1.3rem; font-weight: 700; margin-bottom: 1.5rem; }
-  .installment-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-bottom: 1.5rem; }
-  .installment-table th {
-    background: var(--black); color: white;
-    padding: 0.6rem 0.75rem; text-align: center;
-  }
-  .installment-table td { padding: 0.6rem 0.75rem; text-align: center; border-bottom: 1px solid var(--gray2); }
-  .installment-table tr:nth-child(even) td { background: var(--gray); }
-  .installment-table td:first-child { font-weight: 600; }
-
-  /* CALCULATOR */
-  .calc-box {
-    background: var(--gray); border-radius: 8px; padding: 1.5rem;
-  }
-  .calc-box h3 { font-family: 'Kanit', sans-serif; font-size: 1.1rem; margin-bottom: 1rem; }
-  .calc-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
-  .calc-field { flex: 1; min-width: 140px; }
-  .calc-field label { display: block; font-size: 0.85rem; color: var(--text2); margin-bottom: 0.3rem; }
-  .calc-field input, .calc-field select {
-    width: 100%; padding: 0.6rem 0.75rem;
-    border: 1px solid var(--gray2); border-radius: 4px;
-    font-family: 'Sarabun', sans-serif; font-size: 1rem;
-  }
-  .calc-result {
-    background: white; border-radius: 6px; padding: 1rem;
-    display: flex; justify-content: space-between; align-items: center;
-    margin-top: 0.5rem;
-  }
-  .calc-result span { color: var(--text2); font-size: 0.9rem; }
-  .calc-result strong { color: var(--red); font-size: 1.3rem; font-family: 'Kanit', sans-serif; }
-
-  /* NEWS */
-  .news-section { background: var(--gray); }
-  .news-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
-  }
-  .news-card {
-    background: white; border-radius: 8px; overflow: hidden;
-    border: 1px solid var(--gray2);
-    transition: box-shadow 0.2s;
-  }
-  .news-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
-  .news-img {
-    height: 160px; background: var(--gray2);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 3rem; color: var(--text2);
-  }
-  .news-body { padding: 1rem 1.25rem; }
-  .news-date { font-size: 0.8rem; color: var(--text2); margin-bottom: 0.3rem; }
-  .news-title { font-weight: 600; font-size: 1rem; line-height: 1.4; }
-  .news-tag {
-    display: inline-block; background: #fff0f0; color: var(--red);
-    font-size: 0.75rem; padding: 2px 8px; border-radius: 2px;
-    margin-bottom: 0.5rem;
-  }
-
-  /* SOCIAL */
-  .social-section { text-align: center; }
-  .social-links { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin-top: 2rem; }
-  .social-btn {
-    display: flex; align-items: center; gap: 0.75rem;
-    padding: 1rem 2rem; border-radius: 8px;
-    text-decoration: none; font-weight: 600;
-    font-size: 1rem; transition: transform 0.2s, opacity 0.2s;
-    color: white;
-  }
-  .social-btn:hover { transform: translateY(-3px); opacity: 0.9; }
-  .social-btn.facebook { background: #1877f2; }
-  .social-btn.tiktok { background: #010101; }
-  .social-btn.line { background: #00b900; }
-  .social-btn svg { width: 24px; height: 24px; fill: white; }
-
-  /* FORM */
-  .form-section { background: var(--black); color: white; }
-  .form-section .section-title { color: white; }
-  .form-section .section-sub { color: #aaa; }
-  .lead-form {
-    background: white; color: var(--text);
-    border-radius: 12px; padding: 2rem;
-    max-width: 700px;
-  }
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .form-group { margin-bottom: 1rem; }
-  .form-group.full { grid-column: 1 / -1; }
-  .form-group label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.35rem; }
-  .form-group input, .form-group select, .form-group textarea {
-    width: 100%; padding: 0.7rem 0.9rem;
-    border: 1.5px solid var(--gray2); border-radius: 6px;
-    font-family: 'Sarabun', sans-serif; font-size: 1rem;
-    transition: border-color 0.2s;
-  }
-  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-    outline: none; border-color: var(--red);
-  }
-  .form-group textarea { resize: vertical; min-height: 80px; }
-  .form-submit {
-    width: 100%; padding: 1rem;
-    background: var(--red); color: white; border: none;
-    border-radius: 6px; font-family: 'Kanit', sans-serif;
-    font-size: 1.1rem; font-weight: 600; cursor: pointer;
-    transition: background 0.2s;
-    margin-top: 0.5rem;
-  }
-  .form-submit:hover { background: var(--red-dark); }
-  .form-note { font-size: 0.8rem; color: var(--text2); margin-top: 0.75rem; text-align: center; }
-  .success-msg {
-    display: none; background: #e6f9ee; color: #1a7a3c;
-    border: 1.5px solid #1a7a3c; border-radius: 8px;
-    padding: 1.5rem; text-align: center; margin-top: 1rem;
-    font-weight: 600;
-  }
-
-  /* FOOTER */
-  footer {
-    background: #111; color: #aaa;
-    padding: 2.5rem 1.5rem; text-align: center;
-  }
-  footer .footer-brand {
-    font-family: 'Kanit', sans-serif; font-size: 1.2rem;
-    font-weight: 700; color: var(--red); margin-bottom: 0.5rem;
-  }
-  footer p { font-size: 0.9rem; line-height: 1.8; }
-
-  /* RESPONSIVE */
-  @media (max-width: 768px) {
-    .nav-links { display: none; }
-    .hamburger { display: flex; }
-    .hero { padding: 3.5rem 1.5rem 3rem; }
-    .form-grid { grid-template-columns: 1fr; }
-    .model-card .model-img { height: 150px; }
-  }
+:root{--red:#cc0000;--red-dark:#990000;--black:#1a1a1a;--gray:#f5f5f5;--gray2:#e0e0e0;--white:#fff;--text:#222;--text2:#555;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sarabun',sans-serif;color:var(--text);background:var(--white);font-size:16px;}
+nav{background:var(--white);border-bottom:3px solid var(--red);position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:64px;}
+.nav-brand{font-family:'Kanit',sans-serif;font-size:1.1rem;font-weight:700;color:var(--red);text-decoration:none;line-height:1.2;}
+.nav-brand span{display:block;font-size:0.75rem;font-weight:400;color:var(--text2);}
+.nav-links{display:flex;gap:0;list-style:none;}
+.nav-links a{display:block;padding:0.5rem 1rem;text-decoration:none;color:var(--text);font-size:0.9rem;font-weight:500;border-bottom:3px solid transparent;transition:color .2s,border-color .2s;}
+.nav-links a:hover{color:var(--red);border-bottom-color:var(--red);}
+.hamburger{display:none;cursor:pointer;flex-direction:column;gap:5px;}
+.hamburger span{width:24px;height:2px;background:var(--text);}
+.mobile-menu{display:none;background:var(--white);border-top:1px solid var(--gray2);padding:1rem 1.5rem;}
+.mobile-menu.open{display:block;}
+.mobile-menu a{display:block;padding:.75rem 0;border-bottom:1px solid var(--gray2);text-decoration:none;color:var(--text);font-weight:500;}
+.hero{background:linear-gradient(135deg,#1a1a1a 60%,#cc0000);color:white;text-align:center;padding:5rem 1.5rem 4rem;}
+.hero h1{font-family:'Kanit',sans-serif;font-size:clamp(2rem,5vw,3.5rem);font-weight:700;line-height:1.2;margin-bottom:1rem;}
+.hero h1 span{color:var(--red);}
+.hero p{font-size:1.1rem;opacity:.85;margin-bottom:2rem;}
+.hero-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;}
+.btn{padding:.75rem 2rem;border-radius:4px;font-family:'Sarabun',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block;transition:transform .15s,opacity .15s;border:none;}
+.btn:hover{transform:translateY(-2px);opacity:.9;}
+.btn-red{background:var(--red);color:white;}
+.btn-outline{background:transparent;color:white;border:2px solid white;}
+section{padding:4rem 1.5rem;}
+.section-inner{max-width:1200px;margin:0 auto;}
+.section-title{font-family:'Kanit',sans-serif;font-size:1.8rem;font-weight:700;margin-bottom:.5rem;}
+.section-title::after{content:'';display:block;width:48px;height:4px;background:var(--red);margin-top:8px;}
+.section-sub{color:var(--text2);margin-bottom:2.5rem;margin-top:.5rem;}
+#models{background:#fafafa;padding:3rem 0 4rem;}
+.cat-row{margin-bottom:3rem;}
+.cat-row-header{display:flex;align-items:center;gap:1rem;padding:0 1rem;margin-bottom:1.25rem;}
+.cat-icon-wrap{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
+.cat-row-title{font-family:'Kanit',sans-serif;font-size:1.15rem;font-weight:700;}
+.cat-row-sub{font-size:.8rem;color:var(--text2);}
+.cat-divider{flex:1;height:1px;background:var(--gray2);}
+.slot-wrap{position:relative;overflow:hidden;padding:1.5rem 0;cursor:grab;user-select:none;}
+.slot-wrap.grabbing{cursor:grabbing;}
+.slot-track{display:flex;align-items:center;gap:1rem;padding:0 calc(50% - 120px);transition:transform .4s cubic-bezier(.25,.46,.45,.94);}
+.slot-track.no-transition{transition:none;}
+.mcard{flex:0 0 220px;border-radius:14px;background:white;border:1.5px solid var(--gray2);padding:1rem 1rem 1.25rem;transition:transform .4s ease,opacity .4s ease,box-shadow .4s ease,border-color .4s ease;transform:scale(.82);opacity:.5;cursor:pointer;position:relative;}
+.mcard.active{transform:scale(1);opacity:1;box-shadow:0 12px 36px rgba(204,0,0,.18);border-color:var(--red);z-index:2;}
+.mcard.adj{transform:scale(.9);opacity:.75;}
+.mcard-img{height:140px;display:flex;align-items:center;justify-content:center;font-size:4rem;margin-bottom:.75rem;position:relative;}
+.mcard-badge{position:absolute;top:0;right:0;background:var(--red);color:white;font-size:.65rem;font-weight:800;padding:3px 8px;border-radius:4px;letter-spacing:1px;}
+.mcard-name{font-family:'Kanit',sans-serif;font-size:.95rem;font-weight:700;margin-bottom:.15rem;}
+.mcard-price{color:var(--red);font-size:.9rem;font-weight:700;}
+.mcard-down{color:var(--text2);font-size:.75rem;margin-top:.1rem;}
+.mcard-btn{display:none;margin-top:.75rem;width:100%;background:var(--red);color:white;border:none;border-radius:6px;padding:.5rem;font-family:'Sarabun',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;}
+.mcard.active .mcard-btn{display:block;}
+.slot-dots{display:flex;justify-content:center;gap:6px;margin-top:.5rem;}
+.slot-dot{width:6px;height:6px;border-radius:50%;background:var(--gray2);transition:background .3s,width .3s;cursor:pointer;}
+.slot-dot.active{background:var(--red);width:18px;border-radius:3px;}
+.slot-arrows{display:flex;justify-content:center;gap:1rem;margin-top:.75rem;}
+.slot-arr{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--gray2);background:white;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,border-color .2s;color:var(--text);}
+.slot-arr:hover{background:var(--red);border-color:var(--red);color:white;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.open{display:flex;}
+.modal{background:white;border-radius:12px;width:100%;max-width:700px;max-height:90vh;overflow-y:auto;padding:2rem;position:relative;}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text2);}
+.modal h2{font-family:'Kanit',sans-serif;font-size:1.5rem;margin-bottom:.25rem;}
+.modal-price{color:var(--red);font-size:1.3rem;font-weight:700;margin-bottom:1.5rem;}
+.color-swatch{width:32px;height:32px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s;flex-shrink:0;}
+.color-swatch:hover{transform:scale(1.15);}
+.color-swatch.active{border-color:var(--red);transform:scale(1.15);box-shadow:0 0 0 2px white,0 0 0 4px var(--red);}
+.variant-btn{padding:.4rem 1rem;border-radius:4px;border:1.5px solid var(--gray2);background:white;font-family:'Sarabun',sans-serif;font-size:.88rem;cursor:pointer;color:var(--text);transition:all .2s;}
+.variant-btn.active{background:var(--red);color:white;border-color:var(--red);}
+.installment-table{width:100%;border-collapse:collapse;font-size:.9rem;margin-bottom:1.5rem;}
+.installment-table th{background:var(--black);color:white;padding:.6rem .75rem;text-align:center;}
+.installment-table td{padding:.6rem .75rem;text-align:center;border-bottom:1px solid var(--gray2);}
+.installment-table tr:nth-child(even) td{background:var(--gray);}
+.installment-table td:first-child{font-weight:600;}
+.calc-box{background:var(--gray);border-radius:8px;padding:1.5rem;}
+.calc-box h3{font-family:'Kanit',sans-serif;font-size:1.1rem;margin-bottom:1rem;}
+.calc-row{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;}
+.calc-field{flex:1;min-width:140px;}
+.calc-field label{display:block;font-size:.85rem;color:var(--text2);margin-bottom:.3rem;}
+.calc-field input,.calc-field select{width:100%;padding:.6rem .75rem;border:1px solid var(--gray2);border-radius:4px;font-family:'Sarabun',sans-serif;font-size:1rem;}
+.calc-result{background:white;border-radius:6px;padding:1rem;display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;}
+.calc-result span{color:var(--text2);font-size:.9rem;}
+.calc-result strong{color:var(--red);font-size:1.3rem;font-family:'Kanit',sans-serif;}
+.news-section{background:var(--gray);}
+.news-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;}
+.news-card{background:white;border-radius:8px;overflow:hidden;border:1px solid var(--gray2);transition:box-shadow .2s;}
+.news-card:hover{box-shadow:0 6px 20px rgba(0,0,0,.1);}
+.news-img{height:160px;background:var(--gray2);display:flex;align-items:center;justify-content:center;font-size:3rem;}
+.news-body{padding:1rem 1.25rem;}
+.news-date{font-size:.8rem;color:var(--text2);margin-bottom:.3rem;}
+.news-title{font-weight:600;font-size:1rem;line-height:1.4;}
+.news-tag{display:inline-block;background:#fff0f0;color:var(--red);font-size:.75rem;padding:2px 8px;border-radius:2px;margin-bottom:.5rem;}
+.social-section{text-align:center;}
+.social-links{display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap;margin-top:2rem;}
+.social-btn{display:flex;align-items:center;gap:.75rem;padding:1rem 2rem;border-radius:8px;text-decoration:none;font-weight:600;font-size:1rem;transition:transform .2s,opacity .2s;color:white;}
+.social-btn:hover{transform:translateY(-3px);opacity:.9;}
+.social-btn.facebook{background:#1877f2;}
+.social-btn.tiktok{background:#010101;}
+.social-btn.line{background:#00b900;}
+.social-btn svg{width:24px;height:24px;fill:white;}
+.form-section{background:var(--black);color:white;}
+.form-section .section-title{color:white;}
+.form-section .section-sub{color:#aaa;}
+.lead-form{background:white;color:var(--text);border-radius:12px;padding:2rem;max-width:700px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.form-group{margin-bottom:1rem;}
+.form-group.full{grid-column:1/-1;}
+.form-group label{display:block;font-size:.9rem;font-weight:600;margin-bottom:.35rem;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:.7rem .9rem;border:1.5px solid var(--gray2);border-radius:6px;font-family:'Sarabun',sans-serif;font-size:1rem;}
+.form-group textarea{resize:vertical;min-height:80px;}
+.form-submit{width:100%;padding:1rem;background:var(--red);color:white;border:none;border-radius:6px;font-family:'Kanit',sans-serif;font-size:1.1rem;font-weight:600;cursor:pointer;}
+.form-submit:hover{background:var(--red-dark);}
+.form-note{font-size:.8rem;color:var(--text2);margin-top:.75rem;text-align:center;}
+.success-msg{display:none;background:#e6f9ee;color:#1a7a3c;border:1.5px solid #1a7a3c;border-radius:8px;padding:1.5rem;text-align:center;margin-top:1rem;font-weight:600;}
+footer{background:#111;color:#aaa;padding:2.5rem 1.5rem;text-align:center;}
+footer .footer-brand{font-family:'Kanit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--red);margin-bottom:.5rem;}
+@media(max-width:768px){.nav-links{display:none;}.hamburger{display:flex;}.form-grid{grid-template-columns:1fr;}.mcard{flex:0 0 180px;}.slot-track{padding:0 calc(50% - 90px);}.slot-arrows{display:none;}}
 </style>
 </head>
 <body>
-
-<!-- NAV -->
 <nav>
   <div class="nav-inner">
-    <a class="nav-brand" href="#">
-      ป.เปา มอเตอร์เซอร์วิส
-      <span>ตัวแทนจำหน่าย Honda</span>
-    </a>
+    <a class="nav-brand" href="#">ป.เปา มอเตอร์เซอร์วิส<span>ตัวแทนจำหน่าย Honda</span></a>
     <ul class="nav-links">
       <li><a href="#models">รุ่นรถ & ราคา</a></li>
       <li><a href="#news">ข่าวกิจกรรม</a></li>
       <li><a href="#social">โซเชียล</a></li>
       <li><a href="#contact">สอบถาม/ซื้อ</a></li>
     </ul>
-    <div class="hamburger" onclick="toggleMenu()" id="hamburger">
-      <span></span><span></span><span></span>
-    </div>
+    <div class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
   </div>
   <div class="mobile-menu" id="mobileMenu">
     <a href="#models" onclick="closeMenu()">รุ่นรถ & ราคา</a>
@@ -403,8 +142,6 @@
     <a href="#contact" onclick="closeMenu()">สอบถาม/ซื้อ</a>
   </div>
 </nav>
-
-<!-- HERO -->
 <div class="hero">
   <h1>ยินดีต้อนรับสู่<br><span>ป.เปา มอเตอร์เซอร์วิส</span></h1>
   <p>ตัวแทนจำหน่ายและศูนย์บริการ Honda ครบวงจร · วังน้อย อยุธยา</p>
@@ -413,8 +150,6 @@
     <a href="#contact" class="btn btn-outline">สอบถาม / จองรถ</a>
   </div>
 </div>
-
-<!-- MODELS -->
 <section id="models">
   <div class="section-inner">
     <h2 class="section-title">รุ่นรถฮอนด้า & ราคา</h2>
@@ -422,486 +157,132 @@
     <div id="catRows"></div>
   </div>
 </section>
-
-<!-- MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
-  <div class="modal" id="modalContent">
+  <div class="modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
     <h2 id="mName"></h2>
-
-    <!-- VARIANTS -->
-    <div id="mVariants" style="display:none; margin-bottom:1rem;">
-      <div style="font-size:0.85rem; font-weight:600; color:var(--text2); margin-bottom:0.5rem;">เลือกรุ่นย่อย</div>
-      <div id="mVariantBtns" style="display:flex; gap:0.5rem; flex-wrap:wrap;"></div>
-    </div>
-
-    <!-- COLORS -->
-    <div id="mColors" style="display:none; margin-bottom:1.25rem;">
-      <div style="font-size:0.85rem; font-weight:600; color:var(--text2); margin-bottom:0.6rem;">เลือกสี</div>
-      <div id="mColorSwatches" style="display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center;"></div>
-      <div id="mColorName" style="margin-top:0.5rem; font-size:0.85rem; color:var(--text2);"></div>
-    </div>
-
+    <div id="mCarImg" style="text-align:center;margin-bottom:1rem;min-height:80px;display:flex;align-items:center;justify-content:center;background:#f9f9f9;border-radius:8px;"></div>
+    <div id="mVariants" style="display:none;margin-bottom:1rem;"><div style="font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:.5rem;">เลือกรุ่นย่อย</div><div id="mVariantBtns" style="display:flex;gap:.5rem;flex-wrap:wrap;"></div></div>
+    <div id="mColors" style="display:none;margin-bottom:1.25rem;"><div style="font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:.6rem;">เลือกสี</div><div id="mColorSwatches" style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;"></div><div id="mColorName" style="margin-top:.5rem;font-size:.85rem;color:var(--text2);"></div></div>
     <div class="modal-price" id="mPrice"></div>
-    <table class="installment-table" id="mTable">
-      <thead>
-        <tr>
-          <th>ดาวน์ (บาท)</th>
-          <th>12 เดือน</th>
-          <th>24 เดือน</th>
-          <th>36 เดือน</th>
-          <th>48 เดือน</th>
-        </tr>
-      </thead>
-      <tbody id="mTableBody"></tbody>
-    </table>
+    <table class="installment-table"><thead><tr><th>ดาวน์ (บาท)</th><th>12 เดือน</th><th>24 เดือน</th><th>36 เดือน</th><th>48 เดือน</th></tr></thead><tbody id="mTableBody"></tbody></table>
     <div class="calc-box">
       <h3>🧮 คำนวณค่างวดเอง</h3>
       <div class="calc-row">
-        <div class="calc-field">
-          <label>ราคารถ (บาท)</label>
-          <input type="number" id="calcPrice" placeholder="เช่น 55900">
-        </div>
-        <div class="calc-field">
-          <label>เงินดาวน์ (บาท)</label>
-          <input type="number" id="calcDown" placeholder="เช่น 5000">
-        </div>
-        <div class="calc-field">
-          <label>ระยะเวลาผ่อน</label>
-          <select id="calcMonth">
-            <option value="12">12 เดือน</option>
-            <option value="24" selected>24 เดือน</option>
-            <option value="36">36 เดือน</option>
-            <option value="48">48 เดือน</option>
-          </select>
-        </div>
+        <div class="calc-field"><label>ราคารถ (บาท)</label><input type="number" id="calcPrice"></div>
+        <div class="calc-field"><label>เงินดาวน์ (บาท)</label><input type="number" id="calcDown" placeholder="เช่น 5000"></div>
+        <div class="calc-field"><label>ระยะเวลา</label><select id="calcMonth"><option value="12">12 เดือน</option><option value="24" selected>24 เดือน</option><option value="36">36 เดือน</option><option value="48">48 เดือน</option></select></div>
       </div>
       <button class="btn btn-red" onclick="calculate()" style="width:100%">คำนวณ</button>
-      <div class="calc-result" id="calcResult" style="display:none; margin-top:1rem;">
-        <span>ผ่อนเดือนละประมาณ</span>
-        <strong id="calcOutput"></strong>
-      </div>
+      <div class="calc-result" id="calcResult" style="display:none;margin-top:1rem;"><span>ผ่อนเดือนละประมาณ</span><strong id="calcOutput"></strong></div>
     </div>
   </div>
 </div>
-
-<!-- NEWS -->
 <section id="news" class="news-section">
   <div class="section-inner">
     <h2 class="section-title">ข่าวกิจกรรมทางร้าน</h2>
     <p class="section-sub">อัปเดตโปรโมชั่น กิจกรรม และข่าวสารจากร้านเรา</p>
-    <div class="news-grid">
-      <div class="news-card">
-        <div class="news-img">🏍️</div>
-        <div class="news-body">
-          <div class="news-tag">โปรโมชั่น</div>
-          <div class="news-date">พฤษภาคม 2569</div>
-          <div class="news-title">ดาวน์พิเศษ 0% เดือนนี้เท่านั้น! Honda CLICK 160 และ PCX160</div>
-        </div>
-      </div>
-      <div class="news-card">
-        <div class="news-img">🔧</div>
-        <div class="news-body">
-          <div class="news-tag">บริการ</div>
-          <div class="news-date">เมษายน 2569</div>
-          <div class="news-title">เช็กรถฟรี! ศูนย์บริการฮอนด้า วังน้อย ต้อนรับเทศกาลสงกรานต์</div>
-        </div>
-      </div>
-      <div class="news-card">
-        <div class="news-img">🎉</div>
-        <div class="news-body">
-          <div class="news-tag">กิจกรรม</div>
-          <div class="news-date">มีนาคม 2569</div>
-          <div class="news-title">ร่วมแสดงความยินดี ส่งมอบรถ Honda ADV160 ลูกค้าคนพิเศษ</div>
-        </div>
-      </div>
-    </div>
+    <div class="news-grid" id="newsGrid"></div>
   </div>
 </section>
-
-<!-- SOCIAL -->
 <section id="social" class="social-section">
   <div class="section-inner">
     <h2 class="section-title" style="text-align:center">ติดตามเราบนโซเชียล</h2>
     <p class="section-sub" style="text-align:center">อัปเดตข่าวสาร โปรโมชั่น และรีวิวรถล่าสุดได้ที่</p>
     <div class="social-links">
-      <a href="https://facebook.com" target="_blank" class="social-btn facebook">
-        <svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-        Facebook
-      </a>
-      <a href="https://tiktok.com" target="_blank" class="social-btn tiktok">
-        <svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
-        TikTok
-      </a>
-      <a href="https://line.me" target="_blank" class="social-btn line">
-        <svg viewBox="0 0 24 24"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
-        LINE
-      </a>
+      <a href="https://www.facebook.com/profile.php?id=100064036530646" target="_blank" class="social-btn facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>Facebook</a>
+      <a href="https://www.tiktok.com/@porpaor.wangnoi" target="_blank" class="social-btn tiktok"><svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>TikTok</a>
+      <a href="https://line.me" target="_blank" class="social-btn line"><svg viewBox="0 0 24 24"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>LINE</a>
     </div>
   </div>
 </section>
-
-<!-- CONTACT FORM -->
 <section id="contact" class="form-section">
   <div class="section-inner">
     <h2 class="section-title">สอบถาม / จองรถ / ส่งต่อข้อมูลลูกค้า</h2>
-    <p class="section-sub">กรอกข้อมูลด้านล่าง เจ้าหน้าที่จะติดต่อกลับโดยเร็ว หรือส่งต่อข้อมูลให้ไฟแนนซ์ดำเนินการ</p>
+    <p class="section-sub">กรอกข้อมูลด้านล่าง เจ้าหน้าที่จะติดต่อกลับโดยเร็ว</p>
     <div class="lead-form">
       <form id="leadForm" onsubmit="submitForm(event)">
         <div class="form-grid">
-          <div class="form-group">
-            <label>ชื่อ-นามสกุล *</label>
-            <input type="text" placeholder="ชื่อ-นามสกุลลูกค้า" required>
-          </div>
-          <div class="form-group">
-            <label>เบอร์โทรศัพท์ *</label>
-            <input type="tel" placeholder="0X-XXXX-XXXX" required>
-          </div>
-          <div class="form-group">
-            <label>รุ่นรถที่สนใจ *</label>
-            <select required id="interestedModel">
-              <option value="">-- เลือกรุ่น --</option>
-              <option>Honda CLICK 160</option>
-              <option>Honda PCX160</option>
-              <option>Honda ADV160</option>
-              <option>Honda Forza350</option>
-              <option>Honda Wave110i</option>
-              <option>Honda Dash125</option>
-              <option>Honda SCOOPY</option>
-              <option>Honda CB500F</option>
-              <option>อื่น ๆ</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>งบประมาณดาวน์ (บาท)</label>
-            <input type="number" placeholder="เช่น 5000">
-          </div>
-          <div class="form-group">
-            <label>ระยะเวลาผ่อนที่ต้องการ</label>
-            <select>
-              <option>12 เดือน</option>
-              <option selected>24 เดือน</option>
-              <option>36 เดือน</option>
-              <option>48 เดือน</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>ประเภท</label>
-            <select>
-              <option>สอบถามข้อมูล</option>
-              <option>จองรถ</option>
-              <option>ส่งต่อไฟแนนซ์</option>
-              <option>นัดทดลองขับ</option>
-            </select>
-          </div>
-          <div class="form-group full">
-            <label>หมายเหตุ / ข้อมูลเพิ่มเติม</label>
-            <textarea placeholder="เช่น สี รุ่นย่อย หรือข้อมูลพิเศษอื่น ๆ"></textarea>
-          </div>
+          <div class="form-group"><label>ชื่อ-นามสกุล *</label><input type="text" required></div>
+          <div class="form-group"><label>เบอร์โทรศัพท์ *</label><input type="tel" required></div>
+          <div class="form-group"><label>รุ่นรถที่สนใจ *</label><select required id="intModel"><option value="">-- เลือกรุ่น --</option></select></div>
+          <div class="form-group"><label>งบดาวน์ (บาท)</label><input type="number"></div>
+          <div class="form-group"><label>ระยะเวลาผ่อน</label><select><option>12 เดือน</option><option selected>24 เดือน</option><option>36 เดือน</option><option>48 เดือน</option></select></div>
+          <div class="form-group"><label>ประเภท</label><select><option>สอบถาม</option><option>จองรถ</option><option>ส่งต่อไฟแนนซ์</option><option>นัดทดลองขับ</option></select></div>
+          <div class="form-group full"><label>หมายเหตุ</label><textarea></textarea></div>
         </div>
         <button type="submit" class="form-submit">📨 ส่งข้อมูล / จองรถ</button>
         <p class="form-note">* ข้อมูลจะถูกส่งให้ทีมขายและตรวจสอบโดยเช็กเกอร์ไฟแนนซ์</p>
       </form>
-      <div class="success-msg" id="successMsg">
-        ✅ ได้รับข้อมูลแล้วครับ! ทีมงานจะติดต่อกลับภายใน 24 ชั่วโมง
-      </div>
+      <div class="success-msg" id="successMsg">✅ ได้รับข้อมูลแล้วครับ! ทีมงานจะติดต่อกลับภายใน 24 ชั่วโมง</div>
     </div>
   </div>
 </section>
-
-<!-- FOOTER -->
 <footer>
   <div class="footer-brand">ป.เปา มอเตอร์เซอร์วิส</div>
-  <p>ตัวแทนจำหน่ายและศูนย์บริการ Honda · วังน้อย อยุธยา<br>
-  เปิดทุกวัน 08:00 – 18:00 น. · โทร. 035-XXX-XXX</p>
-  <p style="margin-top:1rem; font-size:0.8rem; color:#666;">© 2569 ป.เปา มอเตอร์เซอร์วิส. All rights reserved.</p>
+  <p>ตัวแทนจำหน่ายและศูนย์บริการ Honda · วังน้อย อยุธยา<br>เปิดทุกวัน 08:00 – 18:00 น. · โทร. 035-XXX-XXX</p>
+  <p style="margin-top:1rem;font-size:.8rem;color:#666;">© 2569 ป.เปา มอเตอร์เซอร์วิส. All rights reserved.</p>
 </footer>
-
 <script>
-const RATE = 0.065;
-
-const categories = [
-  {
-    name: "ครอบครัว (Family)", icon: "🏘️", color: "#e8f5e9",
-    models: [
-      { name: "Honda Wave110i", price: 44900, badge: "", icon: "🛵", downs: [3000,5000,8000,10000],
-        colors: [{name:"แดง-ดำ",hex:"#cc0000"},{name:"น้ำเงิน-ขาว",hex:"#1565c0"},{name:"เทา-ดำ",hex:"#616161"},{name:"เขียว-ดำ",hex:"#2e7d32"}] },
-      { name: "Honda Dash125", price: 52900, badge: "", icon: "🛵", downs: [4000,6000,8000,10000],
-        colors: [{name:"แดง-ดำ",hex:"#cc0000"},{name:"ขาว-ดำ",hex:"#f5f5f5",border:true},{name:"น้ำเงิน-เทา",hex:"#546e7a"},{name:"เหลือง-ดำ",hex:"#f9a825"}] },
-      { name: "Honda Dream110i", price: 42900, badge: "", icon: "🛵", downs: [3000,5000,7000,9000],
-        colors: [{name:"แดง",hex:"#cc0000"},{name:"น้ำเงิน",hex:"#1565c0"},{name:"ดำ",hex:"#212121"},{name:"ขาว",hex:"#eeeeee",border:true}] },
-      { name: "Honda Super Cub C125", price: 79900, badge: "NEW", icon: "🛵", downs: [8000,10000,15000,20000],
-        colors: [{name:"ขาวมุก",hex:"#f5f5f5",border:true},{name:"แดง",hex:"#cc0000"},{name:"น้ำเงิน",hex:"#1565c0"},{name:"เหลือง",hex:"#f9a825"}] },
-      { name: "Honda Wave125i", price: 54900, badge: "", icon: "🛵", downs: [5000,7000,10000,12000],
-        variants: [
-          { name: "ล้อลวด", price: 54900, downs: [5000,7000,10000,12000] },
-          { name: "ล้อแม็ก", price: 57900, downs: [5000,8000,11000,13000] },
-        ],
-        colors: [{name:"แดง-ดำ",hex:"#cc0000"},{name:"น้ำเงิน-ดำ",hex:"#1565c0"},{name:"ดำ-เทา",hex:"#424242"},{name:"ขาว-ดำ",hex:"#eeeeee",border:true}] },
-    ]
-  },
-  {
-    name: "สกู๊ตเตอร์ออโตเมติก", icon: "🛵", color: "#fff3e0",
-    models: [
-      { name: "Honda CLICK 160", price: 56900, badge: "ยอดนิยม", icon: "🛵", downs: [5000,8000,10000,15000],
-        colors: [{name:"แดง-ดำ",hex:"#cc0000"},{name:"ขาว-ดำ",hex:"#f5f5f5",border:true},{name:"น้ำเงิน-ดำ",hex:"#1565c0"},{name:"เทาเมทัลลิก",hex:"#78909c"},{name:"ดำ",hex:"#212121"}] },
-      { name: "Honda PCX160", price: 79900, badge: "ขายดี", icon: "🛵", downs: [8000,12000,15000,20000],
-        colors: [{name:"ขาว",hex:"#f5f5f5",border:true},{name:"แดง",hex:"#cc0000"},{name:"เทาเข้ม",hex:"#546e7a"},{name:"เหลืองทอง",hex:"#f9a825"},{name:"ดำ",hex:"#212121"}] },
-      { name: "Honda SCOOPY", price: 57900, badge: "NEW", icon: "🛵", downs: [5000,8000,10000,15000],
-        colors: [{name:"ขาว-ชมพู",hex:"#f48fb1"},{name:"ขาว-ฟ้า",hex:"#81d4fa"},{name:"ขาว-เขียว",hex:"#a5d6a7"},{name:"ขาว-ส้ม",hex:"#ffcc80"},{name:"ดำ-แดง",hex:"#cc0000"}] },
-      { name: "Honda Giorno+", price: 62900, badge: "NEW", icon: "🛵", downs: [6000,9000,12000,15000],
-        colors: [{name:"ขาวมุก",hex:"#f5f5f5",border:true},{name:"ชมพูหวาน",hex:"#f06292"},{name:"ฟ้าพาสเทล",hex:"#81d4fa"},{name:"เทาเมทัลลิก",hex:"#90a4ae"}] },
-      { name: "Honda Vario160", price: 67900, badge: "", icon: "🛵", downs: [6000,10000,13000,18000],
-        colors: [{name:"ดำ-เทา",hex:"#424242"},{name:"แดง-ดำ",hex:"#cc0000"},{name:"น้ำเงิน-ดำ",hex:"#1565c0"},{name:"ขาว-เทา",hex:"#eeeeee",border:true}] },
-    ]
-  },
-  {
-    name: "สปอร์ต (Sport)", icon: "🏍️", color: "#fce4ec",
-    models: [
-      { name: "Honda CBR500R", price: 219000, badge: "Big Bike", icon: "🏍️", downs: [22000,35000,55000,75000],
-        colors: [{name:"แดง",hex:"#cc0000"},{name:"ดำ",hex:"#212121"},{name:"ขาว",hex:"#f5f5f5",border:true}] },
-      { name: "Honda CBR650R", price: 339000, badge: "NEW", icon: "🏍️", downs: [34000,55000,85000,110000],
-        colors: [{name:"แดง",hex:"#cc0000"},{name:"ดำ",hex:"#212121"},{name:"เทา-ดำ",hex:"#546e7a"}] },
-      { name: "Honda CBR1000RR-R", price: 899000, badge: "Big Bike", icon: "🏍️", downs: [90000,140000,200000,260000],
-        variants: [
-          { name: "Standard", price: 899000, downs: [90000,140000,200000,260000] },
-          { name: "SP (Öhlins)", price: 1049000, downs: [105000,160000,230000,300000] },
-        ],
-        colors: [{name:"แดง-ดำ",hex:"#cc0000"},{name:"ดำ",hex:"#212121"},{name:"ขาว-แดง",hex:"#f5f5f5",border:true}] },
-    ]
-  },
-  {
-    name: "ผจญภัย (Adventure)", icon: "🗺️", color: "#e3f2fd",
-    models: [
-      { name: "Honda ADV160", price: 95900, badge: "NEW", icon: "🏍️", downs: [10000,15000,20000,25000],
-        colors: [{name:"เทาเมทัลลิก",hex:"#78909c"},{name:"แดง-ดำ",hex:"#cc0000"},{name:"ดำ",hex:"#212121"},{name:"ขาว-เทา",hex:"#eeeeee",border:true}] },
-      { name: "Honda Forza350", price: 199900, badge: "พรีเมียม", icon: "🏍️", downs: [20000,30000,40000,50000],
-        colors: [{name:"ดำ-เทา",hex:"#424242"},{name:"น้ำเงิน-ดำ",hex:"#1565c0"},{name:"แดง-ดำ",hex:"#cc0000"},{name:"ขาว-เทา",hex:"#f5f5f5",border:true}] },
-      { name: "Honda X-ADV", price: 499000, badge: "Big Bike", icon: "🏍️", downs: [50000,80000,120000,150000],
-        colors: [{name:"เทาเข้ม",hex:"#546e7a"},{name:"ดำ",hex:"#212121"},{name:"เขียวทหาร",hex:"#558b2f"}] },
-      { name: "Honda Africa Twin", price: 649000, badge: "Big Bike", icon: "🏍️", downs: [65000,100000,150000,200000],
-        variants: [
-          { name: "Manual (MT)", price: 649000, downs: [65000,100000,150000,200000] },
-          { name: "DCT (ออโต้)", price: 699000, downs: [70000,110000,160000,210000] },
-        ],
-        colors: [{name:"แดง-ดำ",hex:"#cc0000"},{name:"ขาว-น้ำเงิน",hex:"#f5f5f5",border:true},{name:"เทาเข้ม",hex:"#546e7a"},{name:"เขียว",hex:"#558b2f"}] },
-    ]
-  },
-  {
-    name: "บ๊อบเบอร์ & นีโอสปอร์ตคาเฟ่", icon: "☕", color: "#f3e5f5",
-    models: [
-      { name: "Honda CB300R", price: 159000, badge: "", icon: "🏍️", downs: [16000,25000,35000,50000],
-        colors: [{name:"ดำ",hex:"#212121"},{name:"ขาว",hex:"#f5f5f5",border:true},{name:"แดง",hex:"#cc0000"},{name:"เทาเมทัลลิก",hex:"#78909c"}] },
-      { name: "Honda CB500F", price: 209000, badge: "", icon: "🏍️", downs: [21000,30000,50000,70000],
-        colors: [{name:"แดง",hex:"#cc0000"},{name:"ดำ-เทา",hex:"#424242"},{name:"ขาว-ดำ",hex:"#f5f5f5",border:true}] },
-      { name: "Honda CB650R", price: 329000, badge: "NEW", icon: "🏍️", downs: [33000,50000,80000,100000],
-        colors: [{name:"ดำ",hex:"#212121"},{name:"เทาเมทัลลิก",hex:"#78909c"},{name:"แดง",hex:"#cc0000"}] },
-      { name: "Honda CB1000R", price: 699000, badge: "Big Bike", icon: "🏍️", downs: [70000,110000,160000,200000],
-        colors: [{name:"ดำ",hex:"#212121"},{name:"เทาเงิน",hex:"#90a4ae"},{name:"แดง",hex:"#cc0000"}] },
-    ]
-  },
-  {
-    name: "รถไฟฟ้า (EV)", icon: "⚡", color: "#e0f7fa",
-    models: [
-      { name: "Honda EM1 e:", price: 65900, badge: "EV", icon: "⚡", downs: [6000,9000,12000,16000],
-        colors: [{name:"ขาว",hex:"#f5f5f5",border:true},{name:"ดำ",hex:"#212121"},{name:"แดง",hex:"#cc0000"},{name:"ฟ้า",hex:"#29b6f6"}] },
-      { name: "Honda BENLY e:", price: 95000, badge: "EV", icon: "⚡", downs: [9500,15000,20000,25000],
-        colors: [{name:"ขาว",hex:"#f5f5f5",border:true},{name:"ดำ",hex:"#212121"}] },
-    ]
-  },
-];
-
-const rowState = categories.map(() => ({ idx: 0 }));
-let modalVariantIdx = 0;
-let modalColorIdx = 0;
-let modalModel = null;
-
-function fmt(n) { return n.toLocaleString('th-TH'); }
-function calcInstallment(price, down, months) {
-  const loan = price - down;
-  const r = RATE / 12;
-  return Math.ceil((loan * r * Math.pow(1+r,months)) / (Math.pow(1+r,months)-1));
-}
-
-function renderAllRows() {
-  const container = document.getElementById('catRows');
-  container.innerHTML = categories.map((cat, ci) => `
-    <div class="cat-row" id="row-${ci}">
-      <div class="cat-row-header">
-        <div class="cat-icon-wrap" style="background:${cat.color}; font-size:1.4rem">${cat.icon}</div>
-        <div>
-          <div class="cat-row-title">${cat.name}</div>
-          <div class="cat-row-sub">${cat.models.length} รุ่น</div>
-        </div>
-        <div class="cat-divider"></div>
-      </div>
-      <div class="slot-wrap" id="wrap-${ci}"
-        ontouchstart="touchStart(event,${ci})"
-        ontouchmove="touchMove(event,${ci})"
-        ontouchend="touchEnd(event,${ci})"
-        onmousedown="dragStart(event,${ci})"
-      >
-        <div class="slot-track" id="track-${ci}">
-          ${cat.models.map((m,mi) => `
-            <div class="mcard" id="card-${ci}-${mi}" onclick="cardClick(${ci},${mi})">
-              <div class="mcard-img">
-                ${m.badge ? `<div class="mcard-badge">${m.badge}</div>` : ''}
-                <span style="font-size:3.5rem">${m.icon}</span>
-              </div>
-              <div class="mcard-name">${m.name}</div>
-              <div class="mcard-price">฿${fmt(m.variants ? m.variants[0].price : m.price)}</div>
-              <div class="mcard-down">ดาวน์เริ่มต้น ฿${fmt(m.variants ? m.variants[0].downs[0] : m.downs[0])}</div>
-              <button class="mcard-btn" onclick="event.stopPropagation();openModal(${ci},${mi})">ดูตารางผ่อน →</button>
-            </div>
-          `).join('')}
-        </div>
-        <div class="slot-dots" id="dots-${ci}">
-          ${cat.models.map((_,mi) => `<div class="slot-dot" onclick="goTo(${ci},${mi})"></div>`).join('')}
-        </div>
-        <div class="slot-arrows">
-          <button class="slot-arr" onclick="goTo(${ci}, rowState[${ci}].idx-1)">&#8249;</button>
-          <button class="slot-arr" onclick="goTo(${ci}, rowState[${ci}].idx+1)">&#8250;</button>
-        </div>
-      </div>
-    </div>
-  `).join('');
-  categories.forEach((_, ci) => goTo(ci, 0, true));
-}
-
-function goTo(ci, mi, instant) {
-  const cat = categories[ci];
-  mi = Math.max(0, Math.min(cat.models.length - 1, mi));
-  rowState[ci].idx = mi;
-  cat.models.forEach((_, i) => {
-    const card = document.getElementById(`card-${ci}-${i}`);
-    if (!card) return;
-    const diff = Math.abs(i - mi);
-    card.className = 'mcard' + (diff === 0 ? ' active' : diff === 1 ? ' adj' : '');
-  });
-  const track = document.getElementById(`track-${ci}`);
-  const cardW = window.innerWidth <= 768 ? 196 : 236;
-  const offset = mi * cardW;
-  if (instant) track.classList.add('no-transition');
-  track.style.transform = `translateX(-${offset}px)`;
-  if (instant) setTimeout(() => track.classList.remove('no-transition'), 50);
-  document.querySelectorAll(`#dots-${ci} .slot-dot`).forEach((d, i) => d.classList.toggle('active', i === mi));
-}
-
-function cardClick(ci, mi) {
-  if (rowState[ci].idx === mi) openModal(ci, mi);
-  else goTo(ci, mi);
-}
-
-const touchData = {};
-function touchStart(e, ci) { touchData[ci] = { x: e.touches[0].clientX }; }
-function touchMove(e, ci) {}
-function touchEnd(e, ci) {
-  if (!touchData[ci]) return;
-  const dx = e.changedTouches[0].clientX - touchData[ci].x;
-  if (Math.abs(dx) > 40) goTo(ci, rowState[ci].idx + (dx < 0 ? 1 : -1));
-  touchData[ci] = null;
-}
-
-const dragData = {};
-function dragStart(e, ci) {
-  e.preventDefault();
-  dragData[ci] = { x: e.clientX };
-  document.getElementById(`wrap-${ci}`).classList.add('grabbing');
-  const up = (ev) => {
-    if (!dragData[ci]) return;
-    const dx = ev.clientX - dragData[ci].x;
-    if (Math.abs(dx) > 40) goTo(ci, rowState[ci].idx + (dx < 0 ? 1 : -1));
-    dragData[ci] = null;
-    document.getElementById(`wrap-${ci}`)?.classList.remove('grabbing');
-    document.removeEventListener('mouseup', up);
-  };
-  document.addEventListener('mouseup', up);
-}
-
-function openModal(catIdx, modelIdx) {
-  modalModel = categories[catIdx].models[modelIdx];
-  modalVariantIdx = 0;
-  modalColorIdx = 0;
-  document.getElementById('mName').textContent = modalModel.name;
-  renderVariants();
-  renderColors();
-  updateTable();
-  document.getElementById('calcResult').style.display = 'none';
-  document.getElementById('modalOverlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function renderVariants() {
-  const wrap = document.getElementById('mVariants');
-  const btns = document.getElementById('mVariantBtns');
-  if (!modalModel.variants || modalModel.variants.length === 0) { wrap.style.display = 'none'; return; }
-  wrap.style.display = 'block';
-  btns.innerHTML = modalModel.variants.map((v, i) =>
-    `<button class="variant-btn ${i===0?'active':''}" onclick="selectVariant(${i})">${v.name}</button>`
+const RATE=0.065;
+const categories=[{"name":"ครอบครัว (Family)","icon":"🏘️","color":"#e8f5e9","models":[{"name":"Honda Wave110i","price":49200,"badge":"","icon":"🛵","variants":[{"name":"ล้อซี่ลวด","price":49200,"downs":[]},{"name":"ล้อแม็ก","price":51200,"downs":[]},{"name":"ล้อแม็ก (สเปเชียล)","price":51700,"downs":[]}],"colors":[{"name":"ดำ","hex":"#000000","img":"/images/WAVE 110 2025/WAVE1102025spoke/Black.png"},{"name":"น้ำเงิน","hex":"#1565c0","img":"/images/WAVE 110 2025/WAVE1102025alloy/MaxWheelBlue.png"},{"name":"เทา","hex":"#616161","img":"/images/WAVE 110 2025/WAVE1102025alloy/MaxWheelGray.png"},{"name":"แดง","hex":"#cc0000","img":"/images/WAVE 110 2025/WAVE1102025alloy/MaxWheelRed.png"},{"name":"ดำ-น้ำตาล","hex":"#000000","img":"/images/WAVE 110 2025/WAVE1102025alloySpecial/SpecialBlackBBR.png"},{"name":"ขาว-น้ำตาล","hex":"#ffffff","img":"/images/WAVE 110 2025/WAVE1102025alloySpecial/SpecialWhiteWBR.png"},{"name":"น้ำเงิน-ดำ","hex":"#1565c0","img":"/images/WAVE 110 2025/WAVE1102025dise/WheelBlue.png"},{"name":"เทา-ดำ","hex":"#ababab","img":"/images/WAVE 110 2025/WAVE1102025dise/WheelGray.png"},{"name":"ดำ-น้ำตาล","hex":"#000000","img":"/images/WAVE 110 2025/WAVE1102025dise/WheelBlack.png"}]},{"name":"Honda Wave125i","price":54900,"badge":"","icon":"🛵","variants":[{"name":"ล้อลวด","price":54900,"downs":[5000,7000,10000,12000]},{"name":"ล้อแม็ก","price":57900,"downs":[5000,8000,11000,13000]}],"colors":[{"name":"แดง-ดำ","hex":"#cc0000"},{"name":"น้ำเงิน-ดำ","hex":"#1565c0"},{"name":"ขาว-ดำ","hex":"#f5f5f5","border":true}]},{"name":"Honda Dash125","price":52900,"badge":"","icon":"🛵","variants":[{"name":"มาตรฐาน","price":52900,"downs":[4000,6000,8000,10000]}],"colors":[{"name":"แดง","hex":"#cc0000"},{"name":"ขาว","hex":"#f5f5f5","border":true},{"name":"น้ำเงิน","hex":"#1565c0"}]},{"name":"Honda Super Cub C125","price":79900,"badge":"NEW","icon":"🛵","variants":[{"name":"มาตรฐาน","price":79900,"downs":[8000,10000,15000,20000]}],"colors":[{"name":"ขาวมุก","hex":"#f5f5f5","border":true},{"name":"แดง","hex":"#cc0000"},{"name":"น้ำเงิน","hex":"#1565c0"},{"name":"เหลือง","hex":"#f9a825"}]}]},{"name":"สกู๊ตเตอร์ออโตเมติก","icon":"🛵","color":"#fff3e0","models":[{"name":"Honda CLICK 160","price":56900,"badge":"ยอดนิยม","icon":"🛵","variants":[{"name":"มาตรฐาน","price":56900,"downs":[5000,8000,10000,15000]}],"colors":[{"name":"แดง-ดำ","hex":"#cc0000"},{"name":"ขาว-ดำ","hex":"#f5f5f5","border":true},{"name":"น้ำเงิน-ดำ","hex":"#1565c0"},{"name":"เทา","hex":"#78909c"}]},{"name":"Honda PCX160","price":79900,"badge":"ขายดี","icon":"🛵","variants":[{"name":"มาตรฐาน","price":79900,"downs":[8000,12000,15000,20000]}],"colors":[{"name":"ขาว","hex":"#f5f5f5","border":true},{"name":"แดง","hex":"#cc0000"},{"name":"เทา","hex":"#546e7a"},{"name":"ดำ","hex":"#212121"}]},{"name":"Honda SCOOPY","price":57900,"badge":"NEW","icon":"🛵","variants":[{"name":"มาตรฐาน","price":57900,"downs":[5000,8000,10000,15000]}],"colors":[{"name":"ขาว-ชมพู","hex":"#f48fb1"},{"name":"ขาว-ฟ้า","hex":"#81d4fa"},{"name":"ขาว-เขียว","hex":"#a5d6a7"},{"name":"ดำ-แดง","hex":"#cc0000"}]},{"name":"Honda Forza350","price":199900,"badge":"พรีเมียม","icon":"🛵","variants":[{"name":"มาตรฐาน","price":199900,"downs":[20000,30000,40000,50000]}],"colors":[{"name":"ดำ-เทา","hex":"#424242"},{"name":"น้ำเงิน-ดำ","hex":"#1565c0"},{"name":"แดง-ดำ","hex":"#cc0000"}]}]},{"name":"สปอร์ต (Sport)","icon":"🏍️","color":"#fce4ec","models":[{"name":"Honda CBR500R","price":219000,"badge":"Big Bike","icon":"🏍️","variants":[{"name":"มาตรฐาน","price":219000,"downs":[22000,35000,55000,75000]}],"colors":[{"name":"แดง","hex":"#cc0000"},{"name":"ดำ","hex":"#212121"},{"name":"ขาว","hex":"#f5f5f5","border":true}]},{"name":"Honda CBR650R","price":339000,"badge":"NEW","icon":"🏍️","variants":[{"name":"มาตรฐาน","price":339000,"downs":[34000,55000,85000,110000]}],"colors":[{"name":"แดง","hex":"#cc0000"},{"name":"ดำ","hex":"#212121"},{"name":"เทา","hex":"#546e7a"}]}]},{"name":"ผจญภัย (Adventure)","icon":"🗺️","color":"#e3f2fd","models":[{"name":"Honda ADV160","price":95900,"badge":"NEW","icon":"🏍️","variants":[{"name":"มาตรฐาน","price":95900,"downs":[10000,15000,20000,25000]}],"colors":[{"name":"เทา","hex":"#78909c"},{"name":"แดง-ดำ","hex":"#cc0000"},{"name":"ดำ","hex":"#212121"}]},{"name":"Honda Africa Twin","price":649000,"badge":"Big Bike","icon":"🏍️","variants":[{"name":"Manual (MT)","price":649000,"downs":[65000,100000,150000,200000]},{"name":"DCT (ออโต้)","price":699000,"downs":[70000,110000,160000,210000]}],"colors":[{"name":"แดง-ดำ","hex":"#cc0000"},{"name":"ขาว-น้ำเงิน","hex":"#f5f5f5","border":true},{"name":"เขียว","hex":"#558b2f"}]}]},{"name":"บ๊อบเบอร์ & นีโอสปอร์ตคาเฟ่","icon":"☕","color":"#f3e5f5","models":[{"name":"Honda CB300R","price":159000,"badge":"","icon":"🏍️","variants":[{"name":"มาตรฐาน","price":159000,"downs":[16000,25000,35000,50000]}],"colors":[{"name":"ดำ","hex":"#212121"},{"name":"ขาว","hex":"#f5f5f5","border":true},{"name":"แดง","hex":"#cc0000"}]},{"name":"Honda CB650R","price":329000,"badge":"NEW","icon":"🏍️","variants":[{"name":"มาตรฐาน","price":329000,"downs":[33000,50000,80000,100000]}],"colors":[{"name":"ดำ","hex":"#212121"},{"name":"เทา","hex":"#78909c"},{"name":"แดง","hex":"#cc0000"}]}]},{"name":"รถไฟฟ้า (EV)","icon":"⚡","color":"#e0f7fa","models":[{"name":"Honda EM1 e:","price":65900,"badge":"EV","icon":"⚡","variants":[{"name":"มาตรฐาน","price":65900,"downs":[6000,9000,12000,16000]}],"colors":[{"name":"ขาว","hex":"#f5f5f5","border":true},{"name":"ดำ","hex":"#212121"},{"name":"แดง","hex":"#cc0000"},{"name":"ฟ้า","hex":"#29b6f6"}]}]}];
+const newsData=[{"title":"ดาวน์พิเศษ 0% เดือนนี้เท่านั้น!","tag":"โปรโมชั่น","date":"พฤษภาคม 2569","icon":"🏍️","body":"Honda CLICK 160 และ PCX160"},{"title":"เช็กรถฟรี ต้อนรับเทศกาลสงกรานต์","tag":"บริการ","date":"เมษายน 2569","icon":"🔧","body":"ศูนย์บริการฮอนด้า วังน้อย"},{"title":"ส่งมอบรถ Honda ADV160","tag":"กิจกรรม","date":"มีนาคม 2569","icon":"🎉","body":"ร่วมแสดงความยินดีกับลูกค้า"}];
+const rowState=categories.map(()=>({idx:0}));
+let modalModel=null,modalVariantIdx=0,modalColorIdx=0;
+function fmt(n){return n.toLocaleString('th-TH');}
+function calcInst(price,down,months){const loan=price-down;const r=RATE/12;return Math.ceil((loan*r*Math.pow(1+r,months))/(Math.pow(1+r,months)-1));}
+function renderAllRows(){
+  const c=document.getElementById('catRows');
+  c.innerHTML=categories.map((cat,ci)=>
+    '<div class="cat-row"><div class="cat-row-header"><div class="cat-icon-wrap" style="background:'+cat.color+'">'+cat.icon+'</div><div><div class="cat-row-title">'+cat.name+'</div><div class="cat-row-sub">'+cat.models.length+' รุ่น</div></div><div class="cat-divider"></div></div>'+
+    '<div class="slot-wrap" id="wrap-'+ci+'" ontouchstart="tS(event,'+ci+')" ontouchend="tE(event,'+ci+')" onmousedown="dS(event,'+ci+')">'+
+    '<div class="slot-track" id="track-'+ci+'">'+
+    cat.models.map((m,mi)=>
+      '<div class="mcard" id="card-'+ci+'-'+mi+'" onclick="cC('+ci+','+mi+')">'+
+      '<div class="mcard-img">'+(m.badge?'<div class="mcard-badge">'+m.badge+'</div>':'')+
+      (m.colors&&m.colors[0]&&m.colors[0].img ? '<img src="'+m.colors[0].img+'" style="width:100%;height:130px;object-fit:contain;" class="mcard-photo">' : '<span style="font-size:3.5rem">'+m.icon+'</span>')+
+      '</div>'+
+      '<div class="mcard-name">'+m.name+'</div>'+
+      '<div class="mcard-price">฿'+fmt(m.variants[0].price)+'</div>'+
+      '<div class="mcard-down">ดาวน์เริ่มต้น ฿'+fmt(m.variants[0].downs[0])+'</div>'+
+      '<button class="mcard-btn" onclick="event.stopPropagation();oM('+ci+','+mi+')">ดูตารางผ่อน →</button></div>'
+    ).join('')+
+    '</div>'+
+    '<div class="slot-dots" id="dots-'+ci+'">'+cat.models.map((_,mi)=>'<div class="slot-dot" onclick="gT('+ci+','+mi+')"></div>').join('')+'</div>'+
+    '<div class="slot-arrows"><button class="slot-arr" onclick="gT('+ci+',rowState['+ci+'].idx-1)">&#8249;</button><button class="slot-arr" onclick="gT('+ci+',rowState['+ci+'].idx+1)">&#8250;</button></div>'+
+    '</div></div>'
   ).join('');
+  categories.forEach((_,ci)=>gT(ci,0,true));
 }
-
-function selectVariant(i) {
-  modalVariantIdx = i;
-  document.querySelectorAll('.variant-btn').forEach((b,j) => b.classList.toggle('active', j===i));
-  updateTable();
+function gT(ci,mi,instant){
+  const cat=categories[ci];mi=Math.max(0,Math.min(cat.models.length-1,mi));rowState[ci].idx=mi;
+  cat.models.forEach((_,i)=>{const card=document.getElementById('card-'+ci+'-'+i);if(!card)return;const d=Math.abs(i-mi);card.className='mcard'+(d===0?' active':d===1?' adj':'');});
+  const track=document.getElementById('track-'+ci);const cw=window.innerWidth<=768?196:236;
+  if(instant)track.classList.add('no-transition');track.style.transform='translateX(-'+(mi*cw)+'px)';
+  if(instant)setTimeout(()=>track.classList.remove('no-transition'),50);
+  document.querySelectorAll('#dots-'+ci+' .slot-dot').forEach((d,i)=>d.classList.toggle('active',i===mi));
 }
-
-function renderColors() {
-  const wrap = document.getElementById('mColors');
-  const swatches = document.getElementById('mColorSwatches');
-  const nameEl = document.getElementById('mColorName');
-  if (!modalModel.colors || modalModel.colors.length === 0) { wrap.style.display = 'none'; return; }
-  wrap.style.display = 'block';
-  swatches.innerHTML = modalModel.colors.map((c, i) =>
-    `<div class="color-swatch ${i===0?'active':''}" style="background:${c.hex};${c.border?'border:2px solid #bbb;':''}" title="${c.name}" onclick="selectColor(${i})"></div>`
-  ).join('');
-  nameEl.textContent = `สี: ${modalModel.colors[0].name}`;
-}
-
-function selectColor(i) {
-  modalColorIdx = i;
-  document.querySelectorAll('.color-swatch').forEach((s,j) => s.classList.toggle('active', j===i));
-  document.getElementById('mColorName').textContent = `สี: ${modalModel.colors[i].name}`;
-}
-
-function updateTable() {
-  const d = (modalModel.variants && modalModel.variants.length > 0) ? modalModel.variants[modalVariantIdx] : modalModel;
-  document.getElementById('mPrice').textContent = '฿' + fmt(d.price);
-  document.getElementById('calcPrice').value = d.price;
-  const months = [12,24,36,48];
-  document.getElementById('mTableBody').innerHTML = d.downs.map(dn => `
-    <tr><td>${fmt(dn)}</td>${months.map(mo=>`<td>${fmt(calcInstallment(d.price,dn,mo))} บ./เดือน</td>`).join('')}</tr>
-  `).join('');
-}
-
-function closeModal(e) {
-  if (!e || e.target === document.getElementById('modalOverlay') || !e.target) {
-    document.getElementById('modalOverlay').classList.remove('open');
-    document.body.style.overflow = '';
-  }
-}
-
-function calculate() {
-  const price = parseFloat(document.getElementById('calcPrice').value) || 0;
-  const down = parseFloat(document.getElementById('calcDown').value) || 0;
-  const months = parseInt(document.getElementById('calcMonth').value);
-  if (price <= 0) { alert('กรุณากรอกราคารถ'); return; }
-  if (down >= price) { alert('เงินดาวน์ต้องน้อยกว่าราคารถ'); return; }
-  document.getElementById('calcOutput').textContent = '฿' + fmt(calcInstallment(price,down,months)) + ' / เดือน';
-  document.getElementById('calcResult').style.display = 'flex';
-}
-
-function submitForm(e) {
-  e.preventDefault();
-  document.getElementById('leadForm').style.display = 'none';
-  document.getElementById('successMsg').style.display = 'block';
-}
-
-function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
-function closeMenu() { document.getElementById('mobileMenu').classList.remove('open'); }
-
-renderAllRows();
+function cC(ci,mi){if(rowState[ci].idx===mi)oM(ci,mi);else gT(ci,mi);}
+const td={};
+function tS(e,ci){td[ci]={x:e.touches[0].clientX};}
+function tE(e,ci){if(!td[ci])return;const dx=e.changedTouches[0].clientX-td[ci].x;if(Math.abs(dx)>40)gT(ci,rowState[ci].idx+(dx<0?1:-1));td[ci]=null;}
+const dd={};
+function dS(e,ci){e.preventDefault();dd[ci]={x:e.clientX};document.getElementById('wrap-'+ci).classList.add('grabbing');const up=(ev)=>{if(!dd[ci])return;const dx=ev.clientX-dd[ci].x;if(Math.abs(dx)>40)gT(ci,rowState[ci].idx+(dx<0?1:-1));dd[ci]=null;document.getElementById('wrap-'+ci)?.classList.remove('grabbing');document.removeEventListener('mouseup',up);};document.addEventListener('mouseup',up);}
+function oM(ci,mi){modalModel=categories[ci].models[mi];modalVariantIdx=0;modalColorIdx=0;document.getElementById('mName').textContent=modalModel.name;rV();rC();uT();document.getElementById('calcResult').style.display='none';document.getElementById('modalOverlay').classList.add('open');document.body.style.overflow='hidden';}
+function rV(){const w=document.getElementById('mVariants');const b=document.getElementById('mVariantBtns');if(!modalModel.variants||modalModel.variants.length<=1){w.style.display='none';return;}w.style.display='block';b.innerHTML=modalModel.variants.map((v,i)=>'<button class="variant-btn'+(i===0?' active':'')+'" onclick="sV('+i+')">'+v.name+'</button>').join('');}
+function sV(i){modalVariantIdx=i;document.querySelectorAll('.variant-btn').forEach((b,j)=>b.classList.toggle('active',j===i));uT();}
+function rC(){const w=document.getElementById('mColors');const s=document.getElementById('mColorSwatches');const n=document.getElementById('mColorName');if(!modalModel.colors||!modalModel.colors.length){w.style.display='none';document.getElementById('mCarImg').innerHTML='<span style="font-size:4rem">'+modalModel.icon+'</span>';return;}w.style.display='block';s.innerHTML=modalModel.colors.map((c,i)=>'<div class="color-swatch'+(i===0?' active':'')+'" style="background:'+c.hex+';'+(c.border?'border:2px solid #bbb;':'')+'" title="'+c.name+'" onclick="sC('+i+')"></div>').join('');n.textContent='สี: '+modalModel.colors[0].name;updCarImg(0);}
+function sC(i){modalColorIdx=i;document.querySelectorAll('.color-swatch').forEach((s,j)=>s.classList.toggle('active',j===i));document.getElementById('mColorName').textContent='สี: '+modalModel.colors[i].name;updCarImg(i);}
+function updCarImg(i){const c=modalModel.colors[i];const area=document.getElementById('mCarImg');if(c&&c.img){area.innerHTML='<img src="'+c.img+'" style="max-height:160px;max-width:100%;object-fit:contain;">';}else{area.innerHTML='<span style="font-size:4rem">'+modalModel.icon+'</span>';}}
+function uT(){const d=modalModel.variants[modalVariantIdx];document.getElementById('mPrice').textContent='฿'+fmt(d.price);document.getElementById('calcPrice').value=d.price;const months=[12,24,36,48];document.getElementById('mTableBody').innerHTML=d.downs.map(dn=>'<tr><td>'+fmt(dn)+'</td>'+months.map(mo=>'<td>'+fmt(calcInst(d.price,dn,mo))+' บ./เดือน</td>').join('')+'</tr>').join('');}
+function closeModal(e){if(!e||e.target===document.getElementById('modalOverlay')||!e.target){document.getElementById('modalOverlay').classList.remove('open');document.body.style.overflow='';}}
+function calculate(){const price=parseFloat(document.getElementById('calcPrice').value)||0;const down=parseFloat(document.getElementById('calcDown').value)||0;const months=parseInt(document.getElementById('calcMonth').value);if(price<=0){alert('กรุณากรอกราคารถ');return;}if(down>=price){alert('เงินดาวน์ต้องน้อยกว่าราคารถ');return;}document.getElementById('calcOutput').textContent='฿'+fmt(calcInst(price,down,months))+' / เดือน';document.getElementById('calcResult').style.display='flex';}
+function renderNews(){document.getElementById('newsGrid').innerHTML=newsData.map(n=>'<div class="news-card"><div class="news-img">'+n.icon+'</div><div class="news-body"><div class="news-tag">'+n.tag+'</div><div class="news-date">'+n.date+'</div><div class="news-title">'+n.title+'</div></div></div>').join('');}
+function renderContactModels(){const sel=document.getElementById('intModel');sel.innerHTML='<option value="">-- เลือกรุ่น --</option>'+categories.flatMap(c=>c.models.map(m=>'<option>'+m.name+'</option>')).join('');}
+function submitForm(e){e.preventDefault();document.getElementById('leadForm').style.display='none';document.getElementById('successMsg').style.display='block';}
+function toggleMenu(){document.getElementById('mobileMenu').classList.toggle('open');}
+function closeMenu(){document.getElementById('mobileMenu').classList.remove('open');}
+renderAllRows();renderNews();renderContactModels();
 </script>
 </body>
 </html>
