@@ -596,7 +596,7 @@ function openEditModel(ci, mi) {
   });
   // colors
   document.getElementById('colorRows').innerHTML = '';
-  (m.colors||[]).forEach(c => addColorRow(c.name, c.hex, c.hex2||'', c.img||''));
+  (m.colors||[]).forEach(c => addColorRow(c.name, c.hex, c.hex2||'', c.img||'', c.variant||''));
   document.getElementById('modelModal').classList.add('open');
 }
 
@@ -615,7 +615,7 @@ function addVariantRow(name='', price='', downs='') {
   document.getElementById('variantRows').appendChild(div);
 }
 
-function addColorRow(name='', hex='#cc0000', hex2='', img='') {
+function addColorRow(name='', hex='#cc0000', hex2='', img='', variant='') {
   const div = document.createElement('div');
   div.className = 'color-row';
   div.style.cssText = 'background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;padding:0.75rem;margin-bottom:0.6rem;';
@@ -623,11 +623,23 @@ function addColorRow(name='', hex='#cc0000', hex2='', img='') {
   const previewBg = hex2
     ? `linear-gradient(135deg,${hex} 50%,${hex2} 50%)`
     : hex;
+  // ดึงชื่อรุ่นย่อยจาก variant rows ที่มีอยู่ตอนนี้
+  const variantNames = Array.from(document.querySelectorAll('.vname'))
+    .map(v => v.value.trim()).filter(v => v);
+  const variantOptions = ['<option value="">— ทุกรุ่นย่อย —</option>',
+    ...variantNames.map(v => `<option value="${v}" ${v===variant?'selected':''}>${v}</option>`)
+  ].join('');
   div.innerHTML = `
     <div style="display:flex;gap:0.75rem;align-items:flex-start;flex-wrap:wrap;">
       <div style="flex:1;min-width:120px;">
         <label style="font-size:0.8rem;font-weight:600;color:#555;display:block;margin-bottom:3px;">ชื่อสี</label>
         <input class="cname" value="${name}" placeholder="เช่น แดง-ดำ" style="width:100%;padding:0.5rem;border:1.5px solid #e0e0e0;border-radius:6px;font-family:inherit;font-size:0.88rem;">
+      </div>
+      <div style="flex:1;min-width:140px;">
+        <label style="font-size:0.8rem;font-weight:600;color:#555;display:block;margin-bottom:3px;">รุ่นย่อย</label>
+        <select class="cvariant" style="width:100%;padding:0.45rem 0.5rem;border:1.5px solid #e0e0e0;border-radius:6px;font-family:inherit;font-size:0.85rem;background:white;">
+          ${variantOptions}
+        </select>
       </div>
       <div style="flex:0 0 auto;">
         <label style="font-size:0.8rem;font-weight:600;color:#555;display:block;margin-bottom:3px;">สี 1</label>
@@ -717,9 +729,11 @@ function saveModel() {
     const chex2el = row.querySelector('.chex2');
     const chex2 = (chex2el && !chex2el.dataset.empty) ? chex2el.value : '';
     const cimg = row.querySelector('.cimg')?.value || '';
+    const cvariant = row.querySelector('.cvariant')?.value || '';
     if (cname) {
       const colorObj = { name: cname, hex: chex, img: cimg };
       if (chex2) colorObj.hex2 = chex2;
+      if (cvariant) colorObj.variant = cvariant;
       colors.push(colorObj);
     }
   });
@@ -1135,10 +1149,10 @@ const dd={};
 function dS(e,ci){e.preventDefault();dd[ci]={x:e.clientX};document.getElementById('wrap-'+ci).classList.add('grabbing');const up=(ev)=>{if(!dd[ci])return;const dx=ev.clientX-dd[ci].x;if(Math.abs(dx)>40)gT(ci,rowState[ci].idx+(dx<0?1:-1));dd[ci]=null;document.getElementById('wrap-'+ci)?.classList.remove('grabbing');document.removeEventListener('mouseup',up);};document.addEventListener('mouseup',up);}
 function oM(ci,mi){modalModel=categories[ci].models[mi];modalVariantIdx=0;modalColorIdx=0;document.getElementById('mName').textContent=modalModel.name;rV();rC();uT();document.getElementById('calcResult').style.display='none';document.getElementById('modalOverlay').classList.add('open');document.body.style.overflow='hidden';}
 function rV(){const w=document.getElementById('mVariants');const b=document.getElementById('mVariantBtns');if(!modalModel.variants||modalModel.variants.length<=1){w.style.display='none';return;}w.style.display='block';b.innerHTML=modalModel.variants.map((v,i)=>'<button class="variant-btn'+(i===0?' active':'')+'" onclick="sV('+i+')">'+v.name+'</button>').join('');}
-function sV(i){modalVariantIdx=i;document.querySelectorAll('.variant-btn').forEach((b,j)=>b.classList.toggle('active',j===i));uT();}
-function rC(){const w=document.getElementById('mColors');const s=document.getElementById('mColorSwatches');const n=document.getElementById('mColorName');if(!modalModel.colors||!modalModel.colors.length){w.style.display='none';document.getElementById('mCarImg').innerHTML='<span style="font-size:4rem">'+modalModel.icon+'</span>';return;}w.style.display='block';s.innerHTML=modalModel.colors.map((c,i)=>{const bg=c.hex2?'linear-gradient(135deg,'+c.hex+' 50%,'+c.hex2+' 50%)':c.hex;return'<div class="color-swatch'+(i===0?' active':'')+'" style="background:'+bg+';'+(c.border?'border:2px solid #bbb;':'')+'" title="'+c.name+'" onclick="sC('+i+')"></div>';}).join('');n.textContent='สี: '+modalModel.colors[0].name;updCarImg(0);}
-function sC(i){modalColorIdx=i;document.querySelectorAll('.color-swatch').forEach((s,j)=>s.classList.toggle('active',j===i));document.getElementById('mColorName').textContent='สี: '+modalModel.colors[i].name;updCarImg(i);}
-function updCarImg(i){const c=modalModel.colors[i];const area=document.getElementById('mCarImg');if(c&&c.img){area.innerHTML='<img src="'+c.img+'" style="max-height:160px;max-width:100%;object-fit:contain;">';}else{area.innerHTML='<span style="font-size:4rem">'+modalModel.icon+'</span>';}}
+function sV(i){modalVariantIdx=i;document.querySelectorAll('.variant-btn').forEach((b,j)=>b.classList.toggle('active',j===i));uT();rC();}
+function rC(){const w=document.getElementById('mColors');const s=document.getElementById('mColorSwatches');const n=document.getElementById('mColorName');if(!modalModel.colors||!modalModel.colors.length){w.style.display='none';document.getElementById('mCarImg').innerHTML='<span style="font-size:4rem">'+modalModel.icon+'</span>';return;}w.style.display='block';const curVariant=modalModel.variants[modalVariantIdx]?modalModel.variants[modalVariantIdx].name:'';const filtered=modalModel.colors.filter(c=>!c.variant||c.variant===curVariant||!curVariant);const display=filtered.length?filtered:modalModel.colors;s.innerHTML=display.map((c,i)=>{const bg=c.hex2?'linear-gradient(135deg,'+c.hex+' 50%,'+c.hex2+' 50%)':c.hex;return'<div class="color-swatch'+(i===0?' active':'')+'" style="background:'+bg+';'+(c.border?'border:2px solid #bbb;':'')+'\" title="'+c.name+'" onclick="sC('+i+','+JSON.stringify(display).replace(/"/g,'&quot;')+')"></div>';}).join('');window._curColors=display;n.textContent='สี: '+display[0].name;updCarImg2(display[0]);}
+function sC(i,colors){if(colors){window._curColors=typeof colors==='string'?JSON.parse(colors.replace(/&quot;/g,'"')):colors;}modalColorIdx=i;document.querySelectorAll('.color-swatch').forEach((s,j)=>s.classList.toggle('active',j===i));document.getElementById('mColorName').textContent='สี: '+window._curColors[i].name;updCarImg2(window._curColors[i]);}
+function updCarImg2(c){const area=document.getElementById('mCarImg');if(c&&c.img){area.innerHTML='<img src="'+c.img+'" style="max-height:160px;max-width:100%;object-fit:contain;">';}else{area.innerHTML='<span style="font-size:4rem">'+modalModel.icon+'</span>';}}
 function uT(){const d=modalModel.variants[modalVariantIdx];document.getElementById('mPrice').textContent='฿'+fmt(d.price);document.getElementById('calcPrice').value=d.price;const months=[12,24,36,48];document.getElementById('mTableBody').innerHTML=d.downs.map(dn=>'<tr><td>'+fmt(dn)+'</td>'+months.map(mo=>'<td>'+fmt(calcInst(d.price,dn,mo))+' บ./เดือน</td>').join('')+'</tr>').join('');}
 function closeModal(e){if(!e||e.target===document.getElementById('modalOverlay')||!e.target){document.getElementById('modalOverlay').classList.remove('open');document.body.style.overflow='';}}
 function calculate(){const price=parseFloat(document.getElementById('calcPrice').value)||0;const down=parseFloat(document.getElementById('calcDown').value)||0;const months=parseInt(document.getElementById('calcMonth').value);if(price<=0){alert('กรุณากรอกราคารถ');return;}if(down>=price){alert('เงินดาวน์ต้องน้อยกว่าราคารถ');return;}document.getElementById('calcOutput').textContent='฿'+fmt(calcInst(price,down,months))+' / เดือน';document.getElementById('calcResult').style.display='flex';}
