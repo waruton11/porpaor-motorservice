@@ -605,9 +605,13 @@ function addVariantRow(name='', price='', downs='') {
   div.className = 'form-row variant-row';
   div.style.background = '#fafafa'; div.style.padding = '0.75rem'; div.style.borderRadius = '8px'; div.style.marginBottom = '0.5rem';
   div.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:2px;justify-content:center;padding-top:18px;margin-right:4px;">
+      <button type="button" onclick="moveRow(this,'up')" style="background:#e0e0e0;border:none;border-radius:4px;cursor:pointer;padding:1px 6px;font-size:0.75rem;line-height:1.4;" title="เลื่อนขึ้น">▲</button>
+      <button type="button" onclick="moveRow(this,'down')" style="background:#e0e0e0;border:none;border-radius:4px;cursor:pointer;padding:1px 6px;font-size:0.75rem;line-height:1.4;" title="เลื่อนลง">▼</button>
+    </div>
     <div class="form-group"><label>ชื่อรุ่นย่อย</label><input class="vname" value="${name}" placeholder="เช่น ล้อลวด"></div>
     <div class="form-group"><label>ราคา (฿)</label><input class="vprice" type="number" value="${price}" placeholder="55900"></div>
-    <div class="form-group" style="flex:2"><label>ตัวเลือกดาวน์ (คั่นด้วย ,)</label><input class="vdowns" value="${downs}" placeholder="5000,8000,12000,15000"></div>
+    <div class="form-group" style="flex:2"><label>ตัวเลือกดาวน์ (คั่นด้วย ,)</label><input class="vdowns" value="${downs}" placeholder="0,5000,10000"></div>
     <div style="display:flex; align-items:flex-end; padding-bottom:2px;">
       <button class="btn btn-danger btn-sm" onclick="this.closest('.variant-row').remove()">✕</button>
     </div>
@@ -631,6 +635,10 @@ function addColorRow(name='', hex='#cc0000', hex2='', img='', variant='') {
   ].join('');
   div.innerHTML = `
     <div style="display:flex;gap:0.75rem;align-items:flex-start;flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;gap:2px;justify-content:center;padding-top:22px;">
+        <button type="button" onclick="moveRow(this,'up')" style="background:#e0e0e0;border:none;border-radius:4px;cursor:pointer;padding:1px 6px;font-size:0.75rem;line-height:1.4;" title="เลื่อนขึ้น">▲</button>
+        <button type="button" onclick="moveRow(this,'down')" style="background:#e0e0e0;border:none;border-radius:4px;cursor:pointer;padding:1px 6px;font-size:0.75rem;line-height:1.4;" title="เลื่อนลง">▼</button>
+      </div>
       <div style="flex:1;min-width:120px;">
         <label style="font-size:0.8rem;font-weight:600;color:#555;display:block;margin-bottom:3px;">ชื่อสี</label>
         <input class="cname" value="${name}" placeholder="เช่น แดง-ดำ" style="width:100%;padding:0.5rem;border:1.5px solid #e0e0e0;border-radius:6px;font-family:inherit;font-size:0.88rem;">
@@ -689,6 +697,16 @@ function clearHex2(btn) {
   btn.textContent = '';
   const c1 = row.querySelector('.chex').value;
   row.querySelector('.chex2-preview').style.background = c1;
+}
+
+function moveRow(btn, dir) {
+  const row = btn.closest('.variant-row') || btn.closest('.color-row');
+  const parent = row.parentElement;
+  if (dir === 'up' && row.previousElementSibling) {
+    parent.insertBefore(row, row.previousElementSibling);
+  } else if (dir === 'down' && row.nextElementSibling) {
+    parent.insertBefore(row.nextElementSibling, row);
+  }
 }
 
 // อัปเดต preview gradient เมื่อเปลี่ยนสี
