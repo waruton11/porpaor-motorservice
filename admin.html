@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — ป.เปา มอเตอร์เซอร์วิส</title>
+<style>
+:root {
+  --red: #cc0000; --red-dark: #990000;
+  --black: #1a1a1a; --gray: #f5f5f5; --gray2: #e0e0e0;
+  --white: #fff; --text: #222; --text2: #666;
+  --green: #2e7d32; --blue: #1565c0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Sarabun, sans-serif; background: #f0f2f5; color: var(--text); font-size: 15px; }
+
+/* LOGIN */
+#loginScreen {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #1a1a1a, #cc0000);
+}
+.login-box {
+  background: white; border-radius: 16px; padding: 2.5rem;
+  width: 100%; max-width: 380px; text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.login-box h1 { font-size: 1.4rem; margin-bottom: 0.3rem; }
+.login-box p { color: var(--text2); font-size: 0.9rem; margin-bottom: 2rem; }
+.login-box input {
+  width: 100%; padding: 0.8rem 1rem; border: 1.5px solid var(--gray2);
+  border-radius: 8px; font-size: 1rem; margin-bottom: 1rem;
+  font-family: inherit;
+}
+.login-box input:focus { outline: none; border-color: var(--red); }
+.login-btn {
+  width: 100%; padding: 0.9rem; background: var(--red); color: white;
+  border: none; border-radius: 8px; font-size: 1rem; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+}
+.login-btn:hover { background: var(--red-dark); }
+.login-err { color: var(--red); font-size: 0.85rem; margin-top: 0.5rem; display: none; }
+
+/* MAIN LAYOUT */
+#adminPanel { display: none; min-height: 100vh; }
+.top-bar {
+  background: var(--black); color: white;
+  padding: 0 1.5rem; height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+}
+.top-bar h1 { font-size: 1rem; font-weight: 700; }
+.top-bar h1 span { color: var(--red); }
+.logout-btn {
+  background: rgba(255,255,255,0.1); color: white; border: none;
+  padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+  font-family: inherit;
+}
+
+/* SIDEBAR + CONTENT */
+.layout { display: flex; min-height: calc(100vh - 56px); }
+.sidebar {
+  width: 220px; background: white; border-right: 1px solid var(--gray2);
+  padding: 1rem 0; position: sticky; top: 56px; height: calc(100vh - 56px);
+  overflow-y: auto; flex-shrink: 0;
+}
+.sidebar-item {
+  display: block; padding: 0.75rem 1.5rem; cursor: pointer;
+  color: var(--text2); font-size: 0.95rem; font-weight: 500;
+  border-left: 3px solid transparent; transition: all 0.15s;
+  text-decoration: none;
+}
+.sidebar-item:hover { background: var(--gray); color: var(--text); }
+.sidebar-item.active { color: var(--red); border-left-color: var(--red); background: #fff5f5; font-weight: 700; }
+.sidebar-section { padding: 0.5rem 1.5rem; font-size: 0.75rem; color: #aaa; font-weight: 700; letter-spacing: 1px; margin-top: 0.5rem; }
+
+.content { flex: 1; padding: 1.5rem; overflow-x: auto; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* CARDS & TABLES */
+.page-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.3rem; }
+.page-sub { color: var(--text2); font-size: 0.875rem; margin-bottom: 1.5rem; }
+
+.card {
+  background: white; border-radius: 12px; border: 1px solid var(--gray2);
+  padding: 1.5rem; margin-bottom: 1.5rem;
+}
+.card-title { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th { background: #f8f8f8; padding: 0.6rem 0.75rem; text-align: left; font-weight: 600; color: var(--text2); border-bottom: 2px solid var(--gray2); white-space: nowrap; }
+td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--gray2); vertical-align: middle; }
+tr:hover td { background: #fafafa; }
+
+/* FORM ELEMENTS */
+.form-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.form-group { flex: 1; min-width: 160px; }
+.form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text2); margin-bottom: 0.3rem; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; padding: 0.6rem 0.8rem; border: 1.5px solid var(--gray2);
+  border-radius: 6px; font-size: 0.9rem; font-family: inherit;
+  transition: border-color 0.2s;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--red); }
+.form-group textarea { resize: vertical; min-height: 70px; }
+
+/* BUTTONS */
+.btn { padding: 0.5rem 1.2rem; border-radius: 6px; border: none; font-family: inherit; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
+.btn:hover { opacity: 0.85; }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--red); color: white; }
+.btn-success { background: var(--green); color: white; }
+.btn-info { background: var(--blue); color: white; }
+.btn-gray { background: var(--gray2); color: var(--text); }
+.btn-danger { background: #e53935; color: white; }
+.btn-sm { padding: 0.3rem 0.75rem; font-size: 0.8rem; }
+
+/* BADGES */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; }
+.badge-red { background: #ffebee; color: var(--red); }
+.badge-green { background: #e8f5e9; color: var(--green); }
+.badge-blue { background: #e3f2fd; color: var(--blue); }
+
+/* COLOR DOTS */
+.color-dot { width: 20px; height: 20px; border-radius: 50%; display: inline-block; border: 1px solid #ccc; vertical-align: middle; margin-right: 3px; }
+
+/* MODAL */
+.modal-bg {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 100; align-items: center; justify-content: center; padding: 1rem;
+}
+.modal-bg.open { display: flex; }
+.modal-box {
+  background: white; border-radius: 14px; width: 100%; max-width: 680px;
+  max-height: 90vh; overflow-y: auto; padding: 2rem; position: relative;
+}
+.modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--text2); }
+.modal-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 1.5rem; }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 2rem; right: 2rem; z-index: 200;
+  background: #1a1a1a; color: white; padding: 0.8rem 1.5rem;
+  border-radius: 8px; font-size: 0.9rem; font-weight: 600;
+  transform: translateY(100px); opacity: 0;
+  transition: all 0.3s; pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { background: var(--green); }
+.toast.error { background: #e53935; }
+
+/* SAVE BAR */
+.save-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 80;
+  background: #1565c0; color: white; padding: 0.9rem 2rem;
+  display: none; align-items: center; justify-content: space-between;
+  font-weight: 600;
+}
+.save-bar.show { display: flex; }
+
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .form-row { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h1>🔐 Admin Panel</h1>
+    <p>ป.เปา มอเตอร์เซอร์วิส</p>
+    <input type="password" id="pwInput" placeholder="รหัสผ่าน" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div class="login-err" id="loginErr">รหัสผ่านไม่ถูกต้อง</div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel">
+  <div class="top-bar">
+    <h1>⚙️ Admin — <span>ป.เปา มอเตอร์เซอร์วิส</span></h1>
+    <button class="logout-btn" onclick="logout()">ออกจากระบบ</button>
+  </div>
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-section">จัดการข้อมูล</div>
+      <a class="sidebar-item active" onclick="showPage('models')">🏍️ รุ่นรถ & ราคา</a>
+      <a class="sidebar-item" onclick="showPage('news')">📰 ข่าวกิจกรรม</a>
+      <a class="sidebar-item" onclick="showPage('shop')">🏪 ข้อมูลร้าน</a>
+      <div class="sidebar-section">ระบบ</div>
+      <a class="sidebar-item" onclick="showPage('export')">📤 Export HTML</a>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- MODELS PAGE -->
+      <div class="page active" id="page-models">
+        <div class="page-title">🏍️ จัดการรุ่นรถ & ราคา</div>
+        <p class="page-sub">เพิ่ม แก้ไข หรือลบรุ่นรถในแต่ละหมวดหมู่ได้เลย</p>
+
+        <div style="display:flex; gap:0.75rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+          <select id="catFilter" onchange="renderModelTable()" style="padding:0.5rem 1rem; border:1.5px solid var(--gray2); border-radius:6px; font-family:inherit; font-size:0.9rem;">
+            <option value="">ทุกหมวดหมู่</option>
+          </select>
+          <button class="btn btn-primary" onclick="openAddModel()">+ เพิ่มรุ่นรถ</button>
+        </div>
+
+        <div class="card">
+          <table id="modelTable">
+            <thead>
+              <tr>
+                <th>หมวด</th>
+                <th>รุ่น</th>
+                <th>ราคา (฿)</th>
+                <th>รุ่นย่อย</th>
+                <th>สีที่มี</th>
+                <th>จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="modelTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- NEWS PAGE -->
+      <div class="page" id="page-news">
+        <div class="page-title">📰 จัดการข่าวกิจกรรม</div>
+        <p class="page-sub">อัปเดตข่าวสาร โปรโมชั่น และกิจกรรมของร้าน</p>
+        <button class="btn btn-primary" style="margin-bottom:1.5rem;" onclick="openAddNews()">+ เพิ่มข่าว</button>
+        <div class="card">
+          <table>
+            <thead><tr><th>หัวข้อ</th><th>หมวด</th><th>วันที่</th><th>จัดการ</th></tr></thead>
+            <tbody id="newsTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SHOP PAGE -->
+      <div class="page" id="page-shop">
+        <div class="page-title">🏪 ข้อมูลร้าน</div>
+        <p class="page-sub">แก้ไขชื่อร้าน ที่อยู่ เบอร์โทร และโซเชียลมีเดีย</p>
+        <div class="card">
+          <div class="form-row">
+            <div class="form-group" style="flex:2">
+              <label>ชื่อร้าน</label>
+              <input id="s_name" value="ป.เปา มอเตอร์เซอร์วิส">
+            </div>
+            <div class="form-group">
+              <label>เบอร์โทร</label>
+              <input id="s_phone" value="035-XXX-XXX">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:2">
+              <label>ที่อยู่</label>
+              <input id="s_address" value="วังน้อย อยุธยา">
+            </div>
+            <div class="form-group">
+              <label>เวลาเปิด-ปิด</label>
+              <input id="s_hours" value="08:00 – 18:00 น.">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Facebook URL</label>
+              <input id="s_fb" value="https://facebook.com">
+            </div>
+            <div class="form-group">
+              <label>TikTok URL</label>
+              <input id="s_tt" value="https://tiktok.com">
+            </div>
+            <div class="form-group">
+              <label>LINE URL</label>
+              <input id="s_line" value="https://line.me">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>ข้อความ Hero (บรรทัด 2)</label>
+              <input id="s_hero" value="ตัวแทนจำหน่ายและศูนย์บริการ Honda ครบวงจร · วังน้อย อยุธยา">
+            </div>
+          </div>
+          <button class="btn btn-success" onclick="saveShop()">💾 บันทึกข้อมูลร้าน</button>
+        </div>
+      </div>
+
+      <!-- EXPORT PAGE -->
+      <div class="page" id="page-export">
+        <div class="page-title">📤 Export HTML</div>
+        <p class="page-sub">กด Generate แล้วดาวน์โหลดไฟล์ index.html ไปแทนที่ไฟล์เดิมใน repo ได้เลย</p>
+        <div class="card">
+          <p style="margin-bottom:1rem; color:var(--text2);">ระบบจะรวมข้อมูลทั้งหมดที่แก้ไขใน Admin Panel แล้วสร้างไฟล์ index.html ใหม่ให้อัตโนมัติ</p>
+          <button class="btn btn-primary" style="font-size:1rem; padding:0.75rem 2rem;" onclick="exportHTML()">⬇️ Download index.html ใหม่</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODEL MODAL -->
+<div class="modal-bg" id="modelModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modelModal')">✕</button>
+    <div class="modal-title" id="modelModalTitle">เพิ่มรุ่นรถ</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>หมวดหมู่</label>
+        <select id="m_cat"></select>
+      </div>
+      <div class="form-group">
+        <label>ชื่อรุ่น</label>
+        <input id="m_name" placeholder="เช่น Honda PCX160">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Badge (เช่น NEW, ยอดนิยม)</label>
+        <input id="m_badge" placeholder="เว้นว่างได้">
+      </div>
+      <div class="form-group">
+        <label>ไอคอน (emoji)</label>
+        <input id="m_icon" value="🛵">
+      </div>
+    </div>
+
+    <div style="font-weight:700; margin: 1rem 0 0.5rem;">💰 รุ่นย่อย & ราคา</div>
+    <p style="font-size:0.82rem; color:var(--text2); margin-bottom:0.75rem;">ถ้ามีแค่รุ่นเดียว ใส่แค่แถวแรก · ถ้ามีหลายรุ่นย่อย (เช่น ล้อลวด/ล้อแม็ก) กด + เพิ่มแถว</p>
+    <div id="variantRows"></div>
+    <button class="btn btn-gray btn-sm" onclick="addVariantRow()" style="margin-bottom:1rem;">+ เพิ่มรุ่นย่อย</button>
+
+    <div style="font-weight:700; margin: 1rem 0 0.5rem;">🎨 สีที่มีจำหน่าย</div>
+    <p style="font-size:0.82rem; color:var(--text2); margin-bottom:0.75rem;">ใส่ชื่อสี และเลือกรหัสสี (hex)</p>
+    <div id="colorRows"></div>
+    <button class="btn btn-gray btn-sm" onclick="addColorRow()">+ เพิ่มสี</button>
+
+    <div style="margin-top:1.5rem; display:flex; gap:0.75rem;">
+      <button class="btn btn-primary" onclick="saveModel()">💾 บันทึก</button>
+      <button class="btn btn-gray" onclick="closeModal('modelModal')">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEWS MODAL -->
+<div class="modal-bg" id="newsModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('newsModal')">✕</button>
+    <div class="modal-title" id="newsModalTitle">เพิ่มข่าว</div>
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label>หัวข้อข่าว</label>
+        <input id="n_title" placeholder="หัวข้อข่าว">
+      </div>
+      <div class="form-group">
+        <label>หมวด</label>
+        <select id="n_tag">
+          <option>โปรโมชั่น</option>
+          <option>กิจกรรม</option>
+          <option>บริการ</option>
+          <option>ข่าวสาร</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>วันที่</label>
+        <input id="n_date" placeholder="เช่น พฤษภาคม 2569">
+      </div>
+      <div class="form-group">
+        <label>ไอคอน (emoji)</label>
+        <input id="n_icon" value="📢">
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:1rem;">
+      <label>เนื้อหาย่อ</label>
+      <textarea id="n_body" placeholder="รายละเอียดข่าว"></textarea>
+    </div>
+    <div style="display:flex; gap:0.75rem;">
+      <button class="btn btn-primary" onclick="saveNews()">💾 บันทึก</button>
+      <button class="btn btn-gray" onclick="closeModal('newsModal')">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ========== AUTH ==========
+const ADMIN_PASS = 'papao2569';
+
+function doLogin() {
+  const pw = document.getElementById('pwInput').value;
+  if (pw === ADMIN_PASS) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    initAdmin();
+  } else {
+    document.getElementById('loginErr').style.display = 'block';
+    document.getElementById('pwInput').value = '';
+  }
+}
+
+function logout() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('adminPanel').style.display = 'none';
+  document.getElementById('pwInput').value = '';
+}
+
+// ========== DATA ==========
+let data = JSON.parse(localStorage.getItem('papao_data') || 'null') || {
+  categories: [
+    { name: "ครอบครัว (Family)", icon: "🏘️", color: "#e8f5e9", models: [
+      { name: "Honda Wave110i", price: 44900, badge: "", icon: "🛵",
+        variants: [{ name: "มาตรฐาน", price: 44900, downs: [3000,5000,8000,10000] }],
+        colors: [{name:"แดง-ดำ",hex:"#cc0000"},{name:"น้ำเงิน-ขาว",hex:"#1565c0"},{name:"เทา-ดำ",hex:"#616161"}] },
+      { name: "Honda Wave125i", price: 54900, badge: "", icon: "🛵",
+        variants: [
+          { name: "ล้อลวด", price: 54900, downs: [5000,7000,10000,12000] },
+          { name: "ล้อแม็ก", price: 57900, downs: [5000,8000,11000,13000] },
+        ],
+        colors: [{name:"แดง-ดำ",hex:"#cc0000"},{name:"น้ำเงิน-ดำ",hex:"#1565c0"},{name:"ขาว-ดำ",hex:"#f5f5f5",border:true}] },
+      { name: "Honda Dash125", price: 52900, badge: "", icon: "🛵",
+        variants: [{ name: "มาตรฐาน", price: 52900, downs: [4000,6000,8000,10000] }],
+        colors: [{name:"แดง",hex:"#cc0000"},{name:"ขาว",hex:"#f5f5f5",border:true},{name:"น้ำเงิน",hex:"#1565c0"}] },
+      { name: "Honda Super Cub C125", price: 79900, badge: "NEW", icon: "🛵",
+        variants: [{ name: "มาตรฐาน", price: 79900, downs: [8000,10000,15000,20000] }],
+        colors: [{name:"ขาวมุก",hex:"#f5f5f5",border:true},{name:"แดง",hex:"#cc0000"},{name:"น้ำเงิน",hex:"#1565c0"},{name:"เหลือง",hex:"#f9a825"}] },
+    ]},
+    { name: "สกู๊ตเตอร์ออโตเมติก", icon: "🛵", color: "#fff3e0", models: [
+      { name: "Honda CLICK 160", price: 56900, badge: "ยอดนิยม", icon: "🛵",
+        variants: [{ name: "มาตรฐาน", price: 56900, downs: [5000,8000,10000,15000] }],
+        colors: [{name:"แดง-ดำ",hex:"#cc0000"},{name:"ขาว-ดำ",hex:"#f5f5f5",border:true},{name:"น้ำเงิน-ดำ",hex:"#1565c0"},{name:"เทา",hex:"#78909c"}] },
+      { name: "Honda PCX160", price: 79900, badge: "ขายดี", icon: "🛵",
+        variants: [{ name: "มาตรฐาน", price: 79900, downs: [8000,12000,15000,20000] }],
+        colors: [{name:"ขาว",hex:"#f5f5f5",border:true},{name:"แดง",hex:"#cc0000"},{name:"เทา",hex:"#546e7a"},{name:"ดำ",hex:"#212121"}] },
+      { name: "Honda SCOOPY", price: 57900, badge: "NEW", icon: "🛵",
+        variants: [{ name: "มาตรฐาน", price: 57900, downs: [5000,8000,10000,15000] }],
+        colors: [{name:"ขาว-ชมพู",hex:"#f48fb1"},{name:"ขาว-ฟ้า",hex:"#81d4fa"},{name:"ขาว-เขียว",hex:"#a5d6a7"},{name:"ดำ-แดง",hex:"#cc0000"}] },
+      { name: "Honda Forza350", price: 199900, badge: "พรีเมียม", icon: "🛵",
+        variants: [{ name: "มาตรฐาน", price: 199900, downs: [20000,30000,40000,50000] }],
+        colors: [{name:"ดำ-เทา",hex:"#424242"},{name:"น้ำเงิน-ดำ",hex:"#1565c0"},{name:"แดง-ดำ",hex:"#cc0000"}] },
+    ]},
+    { name: "สปอร์ต (Sport)", icon: "🏍️", color: "#fce4ec", models: [
+      { name: "Honda CBR500R", price: 219000, badge: "Big Bike", icon: "🏍️",
+        variants: [{ name: "มาตรฐาน", price: 219000, downs: [22000,35000,55000,75000] }],
+        colors: [{name:"แดง",hex:"#cc0000"},{name:"ดำ",hex:"#212121"},{name:"ขาว",hex:"#f5f5f5",border:true}] },
+      { name: "Honda CBR650R", price: 339000, badge: "NEW", icon: "🏍️",
+        variants: [{ name: "มาตรฐาน", price: 339000, downs: [34000,55000,85000,110000] }],
+        colors: [{name:"แดง",hex:"#cc0000"},{name:"ดำ",hex:"#212121"},{name:"เทา",hex:"#546e7a"}] },
+    ]},
+    { name: "ผจญภัย (Adventure)", icon: "🗺️", color: "#e3f2fd", models: [
+      { name: "Honda ADV160", price: 95900, badge: "NEW", icon: "🏍️",
+        variants: [{ name: "มาตรฐาน", price: 95900, downs: [10000,15000,20000,25000] }],
+        colors: [{name:"เทา",hex:"#78909c"},{name:"แดง-ดำ",hex:"#cc0000"},{name:"ดำ",hex:"#212121"}] },
+      { name: "Honda Africa Twin", price: 649000, badge: "Big Bike", icon: "🏍️",
+        variants: [
+          { name: "Manual (MT)", price: 649000, downs: [65000,100000,150000,200000] },
+          { name: "DCT (ออโต้)", price: 699000, downs: [70000,110000,160000,210000] },
+        ],
+        colors: [{name:"แดง-ดำ",hex:"#cc0000"},{name:"ขาว-น้ำเงิน",hex:"#f5f5f5",border:true},{name:"เขียว",hex:"#558b2f"}] },
+    ]},
+    { name: "บ๊อบเบอร์ & นีโอสปอร์ตคาเฟ่", icon: "☕", color: "#f3e5f5", models: [
+      { name: "Honda CB300R", price: 159000, badge: "", icon: "🏍️",
+        variants: [{ name: "มาตรฐาน", price: 159000, downs: [16000,25000,35000,50000] }],
+        colors: [{name:"ดำ",hex:"#212121"},{name:"ขาว",hex:"#f5f5f5",border:true},{name:"แดง",hex:"#cc0000"}] },
+      { name: "Honda CB650R", price: 329000, badge: "NEW", icon: "🏍️",
+        variants: [{ name: "มาตรฐาน", price: 329000, downs: [33000,50000,80000,100000] }],
+        colors: [{name:"ดำ",hex:"#212121"},{name:"เทา",hex:"#78909c"},{name:"แดง",hex:"#cc0000"}] },
+    ]},
+    { name: "รถไฟฟ้า (EV)", icon: "⚡", color: "#e0f7fa", models: [
+      { name: "Honda EM1 e:", price: 65900, badge: "EV", icon: "⚡",
+        variants: [{ name: "มาตรฐาน", price: 65900, downs: [6000,9000,12000,16000] }],
+        colors: [{name:"ขาว",hex:"#f5f5f5",border:true},{name:"ดำ",hex:"#212121"},{name:"แดง",hex:"#cc0000"},{name:"ฟ้า",hex:"#29b6f6"}] },
+    ]},
+  ],
+  news: [
+    { title: "ดาวน์พิเศษ 0% เดือนนี้เท่านั้น!", tag: "โปรโมชั่น", date: "พฤษภาคม 2569", icon: "🏍️", body: "Honda CLICK 160 และ PCX160" },
+    { title: "เช็กรถฟรี ต้อนรับเทศกาลสงกรานต์", tag: "บริการ", date: "เมษายน 2569", icon: "🔧", body: "ศูนย์บริการฮอนด้า วังน้อย" },
+    { title: "ส่งมอบรถ Honda ADV160", tag: "กิจกรรม", date: "มีนาคม 2569", icon: "🎉", body: "ร่วมแสดงความยินดีกับลูกค้า" },
+  ],
+  shop: {
+    name: "ป.เปา มอเตอร์เซอร์วิส",
+    phone: "035-XXX-XXX",
+    address: "วังน้อย อยุธยา",
+    hours: "08:00 – 18:00 น.",
+    fb: "https://facebook.com",
+    tt: "https://tiktok.com",
+    line: "https://line.me",
+    hero: "ตัวแทนจำหน่ายและศูนย์บริการ Honda ครบวงจร · วังน้อย อยุธยา"
+  }
+};
+
+let editModelIdx = null; // {ci, mi} or null
+let editNewsIdx = null;
+
+function saveData() {
+  localStorage.setItem('papao_data', JSON.stringify(data));
+}
+
+function initAdmin() {
+  // populate cat filter
+  const cf = document.getElementById('catFilter');
+  cf.innerHTML = '<option value="">ทุกหมวดหมู่</option>' +
+    data.categories.map((c,i) => `<option value="${i}">${c.name}</option>`).join('');
+  // populate modal cat select
+  document.getElementById('m_cat').innerHTML =
+    data.categories.map((c,i) => `<option value="${i}">${c.name}</option>`).join('');
+  // fill shop
+  const s = data.shop;
+  document.getElementById('s_name').value = s.name;
+  document.getElementById('s_phone').value = s.phone;
+  document.getElementById('s_address').value = s.address;
+  document.getElementById('s_hours').value = s.hours;
+  document.getElementById('s_fb').value = s.fb;
+  document.getElementById('s_tt').value = s.tt;
+  document.getElementById('s_line').value = s.line;
+  document.getElementById('s_hero').value = s.hero;
+
+  renderModelTable();
+  renderNewsTable();
+}
+
+// ========== PAGES ==========
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ========== MODELS ==========
+function renderModelTable() {
+  const filterCat = document.getElementById('catFilter').value;
+  const tbody = document.getElementById('modelTbody');
+  let rows = '';
+  data.categories.forEach((cat, ci) => {
+    if (filterCat !== '' && parseInt(filterCat) !== ci) return;
+    cat.models.forEach((m, mi) => {
+      const basePrice = m.variants[0].price;
+      const colorDots = (m.colors||[]).map(c =>
+        `<span class="color-dot" style="background:${c.hex};${c.border?'border:1.5px solid #ccc;':''}" title="${c.name}"></span>`
+      ).join('');
+      const variantText = m.variants.length > 1
+        ? m.variants.map(v=>v.name).join(', ')
+        : '-';
+      rows += `<tr>
+        <td><span class="badge badge-blue">${cat.icon} ${cat.name.split(' ')[0]}</span></td>
+        <td><strong>${m.name}</strong> ${m.badge ? `<span class="badge badge-red">${m.badge}</span>` : ''}</td>
+        <td>฿${basePrice.toLocaleString('th-TH')}</td>
+        <td style="font-size:0.82rem; color:var(--text2);">${variantText}</td>
+        <td>${colorDots}</td>
+        <td>
+          <button class="btn btn-info btn-sm" onclick="openEditModel(${ci},${mi})" style="margin-right:4px;">✏️ แก้ไข</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteModel(${ci},${mi})">🗑️</button>
+        </td>
+      </tr>`;
+    });
+  });
+  tbody.innerHTML = rows || '<tr><td colspan="6" style="text-align:center; color:var(--text2);">ไม่มีข้อมูล</td></tr>';
+}
+
+function openAddModel() {
+  editModelIdx = null;
+  document.getElementById('modelModalTitle').textContent = '+ เพิ่มรุ่นรถใหม่';
+  document.getElementById('m_name').value = '';
+  document.getElementById('m_badge').value = '';
+  document.getElementById('m_icon').value = '🛵';
+  document.getElementById('m_cat').value = '0';
+  document.getElementById('variantRows').innerHTML = '';
+  document.getElementById('colorRows').innerHTML = '';
+  addVariantRow('มาตรฐาน', '', '');
+  addColorRow('', '#cc0000');
+  document.getElementById('modelModal').classList.add('open');
+}
+
+function openEditModel(ci, mi) {
+  editModelIdx = {ci, mi};
+  const m = data.categories[ci].models[mi];
+  document.getElementById('modelModalTitle').textContent = '✏️ แก้ไข — ' + m.name;
+  document.getElementById('m_cat').value = ci;
+  document.getElementById('m_name').value = m.name;
+  document.getElementById('m_badge').value = m.badge || '';
+  document.getElementById('m_icon').value = m.icon || '🛵';
+  // variants
+  document.getElementById('variantRows').innerHTML = '';
+  m.variants.forEach(v => {
+    addVariantRow(v.name, v.price, v.downs.join(','));
+  });
+  // colors
+  document.getElementById('colorRows').innerHTML = '';
+  (m.colors||[]).forEach(c => addColorRow(c.name, c.hex));
+  document.getElementById('modelModal').classList.add('open');
+}
+
+function addVariantRow(name='', price='', downs='') {
+  const div = document.createElement('div');
+  div.className = 'form-row variant-row';
+  div.style.background = '#fafafa'; div.style.padding = '0.75rem'; div.style.borderRadius = '8px'; div.style.marginBottom = '0.5rem';
+  div.innerHTML = `
+    <div class="form-group"><label>ชื่อรุ่นย่อย</label><input class="vname" value="${name}" placeholder="เช่น ล้อลวด"></div>
+    <div class="form-group"><label>ราคา (฿)</label><input class="vprice" type="number" value="${price}" placeholder="55900"></div>
+    <div class="form-group" style="flex:2"><label>ตัวเลือกดาวน์ (คั่นด้วย ,)</label><input class="vdowns" value="${downs}" placeholder="5000,8000,12000,15000"></div>
+    <div style="display:flex; align-items:flex-end; padding-bottom:2px;">
+      <button class="btn btn-danger btn-sm" onclick="this.closest('.variant-row').remove()">✕</button>
+    </div>
+  `;
+  document.getElementById('variantRows').appendChild(div);
+}
+
+function addColorRow(name='', hex='#cc0000') {
+  const div = document.createElement('div');
+  div.className = 'form-row color-row';
+  div.style.marginBottom = '0.4rem';
+  div.innerHTML = `
+    <div class="form-group"><label>ชื่อสี</label><input class="cname" value="${name}" placeholder="เช่น แดง-ดำ"></div>
+    <div class="form-group" style="flex:0 0 100px"><label>รหัสสี</label><input class="chex" type="color" value="${hex}" style="height:38px; padding:2px;"></div>
+    <div style="display:flex; align-items:flex-end; padding-bottom:2px;">
+      <button class="btn btn-danger btn-sm" onclick="this.closest('.color-row').remove()">✕</button>
+    </div>
+  `;
+  document.getElementById('colorRows').appendChild(div);
+}
+
+function saveModel() {
+  const ci = parseInt(document.getElementById('m_cat').value);
+  const name = document.getElementById('m_name').value.trim();
+  if (!name) { showToast('กรุณาใส่ชื่อรุ่น', 'error'); return; }
+
+  const variants = [];
+  document.querySelectorAll('.variant-row').forEach(row => {
+    const vname = row.querySelector('.vname').value.trim() || 'มาตรฐาน';
+    const vprice = parseInt(row.querySelector('.vprice').value) || 0;
+    const downs = row.querySelector('.vdowns').value.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+    if (vprice > 0) variants.push({ name: vname, price: vprice, downs });
+  });
+  if (variants.length === 0) { showToast('กรุณาใส่ราคาอย่างน้อย 1 รุ่น', 'error'); return; }
+
+  const colors = [];
+  document.querySelectorAll('.color-row').forEach(row => {
+    const cname = row.querySelector('.cname').value.trim();
+    const chex = row.querySelector('.chex').value;
+    if (cname) colors.push({ name: cname, hex: chex });
+  });
+
+  const model = {
+    name,
+    price: variants[0].price,
+    badge: document.getElementById('m_badge').value.trim(),
+    icon: document.getElementById('m_icon').value.trim() || '🛵',
+    variants,
+    colors
+  };
+
+  if (editModelIdx) {
+    // move to new cat if changed
+    const oldCi = editModelIdx.ci;
+    const oldMi = editModelIdx.mi;
+    if (oldCi !== ci) {
+      data.categories[oldCi].models.splice(oldMi, 1);
+      data.categories[ci].models.push(model);
+    } else {
+      data.categories[ci].models[oldMi] = model;
+    }
+  } else {
+    data.categories[ci].models.push(model);
+  }
+
+  saveData();
+  renderModelTable();
+  closeModal('modelModal');
+  showToast('บันทึกสำเร็จ! ✅', 'success');
+}
+
+function deleteModel(ci, mi) {
+  if (!confirm(`ลบ "${data.categories[ci].models[mi].name}" ออก?`)) return;
+  data.categories[ci].models.splice(mi, 1);
+  saveData();
+  renderModelTable();
+  showToast('ลบแล้ว', 'success');
+}
+
+// ========== NEWS ==========
+function renderNewsTable() {
+  const tbody = document.getElementById('newsTbody');
+  tbody.innerHTML = data.news.map((n, i) => `
+    <tr>
+      <td><strong>${n.icon} ${n.title}</strong><br><small style="color:var(--text2)">${n.body||''}</small></td>
+      <td><span class="badge badge-red">${n.tag}</span></td>
+      <td>${n.date}</td>
+      <td>
+        <button class="btn btn-info btn-sm" onclick="openEditNews(${i})" style="margin-right:4px;">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteNews(${i})">🗑️</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--text2);">ไม่มีข้อมูล</td></tr>';
+}
+
+function openAddNews() {
+  editNewsIdx = null;
+  document.getElementById('newsModalTitle').textContent = '+ เพิ่มข่าว';
+  ['n_title','n_date','n_body'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('n_icon').value = '📢';
+  document.getElementById('newsModal').classList.add('open');
+}
+
+function openEditNews(i) {
+  editNewsIdx = i;
+  const n = data.news[i];
+  document.getElementById('newsModalTitle').textContent = '✏️ แก้ไขข่าว';
+  document.getElementById('n_title').value = n.title;
+  document.getElementById('n_tag').value = n.tag;
+  document.getElementById('n_date').value = n.date;
+  document.getElementById('n_icon').value = n.icon;
+  document.getElementById('n_body').value = n.body||'';
+  document.getElementById('newsModal').classList.add('open');
+}
+
+function saveNews() {
+  const title = document.getElementById('n_title').value.trim();
+  if (!title) { showToast('กรุณาใส่หัวข้อข่าว', 'error'); return; }
+  const obj = {
+    title, tag: document.getElementById('n_tag').value,
+    date: document.getElementById('n_date').value,
+    icon: document.getElementById('n_icon').value || '📢',
+    body: document.getElementById('n_body').value
+  };
+  if (editNewsIdx !== null) data.news[editNewsIdx] = obj;
+  else data.news.unshift(obj);
+  saveData(); renderNewsTable(); closeModal('newsModal');
+  showToast('บันทึกสำเร็จ! ✅', 'success');
+}
+
+function deleteNews(i) {
+  if (!confirm('ลบข่าวนี้?')) return;
+  data.news.splice(i, 1);
+  saveData(); renderNewsTable();
+  showToast('ลบแล้ว', 'success');
+}
+
+// ========== SHOP ==========
+function saveShop() {
+  data.shop = {
+    name: document.getElementById('s_name').value,
+    phone: document.getElementById('s_phone').value,
+    address: document.getElementById('s_address').value,
+    hours: document.getElementById('s_hours').value,
+    fb: document.getElementById('s_fb').value,
+    tt: document.getElementById('s_tt').value,
+    line: document.getElementById('s_line').value,
+    hero: document.getElementById('s_hero').value,
+  };
+  saveData();
+  showToast('บันทึกข้อมูลร้านแล้ว ✅', 'success');
+}
+
+// ========== MODAL ==========
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// ========== TOAST ==========
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 2800);
+}
+
+// ========== EXPORT HTML ==========
+function exportHTML() {
+  const d = data;
+  const RATE = 0.065;
+  function fmt(n) { return n.toLocaleString('th-TH'); }
+  function calcInst(price, down, months) {
+    const loan = price - down;
+    const r = RATE / 12;
+    return Math.ceil((loan * r * Math.pow(1+r,months)) / (Math.pow(1+r,months)-1));
+  }
+
+  const catJS = JSON.stringify(d.categories);
+  const newsJS = JSON.stringify(d.news);
+  const shopJS = JSON.stringify(d.shop);
+
+  const html = `<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${d.shop.name} | Honda</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--red:#cc0000;--red-dark:#990000;--black:#1a1a1a;--gray:#f5f5f5;--gray2:#e0e0e0;--white:#fff;--text:#222;--text2:#555;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sarabun',sans-serif;color:var(--text);background:var(--white);font-size:16px;}
+nav{background:var(--white);border-bottom:3px solid var(--red);position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:64px;}
+.nav-brand{font-family:'Kanit',sans-serif;font-size:1.1rem;font-weight:700;color:var(--red);text-decoration:none;line-height:1.2;}
+.nav-brand span{display:block;font-size:0.75rem;font-weight:400;color:var(--text2);}
+.nav-links{display:flex;gap:0;list-style:none;}
+.nav-links a{display:block;padding:0.5rem 1rem;text-decoration:none;color:var(--text);font-size:0.9rem;font-weight:500;border-bottom:3px solid transparent;transition:color .2s,border-color .2s;}
+.nav-links a:hover{color:var(--red);border-bottom-color:var(--red);}
+.hamburger{display:none;cursor:pointer;flex-direction:column;gap:5px;}
+.hamburger span{width:24px;height:2px;background:var(--text);}
+.mobile-menu{display:none;background:var(--white);border-top:1px solid var(--gray2);padding:1rem 1.5rem;}
+.mobile-menu.open{display:block;}
+.mobile-menu a{display:block;padding:.75rem 0;border-bottom:1px solid var(--gray2);text-decoration:none;color:var(--text);font-weight:500;}
+.hero{background:linear-gradient(135deg,#1a1a1a 60%,#cc0000);color:white;text-align:center;padding:5rem 1.5rem 4rem;}
+.hero h1{font-family:'Kanit',sans-serif;font-size:clamp(2rem,5vw,3.5rem);font-weight:700;line-height:1.2;margin-bottom:1rem;}
+.hero h1 span{color:var(--red);}
+.hero p{font-size:1.1rem;opacity:.85;margin-bottom:2rem;}
+.hero-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;}
+.btn{padding:.75rem 2rem;border-radius:4px;font-family:'Sarabun',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block;transition:transform .15s,opacity .15s;border:none;}
+.btn:hover{transform:translateY(-2px);opacity:.9;}
+.btn-red{background:var(--red);color:white;}
+.btn-outline{background:transparent;color:white;border:2px solid white;}
+section{padding:4rem 1.5rem;}
+.section-inner{max-width:1200px;margin:0 auto;}
+.section-title{font-family:'Kanit',sans-serif;font-size:1.8rem;font-weight:700;margin-bottom:.5rem;}
+.section-title::after{content:'';display:block;width:48px;height:4px;background:var(--red);margin-top:8px;}
+.section-sub{color:var(--text2);margin-bottom:2.5rem;margin-top:.5rem;}
+#models{background:#fafafa;padding:3rem 0 4rem;}
+.cat-row{margin-bottom:3rem;}
+.cat-row-header{display:flex;align-items:center;gap:1rem;padding:0 1rem;margin-bottom:1.25rem;}
+.cat-icon-wrap{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
+.cat-row-title{font-family:'Kanit',sans-serif;font-size:1.15rem;font-weight:700;}
+.cat-row-sub{font-size:.8rem;color:var(--text2);}
+.cat-divider{flex:1;height:1px;background:var(--gray2);}
+.slot-wrap{position:relative;overflow:hidden;padding:1.5rem 0;cursor:grab;user-select:none;}
+.slot-wrap.grabbing{cursor:grabbing;}
+.slot-track{display:flex;align-items:center;gap:1rem;padding:0 calc(50% - 120px);transition:transform .4s cubic-bezier(.25,.46,.45,.94);}
+.slot-track.no-transition{transition:none;}
+.mcard{flex:0 0 220px;border-radius:14px;background:white;border:1.5px solid var(--gray2);padding:1rem 1rem 1.25rem;transition:transform .4s ease,opacity .4s ease,box-shadow .4s ease,border-color .4s ease;transform:scale(.82);opacity:.5;cursor:pointer;position:relative;}
+.mcard.active{transform:scale(1);opacity:1;box-shadow:0 12px 36px rgba(204,0,0,.18);border-color:var(--red);z-index:2;}
+.mcard.adj{transform:scale(.9);opacity:.75;}
+.mcard-img{height:140px;display:flex;align-items:center;justify-content:center;font-size:4rem;margin-bottom:.75rem;position:relative;}
+.mcard-badge{position:absolute;top:0;right:0;background:var(--red);color:white;font-size:.65rem;font-weight:800;padding:3px 8px;border-radius:4px;letter-spacing:1px;}
+.mcard-name{font-family:'Kanit',sans-serif;font-size:.95rem;font-weight:700;margin-bottom:.15rem;}
+.mcard-price{color:var(--red);font-size:.9rem;font-weight:700;}
+.mcard-down{color:var(--text2);font-size:.75rem;margin-top:.1rem;}
+.mcard-btn{display:none;margin-top:.75rem;width:100%;background:var(--red);color:white;border:none;border-radius:6px;padding:.5rem;font-family:'Sarabun',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;}
+.mcard.active .mcard-btn{display:block;}
+.slot-dots{display:flex;justify-content:center;gap:6px;margin-top:.5rem;}
+.slot-dot{width:6px;height:6px;border-radius:50%;background:var(--gray2);transition:background .3s,width .3s;cursor:pointer;}
+.slot-dot.active{background:var(--red);width:18px;border-radius:3px;}
+.slot-arrows{display:flex;justify-content:center;gap:1rem;margin-top:.75rem;}
+.slot-arr{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--gray2);background:white;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,border-color .2s;color:var(--text);}
+.slot-arr:hover{background:var(--red);border-color:var(--red);color:white;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.open{display:flex;}
+.modal{background:white;border-radius:12px;width:100%;max-width:700px;max-height:90vh;overflow-y:auto;padding:2rem;position:relative;}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text2);}
+.modal h2{font-family:'Kanit',sans-serif;font-size:1.5rem;margin-bottom:.25rem;}
+.modal-price{color:var(--red);font-size:1.3rem;font-weight:700;margin-bottom:1.5rem;}
+.color-swatch{width:32px;height:32px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s;flex-shrink:0;}
+.color-swatch:hover{transform:scale(1.15);}
+.color-swatch.active{border-color:var(--red);transform:scale(1.15);box-shadow:0 0 0 2px white,0 0 0 4px var(--red);}
+.variant-btn{padding:.4rem 1rem;border-radius:4px;border:1.5px solid var(--gray2);background:white;font-family:'Sarabun',sans-serif;font-size:.88rem;cursor:pointer;color:var(--text);transition:all .2s;}
+.variant-btn.active{background:var(--red);color:white;border-color:var(--red);}
+.installment-table{width:100%;border-collapse:collapse;font-size:.9rem;margin-bottom:1.5rem;}
+.installment-table th{background:var(--black);color:white;padding:.6rem .75rem;text-align:center;}
+.installment-table td{padding:.6rem .75rem;text-align:center;border-bottom:1px solid var(--gray2);}
+.installment-table tr:nth-child(even) td{background:var(--gray);}
+.installment-table td:first-child{font-weight:600;}
+.calc-box{background:var(--gray);border-radius:8px;padding:1.5rem;}
+.calc-box h3{font-family:'Kanit',sans-serif;font-size:1.1rem;margin-bottom:1rem;}
+.calc-row{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;}
+.calc-field{flex:1;min-width:140px;}
+.calc-field label{display:block;font-size:.85rem;color:var(--text2);margin-bottom:.3rem;}
+.calc-field input,.calc-field select{width:100%;padding:.6rem .75rem;border:1px solid var(--gray2);border-radius:4px;font-family:'Sarabun',sans-serif;font-size:1rem;}
+.calc-result{background:white;border-radius:6px;padding:1rem;display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;}
+.calc-result span{color:var(--text2);font-size:.9rem;}
+.calc-result strong{color:var(--red);font-size:1.3rem;font-family:'Kanit',sans-serif;}
+.news-section{background:var(--gray);}
+.news-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;}
+.news-card{background:white;border-radius:8px;overflow:hidden;border:1px solid var(--gray2);transition:box-shadow .2s;}
+.news-card:hover{box-shadow:0 6px 20px rgba(0,0,0,.1);}
+.news-img{height:160px;background:var(--gray2);display:flex;align-items:center;justify-content:center;font-size:3rem;}
+.news-body{padding:1rem 1.25rem;}
+.news-date{font-size:.8rem;color:var(--text2);margin-bottom:.3rem;}
+.news-title{font-weight:600;font-size:1rem;line-height:1.4;}
+.news-tag{display:inline-block;background:#fff0f0;color:var(--red);font-size:.75rem;padding:2px 8px;border-radius:2px;margin-bottom:.5rem;}
+.social-section{text-align:center;}
+.social-links{display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap;margin-top:2rem;}
+.social-btn{display:flex;align-items:center;gap:.75rem;padding:1rem 2rem;border-radius:8px;text-decoration:none;font-weight:600;font-size:1rem;transition:transform .2s,opacity .2s;color:white;}
+.social-btn:hover{transform:translateY(-3px);opacity:.9;}
+.social-btn.facebook{background:#1877f2;}
+.social-btn.tiktok{background:#010101;}
+.social-btn.line{background:#00b900;}
+.social-btn svg{width:24px;height:24px;fill:white;}
+.form-section{background:var(--black);color:white;}
+.form-section .section-title{color:white;}
+.form-section .section-sub{color:#aaa;}
+.lead-form{background:white;color:var(--text);border-radius:12px;padding:2rem;max-width:700px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.form-group{margin-bottom:1rem;}
+.form-group.full{grid-column:1/-1;}
+.form-group label{display:block;font-size:.9rem;font-weight:600;margin-bottom:.35rem;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:.7rem .9rem;border:1.5px solid var(--gray2);border-radius:6px;font-family:'Sarabun',sans-serif;font-size:1rem;}
+.form-group textarea{resize:vertical;min-height:80px;}
+.form-submit{width:100%;padding:1rem;background:var(--red);color:white;border:none;border-radius:6px;font-family:'Kanit',sans-serif;font-size:1.1rem;font-weight:600;cursor:pointer;}
+.form-submit:hover{background:var(--red-dark);}
+.form-note{font-size:.8rem;color:var(--text2);margin-top:.75rem;text-align:center;}
+.success-msg{display:none;background:#e6f9ee;color:#1a7a3c;border:1.5px solid #1a7a3c;border-radius:8px;padding:1.5rem;text-align:center;margin-top:1rem;font-weight:600;}
+footer{background:#111;color:#aaa;padding:2.5rem 1.5rem;text-align:center;}
+footer .footer-brand{font-family:'Kanit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--red);margin-bottom:.5rem;}
+@media(max-width:768px){.nav-links{display:none;}.hamburger{display:flex;}.form-grid{grid-template-columns:1fr;}.mcard{flex:0 0 180px;}.slot-track{padding:0 calc(50% - 90px);}.slot-arrows{display:none;}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="nav-brand" href="#">${d.shop.name}<span>ตัวแทนจำหน่าย Honda</span></a>
+    <ul class="nav-links">
+      <li><a href="#models">รุ่นรถ & ราคา</a></li>
+      <li><a href="#news">ข่าวกิจกรรม</a></li>
+      <li><a href="#social">โซเชียล</a></li>
+      <li><a href="#contact">สอบถาม/ซื้อ</a></li>
+    </ul>
+    <div class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#models" onclick="closeMenu()">รุ่นรถ & ราคา</a>
+    <a href="#news" onclick="closeMenu()">ข่าวกิจกรรม</a>
+    <a href="#social" onclick="closeMenu()">โซเชียล</a>
+    <a href="#contact" onclick="closeMenu()">สอบถาม/ซื้อ</a>
+  </div>
+</nav>
+<div class="hero">
+  <h1>ยินดีต้อนรับสู่<br><span>${d.shop.name}</span></h1>
+  <p>${d.shop.hero}</p>
+  <div class="hero-btns">
+    <a href="#models" class="btn btn-red">ดูรุ่นรถและราคา</a>
+    <a href="#contact" class="btn btn-outline">สอบถาม / จองรถ</a>
+  </div>
+</div>
+<section id="models">
+  <div class="section-inner">
+    <h2 class="section-title">รุ่นรถฮอนด้า & ราคา</h2>
+    <p class="section-sub">ราคาและตารางผ่อนดาวน์อัปเดตล่าสุด · กดรถที่สนใจเพื่อดูตารางผ่อนและคำนวณค่างวด</p>
+    <div id="catRows"></div>
+  </div>
+</section>
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2 id="mName"></h2>
+    <div id="mVariants" style="display:none;margin-bottom:1rem;"><div style="font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:.5rem;">เลือกรุ่นย่อย</div><div id="mVariantBtns" style="display:flex;gap:.5rem;flex-wrap:wrap;"></div></div>
+    <div id="mColors" style="display:none;margin-bottom:1.25rem;"><div style="font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:.6rem;">เลือกสี</div><div id="mColorSwatches" style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;"></div><div id="mColorName" style="margin-top:.5rem;font-size:.85rem;color:var(--text2);"></div></div>
+    <div class="modal-price" id="mPrice"></div>
+    <table class="installment-table"><thead><tr><th>ดาวน์ (บาท)</th><th>12 เดือน</th><th>24 เดือน</th><th>36 เดือน</th><th>48 เดือน</th></tr></thead><tbody id="mTableBody"></tbody></table>
+    <div class="calc-box">
+      <h3>🧮 คำนวณค่างวดเอง</h3>
+      <div class="calc-row">
+        <div class="calc-field"><label>ราคารถ (บาท)</label><input type="number" id="calcPrice"></div>
+        <div class="calc-field"><label>เงินดาวน์ (บาท)</label><input type="number" id="calcDown" placeholder="เช่น 5000"></div>
+        <div class="calc-field"><label>ระยะเวลา</label><select id="calcMonth"><option value="12">12 เดือน</option><option value="24" selected>24 เดือน</option><option value="36">36 เดือน</option><option value="48">48 เดือน</option></select></div>
+      </div>
+      <button class="btn btn-red" onclick="calculate()" style="width:100%">คำนวณ</button>
+      <div class="calc-result" id="calcResult" style="display:none;margin-top:1rem;"><span>ผ่อนเดือนละประมาณ</span><strong id="calcOutput"></strong></div>
+    </div>
+  </div>
+</div>
+<section id="news" class="news-section">
+  <div class="section-inner">
+    <h2 class="section-title">ข่าวกิจกรรมทางร้าน</h2>
+    <p class="section-sub">อัปเดตโปรโมชั่น กิจกรรม และข่าวสารจากร้านเรา</p>
+    <div class="news-grid" id="newsGrid"></div>
+  </div>
+</section>
+<section id="social" class="social-section">
+  <div class="section-inner">
+    <h2 class="section-title" style="text-align:center">ติดตามเราบนโซเชียล</h2>
+    <p class="section-sub" style="text-align:center">อัปเดตข่าวสาร โปรโมชั่น และรีวิวรถล่าสุดได้ที่</p>
+    <div class="social-links">
+      <a href="${d.shop.fb}" target="_blank" class="social-btn facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>Facebook</a>
+      <a href="${d.shop.tt}" target="_blank" class="social-btn tiktok"><svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>TikTok</a>
+      <a href="${d.shop.line}" target="_blank" class="social-btn line"><svg viewBox="0 0 24 24"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>LINE</a>
+    </div>
+  </div>
+</section>
+<section id="contact" class="form-section">
+  <div class="section-inner">
+    <h2 class="section-title">สอบถาม / จองรถ / ส่งต่อข้อมูลลูกค้า</h2>
+    <p class="section-sub">กรอกข้อมูลด้านล่าง เจ้าหน้าที่จะติดต่อกลับโดยเร็ว</p>
+    <div class="lead-form">
+      <form id="leadForm" onsubmit="submitForm(event)">
+        <div class="form-grid">
+          <div class="form-group"><label>ชื่อ-นามสกุล *</label><input type="text" required></div>
+          <div class="form-group"><label>เบอร์โทรศัพท์ *</label><input type="tel" required></div>
+          <div class="form-group"><label>รุ่นรถที่สนใจ *</label><select required id="intModel"><option value="">-- เลือกรุ่น --</option></select></div>
+          <div class="form-group"><label>งบดาวน์ (บาท)</label><input type="number"></div>
+          <div class="form-group"><label>ระยะเวลาผ่อน</label><select><option>12 เดือน</option><option selected>24 เดือน</option><option>36 เดือน</option><option>48 เดือน</option></select></div>
+          <div class="form-group"><label>ประเภท</label><select><option>สอบถาม</option><option>จองรถ</option><option>ส่งต่อไฟแนนซ์</option><option>นัดทดลองขับ</option></select></div>
+          <div class="form-group full"><label>หมายเหตุ</label><textarea></textarea></div>
+        </div>
+        <button type="submit" class="form-submit">📨 ส่งข้อมูล / จองรถ</button>
+        <p class="form-note">* ข้อมูลจะถูกส่งให้ทีมขายและตรวจสอบโดยเช็กเกอร์ไฟแนนซ์</p>
+      </form>
+      <div class="success-msg" id="successMsg">✅ ได้รับข้อมูลแล้วครับ! ทีมงานจะติดต่อกลับภายใน 24 ชั่วโมง</div>
+    </div>
+  </div>
+</section>
+<footer>
+  <div class="footer-brand">${d.shop.name}</div>
+  <p>ตัวแทนจำหน่ายและศูนย์บริการ Honda · ${d.shop.address}<br>เปิดทุกวัน ${d.shop.hours} · โทร. ${d.shop.phone}</p>
+  <p style="margin-top:1rem;font-size:.8rem;color:#666;">© 2569 ${d.shop.name}. All rights reserved.</p>
+</footer>
+<script>
+const RATE=0.065;
+const categories=${catJS};
+const newsData=${newsJS};
+const rowState=categories.map(()=>({idx:0}));
+let modalModel=null,modalVariantIdx=0,modalColorIdx=0;
+function fmt(n){return n.toLocaleString('th-TH');}
+function calcInst(price,down,months){const loan=price-down;const r=RATE/12;return Math.ceil((loan*r*Math.pow(1+r,months))/(Math.pow(1+r,months)-1));}
+function renderAllRows(){
+  const c=document.getElementById('catRows');
+  c.innerHTML=categories.map((cat,ci)=>
+    '<div class="cat-row"><div class="cat-row-header"><div class="cat-icon-wrap" style="background:'+cat.color+'">'+cat.icon+'</div><div><div class="cat-row-title">'+cat.name+'</div><div class="cat-row-sub">'+cat.models.length+' รุ่น</div></div><div class="cat-divider"></div></div>'+
+    '<div class="slot-wrap" id="wrap-'+ci+'" ontouchstart="tS(event,'+ci+')" ontouchend="tE(event,'+ci+')" onmousedown="dS(event,'+ci+')">'+
+    '<div class="slot-track" id="track-'+ci+'">'+
+    cat.models.map((m,mi)=>
+      '<div class="mcard" id="card-'+ci+'-'+mi+'" onclick="cC('+ci+','+mi+')">'+
+      '<div class="mcard-img">'+(m.badge?'<div class="mcard-badge">'+m.badge+'</div>':'')+
+      '<span style="font-size:3.5rem">'+m.icon+'</span></div>'+
+      '<div class="mcard-name">'+m.name+'</div>'+
+      '<div class="mcard-price">฿'+fmt(m.variants[0].price)+'</div>'+
+      '<div class="mcard-down">ดาวน์เริ่มต้น ฿'+fmt(m.variants[0].downs[0])+'</div>'+
+      '<button class="mcard-btn" onclick="event.stopPropagation();oM('+ci+','+mi+')">ดูตารางผ่อน →</button></div>'
+    ).join('')+
+    '</div>'+
+    '<div class="slot-dots" id="dots-'+ci+'">'+cat.models.map((_,mi)=>'<div class="slot-dot" onclick="gT('+ci+','+mi+')"></div>').join('')+'</div>'+
+    '<div class="slot-arrows"><button class="slot-arr" onclick="gT('+ci+',rowState['+ci+'].idx-1)">&#8249;</button><button class="slot-arr" onclick="gT('+ci+',rowState['+ci+'].idx+1)">&#8250;</button></div>'+
+    '</div></div>'
+  ).join('');
+  categories.forEach((_,ci)=>gT(ci,0,true));
+}
+function gT(ci,mi,instant){
+  const cat=categories[ci];mi=Math.max(0,Math.min(cat.models.length-1,mi));rowState[ci].idx=mi;
+  cat.models.forEach((_,i)=>{const card=document.getElementById('card-'+ci+'-'+i);if(!card)return;const d=Math.abs(i-mi);card.className='mcard'+(d===0?' active':d===1?' adj':'');});
+  const track=document.getElementById('track-'+ci);const cw=window.innerWidth<=768?196:236;
+  if(instant)track.classList.add('no-transition');track.style.transform='translateX(-'+(mi*cw)+'px)';
+  if(instant)setTimeout(()=>track.classList.remove('no-transition'),50);
+  document.querySelectorAll('#dots-'+ci+' .slot-dot').forEach((d,i)=>d.classList.toggle('active',i===mi));
+}
+function cC(ci,mi){if(rowState[ci].idx===mi)oM(ci,mi);else gT(ci,mi);}
+const td={};
+function tS(e,ci){td[ci]={x:e.touches[0].clientX};}
+function tE(e,ci){if(!td[ci])return;const dx=e.changedTouches[0].clientX-td[ci].x;if(Math.abs(dx)>40)gT(ci,rowState[ci].idx+(dx<0?1:-1));td[ci]=null;}
+const dd={};
+function dS(e,ci){e.preventDefault();dd[ci]={x:e.clientX};document.getElementById('wrap-'+ci).classList.add('grabbing');const up=(ev)=>{if(!dd[ci])return;const dx=ev.clientX-dd[ci].x;if(Math.abs(dx)>40)gT(ci,rowState[ci].idx+(dx<0?1:-1));dd[ci]=null;document.getElementById('wrap-'+ci)?.classList.remove('grabbing');document.removeEventListener('mouseup',up);};document.addEventListener('mouseup',up);}
+function oM(ci,mi){modalModel=categories[ci].models[mi];modalVariantIdx=0;modalColorIdx=0;document.getElementById('mName').textContent=modalModel.name;rV();rC();uT();document.getElementById('calcResult').style.display='none';document.getElementById('modalOverlay').classList.add('open');document.body.style.overflow='hidden';}
+function rV(){const w=document.getElementById('mVariants');const b=document.getElementById('mVariantBtns');if(!modalModel.variants||modalModel.variants.length<=1){w.style.display='none';return;}w.style.display='block';b.innerHTML=modalModel.variants.map((v,i)=>'<button class="variant-btn'+(i===0?' active':'')+'" onclick="sV('+i+')">'+v.name+'</button>').join('');}
+function sV(i){modalVariantIdx=i;document.querySelectorAll('.variant-btn').forEach((b,j)=>b.classList.toggle('active',j===i));uT();}
+function rC(){const w=document.getElementById('mColors');const s=document.getElementById('mColorSwatches');const n=document.getElementById('mColorName');if(!modalModel.colors||!modalModel.colors.length){w.style.display='none';return;}w.style.display='block';s.innerHTML=modalModel.colors.map((c,i)=>'<div class="color-swatch'+(i===0?' active':'')+'" style="background:'+c.hex+';'+(c.border?'border:2px solid #bbb;':'')+'" title="'+c.name+'" onclick="sC('+i+')"></div>').join('');n.textContent='สี: '+modalModel.colors[0].name;}
+function sC(i){modalColorIdx=i;document.querySelectorAll('.color-swatch').forEach((s,j)=>s.classList.toggle('active',j===i));document.getElementById('mColorName').textContent='สี: '+modalModel.colors[i].name;}
+function uT(){const d=modalModel.variants[modalVariantIdx];document.getElementById('mPrice').textContent='฿'+fmt(d.price);document.getElementById('calcPrice').value=d.price;const months=[12,24,36,48];document.getElementById('mTableBody').innerHTML=d.downs.map(dn=>'<tr><td>'+fmt(dn)+'</td>'+months.map(mo=>'<td>'+fmt(calcInst(d.price,dn,mo))+' บ./เดือน</td>').join('')+'</tr>').join('');}
+function closeModal(e){if(!e||e.target===document.getElementById('modalOverlay')||!e.target){document.getElementById('modalOverlay').classList.remove('open');document.body.style.overflow='';}}
+function calculate(){const price=parseFloat(document.getElementById('calcPrice').value)||0;const down=parseFloat(document.getElementById('calcDown').value)||0;const months=parseInt(document.getElementById('calcMonth').value);if(price<=0){alert('กรุณากรอกราคารถ');return;}if(down>=price){alert('เงินดาวน์ต้องน้อยกว่าราคารถ');return;}document.getElementById('calcOutput').textContent='฿'+fmt(calcInst(price,down,months))+' / เดือน';document.getElementById('calcResult').style.display='flex';}
+function renderNews(){document.getElementById('newsGrid').innerHTML=newsData.map(n=>'<div class="news-card"><div class="news-img">'+n.icon+'</div><div class="news-body"><div class="news-tag">'+n.tag+'</div><div class="news-date">'+n.date+'</div><div class="news-title">'+n.title+'</div></div></div>').join('');}
+function renderContactModels(){const sel=document.getElementById('intModel');sel.innerHTML='<option value="">-- เลือกรุ่น --</option>'+categories.flatMap(c=>c.models.map(m=>'<option>'+m.name+'</option>')).join('');}
+function submitForm(e){e.preventDefault();document.getElementById('leadForm').style.display='none';document.getElementById('successMsg').style.display='block';}
+function toggleMenu(){document.getElementById('mobileMenu').classList.toggle('open');}
+function closeMenu(){document.getElementById('mobileMenu').classList.remove('open');}
+renderAllRows();renderNews();renderContactModels();
+<\/script>
+</body>
+</html>`;
+
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'index.html';
+  a.click();
+  showToast('ดาวน์โหลด index.html แล้ว! ✅', 'success');
+}
+</script>
+</body>
+</html>
