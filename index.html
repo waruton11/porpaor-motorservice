@@ -36,32 +36,30 @@ section{padding:4rem 1.5rem;}
 .section-title::after{content:'';display:block;width:48px;height:4px;background:var(--red);margin-top:8px;}
 .section-sub{color:var(--text2);margin-bottom:2.5rem;margin-top:.5rem;}
 #models{background:#fafafa;padding:3rem 0 4rem;}
-.cat-row{margin-bottom:3rem;}
-.cat-row-header{display:flex;align-items:center;gap:1rem;padding:0 1rem;margin-bottom:1.25rem;}
-.cat-icon-wrap{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
-.cat-row-title{font-family:'Kanit',sans-serif;font-size:1.15rem;font-weight:700;}
-.cat-row-sub{font-size:.8rem;color:var(--text2);}
-.cat-divider{flex:1;height:1px;background:var(--gray2);}
-.slot-wrap{position:relative;overflow:hidden;padding:1.5rem 0;cursor:grab;user-select:none;}
-.slot-wrap.grabbing{cursor:grabbing;}
-.slot-track{display:flex;align-items:center;gap:1rem;padding:0 calc(50% - 120px);transition:transform .4s cubic-bezier(.25,.46,.45,.94);}
-.slot-track.no-transition{transition:none;}
-.mcard{flex:0 0 220px;border-radius:14px;background:white;border:1.5px solid var(--gray2);padding:1rem 1rem 1.25rem;transition:transform .4s ease,opacity .4s ease,box-shadow .4s ease,border-color .4s ease;transform:scale(.82);opacity:.5;cursor:pointer;position:relative;}
-.mcard.active{transform:scale(1);opacity:1;box-shadow:0 12px 36px rgba(204,0,0,.18);border-color:var(--red);z-index:2;}
-.mcard.adj{transform:scale(.9);opacity:.75;}
-.mcard-img{height:140px;display:flex;align-items:center;justify-content:center;font-size:4rem;margin-bottom:.75rem;position:relative;}
+.cat-tabs{display:flex;gap:0;border-bottom:2px solid var(--gray2);margin-bottom:2.5rem;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.cat-tabs::-webkit-scrollbar{display:none;}
+.cat-tab{display:flex;align-items:center;gap:.6rem;padding:.85rem 1.4rem;border:none;background:none;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:.95rem;font-weight:500;color:var(--text2);border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:color .2s,border-color .2s;}
+.cat-tab:hover{color:var(--text);}
+.cat-tab.active{color:var(--red);border-bottom-color:var(--red);font-weight:700;}
+.cat-tab-icon{font-size:1.3rem;}
+.cat-tab-info{display:flex;flex-direction:column;align-items:flex-start;}
+.cat-tab-name{font-family:'Kanit',sans-serif;font-size:.9rem;font-weight:700;line-height:1.2;}
+.cat-tab-count{font-size:.72rem;color:var(--text2);font-weight:400;}
+.cat-tab.active .cat-tab-count{color:var(--red);}
+.cat-panel{display:none;}
+.cat-panel.active{display:block;}
+.model-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.25rem;}
+.mcard{background:white;border-radius:12px;border:1.5px solid var(--gray2);padding:1.25rem 1.25rem 1.5rem;cursor:pointer;position:relative;transition:box-shadow .2s,border-color .2s,transform .2s;}
+.mcard:hover{box-shadow:0 8px 28px rgba(0,0,0,.1);border-color:#ccc;transform:translateY(-3px);}
+.mcard-img{height:150px;display:flex;align-items:center;justify-content:center;font-size:4rem;margin-bottom:1rem;position:relative;}
 .mcard-badge{position:absolute;top:0;right:0;background:var(--red);color:white;font-size:.65rem;font-weight:800;padding:3px 8px;border-radius:4px;letter-spacing:1px;}
-.mcard-name{font-family:'Kanit',sans-serif;font-size:.95rem;font-weight:700;margin-bottom:.15rem;}
-.mcard-price{color:var(--red);font-size:.9rem;font-weight:700;}
-.mcard-down{color:var(--text2);font-size:.75rem;margin-top:.1rem;}
-.mcard-btn{display:none;margin-top:.75rem;width:100%;background:var(--red);color:white;border:none;border-radius:6px;padding:.5rem;font-family:'Sarabun',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;}
-.mcard.active .mcard-btn{display:block;}
-.slot-dots{display:flex;justify-content:center;gap:6px;margin-top:.5rem;}
-.slot-dot{width:6px;height:6px;border-radius:50%;background:var(--gray2);transition:background .3s,width .3s;cursor:pointer;}
-.slot-dot.active{background:var(--red);width:18px;border-radius:3px;}
-.slot-arrows{display:flex;justify-content:center;gap:1rem;margin-top:.75rem;}
-.slot-arr{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--gray2);background:white;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,border-color .2s;color:var(--text);}
-.slot-arr:hover{background:var(--red);border-color:var(--red);color:white;}
+.mcard-name{font-family:'Kanit',sans-serif;font-size:1rem;font-weight:700;margin-bottom:.25rem;}
+.mcard-price{color:var(--red);font-size:.95rem;font-weight:700;}
+.mcard-down{color:var(--text2);font-size:.78rem;margin-top:.15rem;}
+.mcard-btn{display:block;margin-top:1rem;width:100%;background:var(--red);color:white;border:none;border-radius:6px;padding:.6rem;font-family:'Sarabun',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:opacity .15s;}
+.mcard-btn:hover{opacity:.88;}
+.mcard-btn-outline{display:block;margin-top:.5rem;width:100%;background:white;color:var(--text);border:1.5px solid var(--gray2);border-radius:6px;padding:.55rem;font-family:'Sarabun',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;transition:border-color .15s;}
+.mcard-btn-outline:hover{border-color:#999;}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center;padding:1rem;}
 .modal-overlay.open{display:flex;}
 .modal{background:white;border-radius:12px;width:100%;max-width:700px;max-height:90vh;overflow-y:auto;padding:2rem;position:relative;}
@@ -227,47 +225,39 @@ footer .footer-brand{font-family:'Kanit',sans-serif;font-size:1.2rem;font-weight
 const RATE=0.065;
 const categories=[{"name":"ครอบครัว (Family)","icon":"🏘️","color":"#e8f5e9","models":[{"name":"Honda Wave110i","price":41900,"badge":"","icon":"🛵","variants":[{"name":"ล้อซี่ลวด (ดรัมเบรก)","price":41900,"downs":[0,5000,10000]},{"name":"ล้อซี่ลวด (ดิสก์เบรก)","price":49200,"downs":[0,5000,10000]},{"name":"ล้อแม็ก","price":51200,"downs":[0,5000,10000]},{"name":"ล้อแม็ก (สเปเชียล)","price":51700,"downs":[0,5000,10000]}],"colors":[{"name":"ดำ","hex":"#000000","img":"/images/WAVE 110 2025/WAVE1102025spoke/Black.png","variant":"ล้อซี่ลวด (ดรัมเบรก)"},{"name":"น้ำเงิน","hex":"#1565c0","img":"/images/WAVE 110 2025/WAVE1102025alloy/MaxWheelBlue.png","variant":"ล้อแม็ก"},{"name":"เทา","hex":"#616161","img":"/images/WAVE 110 2025/WAVE1102025alloy/MaxWheelGray.png","variant":"ล้อแม็ก"},{"name":"แดง","hex":"#cc0000","img":"/images/WAVE 110 2025/WAVE1102025alloy/MaxWheelRed.png","variant":"ล้อแม็ก"},{"name":"ดำ-น้ำตาล","hex":"#000000","img":"/images/WAVE 110 2025/WAVE1102025alloySpecial/SpecialBlackBBR.png","hex2":"#7b5e3a","variant":"ล้อแม็ก (สเปเชียล)"},{"name":"ขาว-น้ำตาล","hex":"#ffffff","img":"/images/WAVE 110 2025/WAVE1102025alloySpecial/SpecialWhiteWBR.png","hex2":"#7b5e3a","variant":"ล้อแม็ก (สเปเชียล)"},{"name":"น้ำเงิน-ดำ","hex":"#1565c0","img":"/images/WAVE 110 2025/WAVE1102025dise/WheelBlue.png","hex2":"#000000","variant":"ล้อซี่ลวด (ดิสก์เบรก)"},{"name":"เทา-ดำ","hex":"#ababab","img":"/images/WAVE 110 2025/WAVE1102025dise/WheelGray.png","hex2":"#000000","variant":"ล้อซี่ลวด (ดิสก์เบรก)"},{"name":"ดำ","hex":"#000000","img":"/images/WAVE 110 2025/WAVE1102025dise/WheelBlack.png","variant":"ล้อซี่ลวด (ดิสก์เบรก)"}]},{"name":"Honda Wave125i","price":54900,"badge":"","icon":"🛵","variants":[{"name":"ล้อลวด","price":54900,"downs":[5000,7000,10000,12000]},{"name":"ล้อแม็ก","price":57900,"downs":[5000,8000,11000,13000]}],"colors":[{"name":"แดง-ดำ","hex":"#cc0000"},{"name":"น้ำเงิน-ดำ","hex":"#1565c0"},{"name":"ขาว-ดำ","hex":"#f5f5f5","border":true}]},{"name":"Honda Dash125","price":52900,"badge":"","icon":"🛵","variants":[{"name":"มาตรฐาน","price":52900,"downs":[4000,6000,8000,10000]}],"colors":[{"name":"แดง","hex":"#cc0000"},{"name":"ขาว","hex":"#f5f5f5","border":true},{"name":"น้ำเงิน","hex":"#1565c0"}]},{"name":"Honda Super Cub C125","price":79900,"badge":"NEW","icon":"🛵","variants":[{"name":"มาตรฐาน","price":79900,"downs":[8000,10000,15000,20000]}],"colors":[{"name":"ขาวมุก","hex":"#f5f5f5","border":true},{"name":"แดง","hex":"#cc0000"},{"name":"น้ำเงิน","hex":"#1565c0"},{"name":"เหลือง","hex":"#f9a825"}]}]},{"name":"สกู๊ตเตอร์ออโตเมติก","icon":"🛵","color":"#fff3e0","models":[{"name":"Honda CLICK 160","price":56900,"badge":"ยอดนิยม","icon":"🛵","variants":[{"name":"มาตรฐาน","price":56900,"downs":[5000,8000,10000,15000]}],"colors":[{"name":"แดง-ดำ","hex":"#cc0000"},{"name":"ขาว-ดำ","hex":"#f5f5f5","border":true},{"name":"น้ำเงิน-ดำ","hex":"#1565c0"},{"name":"เทา","hex":"#78909c"}]},{"name":"Honda PCX160","price":79900,"badge":"ขายดี","icon":"🛵","variants":[{"name":"มาตรฐาน","price":79900,"downs":[8000,12000,15000,20000]}],"colors":[{"name":"ขาว","hex":"#f5f5f5","border":true},{"name":"แดง","hex":"#cc0000"},{"name":"เทา","hex":"#546e7a"},{"name":"ดำ","hex":"#212121"}]},{"name":"Honda SCOOPY","price":57900,"badge":"NEW","icon":"🛵","variants":[{"name":"มาตรฐาน","price":57900,"downs":[5000,8000,10000,15000]}],"colors":[{"name":"ขาว-ชมพู","hex":"#f48fb1"},{"name":"ขาว-ฟ้า","hex":"#81d4fa"},{"name":"ขาว-เขียว","hex":"#a5d6a7"},{"name":"ดำ-แดง","hex":"#cc0000"}]},{"name":"Honda Forza350","price":199900,"badge":"พรีเมียม","icon":"🛵","variants":[{"name":"มาตรฐาน","price":199900,"downs":[20000,30000,40000,50000]}],"colors":[{"name":"ดำ-เทา","hex":"#424242"},{"name":"น้ำเงิน-ดำ","hex":"#1565c0"},{"name":"แดง-ดำ","hex":"#cc0000"}]}]},{"name":"สปอร์ต (Sport)","icon":"🏍️","color":"#fce4ec","models":[{"name":"Honda CBR500R","price":219000,"badge":"Big Bike","icon":"🏍️","variants":[{"name":"มาตรฐาน","price":219000,"downs":[22000,35000,55000,75000]}],"colors":[{"name":"แดง","hex":"#cc0000"},{"name":"ดำ","hex":"#212121"},{"name":"ขาว","hex":"#f5f5f5","border":true}]},{"name":"Honda CBR650R","price":339000,"badge":"NEW","icon":"🏍️","variants":[{"name":"มาตรฐาน","price":339000,"downs":[34000,55000,85000,110000]}],"colors":[{"name":"แดง","hex":"#cc0000"},{"name":"ดำ","hex":"#212121"},{"name":"เทา","hex":"#546e7a"}]}]},{"name":"ผจญภัย (Adventure)","icon":"🗺️","color":"#e3f2fd","models":[{"name":"Honda ADV160","price":95900,"badge":"NEW","icon":"🏍️","variants":[{"name":"มาตรฐาน","price":95900,"downs":[10000,15000,20000,25000]}],"colors":[{"name":"เทา","hex":"#78909c"},{"name":"แดง-ดำ","hex":"#cc0000"},{"name":"ดำ","hex":"#212121"}]},{"name":"Honda Africa Twin","price":649000,"badge":"Big Bike","icon":"🏍️","variants":[{"name":"Manual (MT)","price":649000,"downs":[65000,100000,150000,200000]},{"name":"DCT (ออโต้)","price":699000,"downs":[70000,110000,160000,210000]}],"colors":[{"name":"แดง-ดำ","hex":"#cc0000"},{"name":"ขาว-น้ำเงิน","hex":"#f5f5f5","border":true},{"name":"เขียว","hex":"#558b2f"}]}]},{"name":"บ๊อบเบอร์ & นีโอสปอร์ตคาเฟ่","icon":"☕","color":"#f3e5f5","models":[{"name":"Honda CB300R","price":159000,"badge":"","icon":"🏍️","variants":[{"name":"มาตรฐาน","price":159000,"downs":[16000,25000,35000,50000]}],"colors":[{"name":"ดำ","hex":"#212121"},{"name":"ขาว","hex":"#f5f5f5","border":true},{"name":"แดง","hex":"#cc0000"}]},{"name":"Honda CB650R","price":329000,"badge":"NEW","icon":"🏍️","variants":[{"name":"มาตรฐาน","price":329000,"downs":[33000,50000,80000,100000]}],"colors":[{"name":"ดำ","hex":"#212121"},{"name":"เทา","hex":"#78909c"},{"name":"แดง","hex":"#cc0000"}]}]},{"name":"รถไฟฟ้า (EV)","icon":"⚡","color":"#e0f7fa","models":[{"name":"Honda EM1 e:","price":65900,"badge":"EV","icon":"⚡","variants":[{"name":"มาตรฐาน","price":65900,"downs":[6000,9000,12000,16000]}],"colors":[{"name":"ขาว","hex":"#f5f5f5","border":true},{"name":"ดำ","hex":"#212121"},{"name":"แดง","hex":"#cc0000"},{"name":"ฟ้า","hex":"#29b6f6"}]}]}];
 const newsData=[{"title":"ดาวน์พิเศษ 0% เดือนนี้เท่านั้น!","tag":"โปรโมชั่น","date":"พฤษภาคม 2569","icon":"🏍️","body":"Honda CLICK 160 และ PCX160"},{"title":"เช็กรถฟรี ต้อนรับเทศกาลสงกรานต์","tag":"บริการ","date":"เมษายน 2569","icon":"🔧","body":"ศูนย์บริการฮอนด้า วังน้อย"},{"title":"ส่งมอบรถ Honda ADV160","tag":"กิจกรรม","date":"มีนาคม 2569","icon":"🎉","body":"ร่วมแสดงความยินดีกับลูกค้า"}];
-const rowState=categories.map(()=>({idx:0}));
 let modalModel=null,modalVariantIdx=0,modalColorIdx=0;
 function fmt(n){return n.toLocaleString('th-TH');}
 function calcInst(price,down,months){const loan=price-down;const r=RATE/12;return Math.ceil((loan*r*Math.pow(1+r,months))/(Math.pow(1+r,months)-1));}
 function renderAllRows(){
   const c=document.getElementById('catRows');
-  c.innerHTML=categories.map((cat,ci)=>
-    '<div class="cat-row"><div class="cat-row-header"><div class="cat-icon-wrap" style="background:'+cat.color+'">'+cat.icon+'</div><div><div class="cat-row-title">'+cat.name+'</div><div class="cat-row-sub">'+cat.models.length+' รุ่น</div></div><div class="cat-divider"></div></div>'+
-    '<div class="slot-wrap" id="wrap-'+ci+'" ontouchstart="tS(event,'+ci+')" ontouchend="tE(event,'+ci+')" onmousedown="dS(event,'+ci+')">'+
-    '<div class="slot-track" id="track-'+ci+'">'+
+  const tabs=categories.map((cat,ci)=>
+    '<button class="cat-tab'+(ci===0?' active':'')+'" onclick="switchCat('+ci+')">'+
+    '<span class="cat-tab-icon">'+cat.icon+'</span>'+
+    '<span class="cat-tab-info"><span class="cat-tab-name">'+cat.name+'</span><span class="cat-tab-count">'+cat.models.length+' รุ่น</span></span>'+
+    '</button>'
+  ).join('');
+  const panels=categories.map((cat,ci)=>
+    '<div class="cat-panel'+(ci===0?' active':'')+'" id="catPanel-'+ci+'">'+
+    '<div class="model-grid">'+
     cat.models.map((m,mi)=>
-      '<div class="mcard" id="card-'+ci+'-'+mi+'" onclick="cC('+ci+','+mi+')">'+
+      '<div class="mcard" onclick="oM('+ci+','+mi+')">'+
       '<div class="mcard-img">'+(m.badge?'<div class="mcard-badge">'+m.badge+'</div>':'')+
-      (m.colors&&m.colors[0]&&m.colors[0].img ? '<img src="'+m.colors[0].img+'" style="width:100%;height:130px;object-fit:contain;" class="mcard-photo">' : '<span style="font-size:3.5rem">'+m.icon+'</span>')+
+      (m.colors&&m.colors[0]&&m.colors[0].img?'<img src="'+m.colors[0].img+'" style="width:100%;height:140px;object-fit:contain;">':'<span style="font-size:3.5rem">'+m.icon+'</span>')+
       '</div>'+
       '<div class="mcard-name">'+m.name+'</div>'+
-      '<div class="mcard-price">฿'+fmt(m.variants[0].price)+'</div>'+
+      '<div class="mcard-price">เริ่มต้น ฿'+fmt(m.variants[0].price)+'</div>'+
       '<div class="mcard-down">ดาวน์เริ่มต้น ฿'+fmt(m.variants[0].downs[0])+'</div>'+
-      '<button class="mcard-btn" onclick="event.stopPropagation();oM('+ci+','+mi+')">ดูตารางผ่อน →</button></div>'
+      '<button class="mcard-btn" onclick="event.stopPropagation();oM('+ci+','+mi+')">ดูตารางผ่อน →</button>'+
+      '</div>'
     ).join('')+
-    '</div>'+
-    '<div class="slot-dots" id="dots-'+ci+'">'+cat.models.map((_,mi)=>'<div class="slot-dot" onclick="gT('+ci+','+mi+')"></div>').join('')+'</div>'+
-    '<div class="slot-arrows"><button class="slot-arr" onclick="gT('+ci+',rowState['+ci+'].idx-1)">&#8249;</button><button class="slot-arr" onclick="gT('+ci+',rowState['+ci+'].idx+1)">&#8250;</button></div>'+
     '</div></div>'
   ).join('');
-  categories.forEach((_,ci)=>gT(ci,0,true));
+  c.innerHTML='<div class="cat-tabs">'+tabs+'</div>'+panels;
 }
-function gT(ci,mi,instant){
-  const cat=categories[ci];mi=Math.max(0,Math.min(cat.models.length-1,mi));rowState[ci].idx=mi;
-  cat.models.forEach((_,i)=>{const card=document.getElementById('card-'+ci+'-'+i);if(!card)return;const d=Math.abs(i-mi);card.className='mcard'+(d===0?' active':d===1?' adj':'');});
-  const track=document.getElementById('track-'+ci);const cw=window.innerWidth<=768?196:236;
-  if(instant)track.classList.add('no-transition');track.style.transform='translateX(-'+(mi*cw)+'px)';
-  if(instant)setTimeout(()=>track.classList.remove('no-transition'),50);
-  document.querySelectorAll('#dots-'+ci+' .slot-dot').forEach((d,i)=>d.classList.toggle('active',i===mi));
+function switchCat(ci){
+  document.querySelectorAll('.cat-tab').forEach((t,i)=>t.classList.toggle('active',i===ci));
+  document.querySelectorAll('.cat-panel').forEach((p,i)=>p.classList.toggle('active',i===ci));
 }
-function cC(ci,mi){if(rowState[ci].idx===mi)oM(ci,mi);else gT(ci,mi);}
-const td={};
-function tS(e,ci){td[ci]={x:e.touches[0].clientX};}
-function tE(e,ci){if(!td[ci])return;const dx=e.changedTouches[0].clientX-td[ci].x;if(Math.abs(dx)>40)gT(ci,rowState[ci].idx+(dx<0?1:-1));td[ci]=null;}
-const dd={};
-function dS(e,ci){e.preventDefault();dd[ci]={x:e.clientX};document.getElementById('wrap-'+ci).classList.add('grabbing');const up=(ev)=>{if(!dd[ci])return;const dx=ev.clientX-dd[ci].x;if(Math.abs(dx)>40)gT(ci,rowState[ci].idx+(dx<0?1:-1));dd[ci]=null;document.getElementById('wrap-'+ci)?.classList.remove('grabbing');document.removeEventListener('mouseup',up);};document.addEventListener('mouseup',up);}
 function oM(ci,mi){modalModel=categories[ci].models[mi];modalVariantIdx=0;modalColorIdx=0;document.getElementById('mName').textContent=modalModel.name;rV();rC();uT();document.getElementById('calcResult').style.display='none';document.getElementById('modalOverlay').classList.add('open');document.body.style.overflow='hidden';}
 function rV(){const w=document.getElementById('mVariants');const b=document.getElementById('mVariantBtns');if(!modalModel.variants||modalModel.variants.length<=1){w.style.display='none';return;}w.style.display='block';b.innerHTML=modalModel.variants.map((v,i)=>'<button class="variant-btn'+(i===0?' active':'')+'" onclick="sV('+i+')">'+v.name+'</button>').join('');}
 function sV(i){modalVariantIdx=i;document.querySelectorAll('.variant-btn').forEach((b,j)=>b.classList.toggle('active',j===i));uT();rC();}
