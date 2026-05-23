@@ -758,7 +758,7 @@ function saveModel() {
   if (!name) { showToast('กรุณาใส่ชื่อรุ่น', 'error'); return; }
 
   const variants = [];
-  document.querySelectorAll('.variant-row').forEach(row => {
+  document.querySelectorAll('#variantRows .variant-row').forEach(row => {
     const vname = row.querySelector('.vname').value.trim() || 'มาตรฐาน';
     const vprice = parseInt(row.querySelector('.vprice').value) || 0;
     const vfinancebase = parseInt(row.querySelector('.vfinancebase').value) || 0;
@@ -796,7 +796,7 @@ function saveModel() {
   if (variants.length === 0) { showToast('กรุณาใส่ราคาอย่างน้อย 1 รุ่น', 'error'); return; }
 
   const colors = [];
-  document.querySelectorAll('.color-row').forEach(row => {
+  document.querySelectorAll('#colorRows .color-row').forEach(row => {
     const cname = row.querySelector('.cname').value.trim();
     const chex = row.querySelector('.chex').value;
     const chex2el = row.querySelector('.chex2');
@@ -859,7 +859,7 @@ function toggleInstEditor() {
 
 function buildInstEditor() {
   const months = [48,42,36,30,24];
-  const rows = document.querySelectorAll('.variant-row');
+  const rows = document.querySelectorAll('#variantRows .variant-row');
   let html = '';
   rows.forEach((row, ri) => {
     const vname = row.querySelector('.vname').value.trim() || 'รุ่นย่อย '+(ri+1);
