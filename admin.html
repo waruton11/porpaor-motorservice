@@ -327,6 +327,16 @@ tr:hover td { background: #fafafa; }
         <input id="m_icon" value="🛵">
       </div>
     </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label>URL โลโก้รุ่น <span style="font-weight:400;color:#aaa;">(มุมขวาบน, ไม่มีพื้นหลัง)</span></label>
+        <input id="m_logo" placeholder="เช่น /images/logos/wave.png หรือเว้นว่าง">
+      </div>
+      <div class="form-group">
+        <label>ข้อความดาวน์ <span style="font-weight:400;color:#aaa;">(ค่าเริ่มต้น: ฟรีดาวน์)</span></label>
+        <input id="m_downtext" placeholder="เช่น ดาวน์เริ่มต้น 10%">
+      </div>
+    </div>
 
     <div style="font-weight:700; margin: 1rem 0 0.5rem;">💰 รุ่นย่อย & ราคา</div>
     <p style="font-size:0.82rem; color:var(--text2); margin-bottom:0.75rem;">ถ้ามีแค่รุ่นเดียว ใส่แค่แถวแรก · ถ้ามีหลายรุ่นย่อย (เช่น ล้อลวด/ล้อแม็ก) กด + เพิ่มแถว</p>
@@ -558,6 +568,8 @@ function renderModelTable() {
         <td style="font-size:0.82rem; color:var(--text2);">${variantText}</td>
         <td>${colorDots}</td>
         <td>
+          <button class="btn btn-gray btn-sm" onclick="moveModel(${ci},${mi},'up')" style="padding:2px 7px;margin-right:2px;" title="เลื่อนขึ้น">▲</button>
+          <button class="btn btn-gray btn-sm" onclick="moveModel(${ci},${mi},'down')" style="padding:2px 7px;margin-right:6px;" title="เลื่อนลง">▼</button>
           <button class="btn btn-info btn-sm" onclick="openEditModel(${ci},${mi})" style="margin-right:4px;">✏️ แก้ไข</button>
           <button class="btn btn-danger btn-sm" onclick="deleteModel(${ci},${mi})">🗑️</button>
         </td>
@@ -573,6 +585,8 @@ function openAddModel() {
   document.getElementById('m_name').value = '';
   document.getElementById('m_badge').value = '';
   document.getElementById('m_icon').value = '🛵';
+  document.getElementById('m_logo').value = '';
+  document.getElementById('m_downtext').value = '';
   document.getElementById('m_cat').value = '0';
   document.getElementById('variantRows').innerHTML = '';
   document.getElementById('colorRows').innerHTML = '';
@@ -589,6 +603,8 @@ function openEditModel(ci, mi) {
   document.getElementById('m_name').value = m.name;
   document.getElementById('m_badge').value = m.badge || '';
   document.getElementById('m_icon').value = m.icon || '🛵';
+  document.getElementById('m_logo').value = m.logo || '';
+  document.getElementById('m_downtext').value = m.downText || '';
   // variants
   document.getElementById('variantRows').innerHTML = '';
   m.variants.forEach(v => {
@@ -761,6 +777,8 @@ function saveModel() {
     price: variants[0].price,
     badge: document.getElementById('m_badge').value.trim(),
     icon: document.getElementById('m_icon').value.trim() || '🛵',
+    logo: document.getElementById('m_logo').value.trim(),
+    downText: document.getElementById('m_downtext').value.trim(),
     variants,
     colors
   };
@@ -791,6 +809,16 @@ function deleteModel(ci, mi) {
   saveData();
   renderModelTable();
   showToast('ลบแล้ว', 'success');
+}
+
+function moveModel(ci, mi, dir) {
+  const models = data.categories[ci].models;
+  if (dir === 'up' && mi > 0) {
+    [models[mi-1], models[mi]] = [models[mi], models[mi-1]];
+  } else if (dir === 'down' && mi < models.length-1) {
+    [models[mi], models[mi+1]] = [models[mi+1], models[mi]];
+  }
+  saveData(); renderModelTable();
 }
 
 // ========== NEWS ==========
@@ -961,7 +989,9 @@ section{padding:4rem 1.5rem;}
 @media(max-width:600px){.model-grid{grid-template-columns:1fr;}}
 .mcard{background:white;border-radius:12px;border:1.5px solid var(--gray2);padding:1.25rem 1.25rem 1.5rem;cursor:pointer;position:relative;transition:box-shadow .2s,border-color .2s,transform .2s;}
 .mcard:hover{box-shadow:0 8px 28px rgba(0,0,0,.1);border-color:#ccc;transform:translateY(-3px);}
-.mcard-img{height:150px;display:flex;align-items:center;justify-content:center;font-size:4rem;margin-bottom:1rem;position:relative;}
+.mcard-img{height:190px;display:flex;align-items:center;justify-content:center;font-size:4rem;margin-bottom:1rem;position:relative;}
+.mcard-logo{position:absolute;top:0;right:0;height:26px;max-width:72px;object-fit:contain;opacity:.85;}
+@media(max-width:600px){.mcard-img{height:170px;}}
 .mcard-badge{position:absolute;top:0;right:0;background:var(--red);color:white;font-size:.65rem;font-weight:800;padding:3px 8px;border-radius:4px;letter-spacing:1px;}
 .mcard-name{font-family:'Kanit',sans-serif;font-size:1rem;font-weight:700;margin-bottom:.25rem;}
 .mcard-price{color:var(--red);font-size:.95rem;font-weight:700;}
@@ -1152,11 +1182,12 @@ function renderAllRows(){
     cat.models.map((m,mi)=>
       '<div class="mcard" onclick="oM('+ci+','+mi+')">'+
       '<div class="mcard-img">'+(m.badge?'<div class="mcard-badge">'+m.badge+'</div>':'')+
-      (m.colors&&m.colors[0]&&m.colors[0].img?'<img src="'+m.colors[0].img+'" style="width:100%;height:140px;object-fit:contain;">':'<span style="font-size:3.5rem">'+m.icon+'</span>')+
+      (m.logo?'<img class="mcard-logo" src="'+m.logo+'" alt="">':'')+
+      (m.colors&&m.colors[0]&&m.colors[0].img?'<img src="'+m.colors[0].img+'" style="width:100%;height:180px;object-fit:contain;">':'<span style="font-size:3.5rem">'+m.icon+'</span>')+
       '</div>'+
       '<div class="mcard-name">'+m.name+'</div>'+
       '<div class="mcard-price">เริ่มต้น ฿'+fmt(m.variants[0].price)+'</div>'+
-      '<div class="mcard-down">ดาวน์เริ่มต้น ฿'+fmt(m.variants[0].downs[0])+'</div>'+
+      '<div class="mcard-down">'+(m.downText ? m.downText : (m.variants[0].downs[0]===0?'ฟรีดาวน์':'ดาวน์เริ่มต้น ฿'+fmt(m.variants[0].downs[0])))+'</div>'+
       '<button class="mcard-btn" onclick="event.stopPropagation();oM('+ci+','+mi+')">ดูตารางผ่อน →</button>'+
       '</div>'
     ).join('')+
