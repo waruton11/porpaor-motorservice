@@ -1303,7 +1303,7 @@ function uT(){
   // แถวอัตราดอกเบี้ย
   const rateRow = hasRates
     ? '<tr style="background:#fff3cd;"><td style="font-weight:700;font-size:.78rem;white-space:nowrap;">อัตราดบ. (%/เดือน)</td><td>-</td>'
-      + months.map(mo => `<td style="font-size:.8rem;font-weight:700;color:#b8860b;">${d.rates[mo]?d.rates[mo]+'%':'-'}</td>`).join('')
+      + months.map(function(mo){ return '<td style="font-size:.8rem;font-weight:700;color:#b8860b;">'+(d.rates[mo]?d.rates[mo]+'%':'-')+'</td>'; }).join('')
       + '</tr>'
     : '';
   const tableRows = d.downs.map(dn=>{
