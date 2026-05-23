@@ -278,13 +278,36 @@ tr:hover td { background: #fafafa; }
               <input id="s_line" value="https://line.me">
             </div>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>ข้อความ Hero (บรรทัด 2)</label>
-              <input id="s_hero" value="ตัวแทนจำหน่ายและศูนย์บริการ Honda ครบวงจร · วังน้อย อยุธยา">
+          <div class="card" style="margin-top:1rem;">
+            <div style="font-weight:700;font-size:.95rem;margin-bottom:.75rem;">🖊️ ข้อความ Hero Banner</div>
+            <div style="font-size:.8rem;color:#888;margin-bottom:.75rem;">แต่ละบรรทัดจะแสดงต่อกันในหน้าเว็บ กด + เพิ่มบรรทัดได้</div>
+            <div id="heroLinesWrap" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:.75rem;"></div>
+            <button type="button" class="btn btn-gray btn-sm" onclick="addHeroLine('')">+ เพิ่มบรรทัด</button>
+          </div>
+          <div class="card" style="margin-top:1rem;">
+            <div style="font-weight:700;font-size:.95rem;margin-bottom:.75rem;">🔘 ปุ่ม Hero Banner</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>ข้อความปุ่มซ้าย</label>
+                <input id="s_btn1text" value="ดูรุ่นรถและราคา">
+              </div>
+              <div class="form-group" style="flex:2">
+                <label>ลิงก์ปุ่มซ้าย</label>
+                <input id="s_btn1url" value="#models" placeholder="#models">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>ข้อความปุ่มขวา</label>
+                <input id="s_btn2text" value="สอบถาม / จองรถ">
+              </div>
+              <div class="form-group" style="flex:2">
+                <label>ลิงก์ปุ่มขวา <span style="color:#e53935;font-weight:400;">(ใส่ LINE URL ได้เลย)</span></label>
+                <input id="s_btn2url" value="#contact" placeholder="https://line.me/ti/p/@yourlineid">
+              </div>
             </div>
           </div>
-          <button class="btn btn-success" onclick="saveShop()">💾 บันทึกข้อมูลร้าน</button>
+          <button class="btn btn-success" onclick="saveShop()" style="margin-top:1rem;">💾 บันทึกข้อมูลร้าน</button>
         </div>
       </div>
 
@@ -506,7 +529,10 @@ let data = JSON.parse(localStorage.getItem('papao_data') || 'null') || {
     fb: "https://facebook.com",
     tt: "https://tiktok.com",
     line: "https://line.me",
-    hero: "ตัวแทนจำหน่ายและศูนย์บริการ Honda ครบวงจร · วังน้อย อยุธยา"
+    hero: "ตัวแทนจำหน่ายและศูนย์บริการ Honda ครบวงจร · วังน้อย อยุธยา",
+    heroLines: ["ตัวแทนจำหน่ายและศูนย์บริการ Honda ครบวงจร", "วังน้อย อยุธยา"],
+    btn1text: "ดูรุ่นรถและราคา", btn1url: "#models",
+    btn2text: "สอบถาม / จองรถ", btn2url: "#contact"
   }
 };
 
@@ -534,7 +560,15 @@ function initAdmin() {
   document.getElementById('s_fb').value = s.fb;
   document.getElementById('s_tt').value = s.tt;
   document.getElementById('s_line').value = s.line;
-  document.getElementById('s_hero').value = s.hero;
+  // hero lines
+  document.getElementById('heroLinesWrap').innerHTML = '';
+  const lines = s.heroLines || (s.hero ? [s.hero] : ['']);
+  lines.forEach(l => addHeroLine(l));
+  // buttons
+  document.getElementById('s_btn1text').value = s.btn1text || 'ดูรุ่นรถและราคา';
+  document.getElementById('s_btn1url').value = s.btn1url || '#models';
+  document.getElementById('s_btn2text').value = s.btn2text || 'สอบถาม / จองรถ';
+  document.getElementById('s_btn2url').value = s.btn2url || '#contact';
 
   renderModelTable();
   renderNewsTable();
@@ -970,6 +1004,8 @@ function deleteNews(i) {
 
 // ========== SHOP ==========
 function saveShop() {
+  const heroLines = Array.from(document.querySelectorAll('.hero-line-input'))
+    .map(i => i.value.trim()).filter(v => v);
   data.shop = {
     name: document.getElementById('s_name').value,
     phone: document.getElementById('s_phone').value,
@@ -978,10 +1014,27 @@ function saveShop() {
     fb: document.getElementById('s_fb').value,
     tt: document.getElementById('s_tt').value,
     line: document.getElementById('s_line').value,
-    hero: document.getElementById('s_hero').value,
+    hero: heroLines.join(' · '),
+    heroLines,
+    btn1text: document.getElementById('s_btn1text').value || 'ดูรุ่นรถและราคา',
+    btn1url: document.getElementById('s_btn1url').value || '#models',
+    btn2text: document.getElementById('s_btn2text').value || 'สอบถาม / จองรถ',
+    btn2url: document.getElementById('s_btn2url').value || '#contact',
   };
   saveData();
   showToast('บันทึกข้อมูลร้านแล้ว ✅', 'success');
+}
+
+function addHeroLine(val='') {
+  const wrap = document.getElementById('heroLinesWrap');
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:.5rem;align-items:center;';
+  row.innerHTML = `
+    <span style="cursor:grab;color:#aaa;padding:0 4px;">☰</span>
+    <input class="hero-line-input" value="${val.replace(/"/g,'&quot;')}" placeholder="พิมพ์ข้อความบรรทัดนี้..." style="flex:1;padding:.5rem;border:1.5px solid #e0e0e0;border-radius:6px;font-family:inherit;font-size:.9rem;">
+    <button type="button" onclick="this.parentElement.remove()" style="background:#ffebee;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;color:#e53935;font-size:.85rem;">✕</button>
+  `;
+  wrap.appendChild(row);
 }
 
 // ========== MODAL ==========
@@ -1171,10 +1224,10 @@ footer .footer-brand{font-family:'Kanit',sans-serif;font-size:1.2rem;font-weight
 </nav>
 <div class="hero">
   <h1>ยินดีต้อนรับสู่<br><span>${d.shop.name}</span></h1>
-  <p>${d.shop.hero}</p>
+  ${(d.shop.heroLines||[d.shop.hero]).map(l=>`<p style="margin-bottom:.4rem;">${l}</p>`).join('')}
   <div class="hero-btns">
-    <a href="#models" class="btn btn-red">ดูรุ่นรถและราคา</a>
-    <a href="#contact" class="btn btn-outline">สอบถาม / จองรถ</a>
+    <a href="${d.shop.btn1url||'#models'}" class="btn btn-red">${d.shop.btn1text||'ดูรุ่นรถและราคา'}</a>
+    <a href="${d.shop.btn2url||'#contact'}" class="btn btn-outline" ${(d.shop.btn2url||'').startsWith('http')?'target="_blank" rel="noopener"':''}>${d.shop.btn2text||'สอบถาม / จองรถ'}</a>
   </div>
 </div>
 <section id="models">
