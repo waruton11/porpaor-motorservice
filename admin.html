@@ -595,6 +595,8 @@ function openAddModel() {
   document.getElementById('m_cat').value = '0';
   document.getElementById('variantRows').innerHTML = '';
   document.getElementById('colorRows').innerHTML = '';
+  document.getElementById('instEditorWrap').style.display = 'none';
+  document.getElementById('instEditorContent').innerHTML = '';
   addVariantRow('มาตรฐาน', '', '');
   addColorRow('', '#cc0000', '', '');
   document.getElementById('modelModal').classList.add('open');
@@ -612,6 +614,8 @@ function openEditModel(ci, mi) {
   document.getElementById('m_downtext').value = m.downText || '';
   // variants
   document.getElementById('variantRows').innerHTML = '';
+  document.getElementById('instEditorWrap').style.display = 'none';
+  document.getElementById('instEditorContent').innerHTML = '';
   m.variants.forEach(v => {
     addVariantRow(v.name, v.price, v.downs.join(','), v.financeBase||'');
   });
@@ -849,7 +853,7 @@ function deleteModel(ci, mi) {
 function toggleInstEditor() {
   const wrap = document.getElementById('instEditorWrap');
   const isOpen = wrap.style.display !== 'none';
-  if (!isOpen) buildInstEditor();
+  if (!isOpen) buildInstEditor(); // rebuild ทุกครั้ง เพื่อให้ตรงกับรุ่นย่อยปัจจุบัน
   wrap.style.display = isOpen ? 'none' : 'block';
 }
 
