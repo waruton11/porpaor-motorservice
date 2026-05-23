@@ -341,7 +341,12 @@ tr:hover td { background: #fafafa; }
     <div style="font-weight:700; margin: 1rem 0 0.5rem;">💰 รุ่นย่อย & ราคา</div>
     <p style="font-size:0.82rem; color:var(--text2); margin-bottom:0.75rem;">ถ้ามีแค่รุ่นเดียว ใส่แค่แถวแรก · ถ้ามีหลายรุ่นย่อย (เช่น ล้อลวด/ล้อแม็ก) กด + เพิ่มแถว</p>
     <div id="variantRows"></div>
-    <button class="btn btn-gray btn-sm" onclick="addVariantRow()" style="margin-bottom:1rem;">+ เพิ่มรุ่นย่อย</button>
+    <button class="btn btn-gray btn-sm" onclick="addVariantRow()" style="margin-bottom:0.75rem;">+ เพิ่มรุ่นย่อย</button>
+    <button class="btn btn-gray btn-sm" onclick="toggleInstEditor()" style="margin-bottom:1rem;">📊 แก้ไขตารางค่างวด</button>
+    <div id="instEditorWrap" style="display:none;background:#f5f5f5;border-radius:8px;padding:1rem;margin-bottom:1rem;">
+      <div style="font-size:0.85rem;color:#666;margin-bottom:0.5rem;">กรอกค่างวด (บาท/เดือน) ตามตารางไฟแนนส์จริง — เว้นว่างถ้าต้องการให้คำนวณอัตโนมัติ</div>
+      <div id="instEditorContent"></div>
+    </div>
 
     <div style="font-weight:700; margin: 1rem 0 0.5rem;">🎨 สีที่มีจำหน่าย</div>
     <p style="font-size:0.82rem; color:var(--text2); margin-bottom:0.75rem;">ใส่ชื่อสี เลือกรหัสสี และวาง URL รูปรถ (คลิกขวาที่รูปใน thaihonda.co.th → Copy image address)</p>
@@ -554,7 +559,7 @@ function renderModelTable() {
       const basePrice = m.variants[0].price;
       const colorDots = (m.colors||[]).map(c => {
         const bg = c.hex2
-          ? `linear-gradient(135deg,${c.hex} 50%,${c.hex2} 50%)`
+          ? `conic-gradient(${c.hex} 0deg 180deg,${c.hex2} 180deg 360deg)`
           : c.hex;
         return `<span class="color-dot" style="background:${bg};${c.border?'border:1.5px solid #ccc;':''}" title="${c.name}"></span>`;
       }).join('');
@@ -608,7 +613,7 @@ function openEditModel(ci, mi) {
   // variants
   document.getElementById('variantRows').innerHTML = '';
   m.variants.forEach(v => {
-    addVariantRow(v.name, v.price, v.downs.join(','));
+    addVariantRow(v.name, v.price, v.downs.join(','), v.financeBase||'');
   });
   // colors
   document.getElementById('colorRows').innerHTML = '';
@@ -616,7 +621,7 @@ function openEditModel(ci, mi) {
   document.getElementById('modelModal').classList.add('open');
 }
 
-function addVariantRow(name='', price='', downs='') {
+function addVariantRow(name='', price='', downs='', financeBase='') {
   const div = document.createElement('div');
   div.className = 'form-row variant-row';
   div.style.background = '#fafafa'; div.style.padding = '0.75rem'; div.style.borderRadius = '8px'; div.style.marginBottom = '0.5rem';
@@ -627,7 +632,8 @@ function addVariantRow(name='', price='', downs='') {
     </div>
     <div class="form-group"><label>ชื่อรุ่นย่อย</label><input class="vname" value="${name}" placeholder="เช่น ล้อลวด"></div>
     <div class="form-group"><label>ราคา (฿)</label><input class="vprice" type="number" value="${price}" placeholder="55900"></div>
-    <div class="form-group" style="flex:2"><label>ตัวเลือกดาวน์ (คั่นด้วย ,)</label><input class="vdowns" value="${downs}" placeholder="0,5000,10000"></div>
+    <div class="form-group"><label>ยอดจัด ฟรีดาวน์ (฿)</label><input class="vfinancebase" type="number" value="${financeBase}" placeholder="เช่น 54900"></div>
+    <div class="form-group" style="flex:2"><label>ตัวเลือกดาวน์ (คั่นด้วย ,)</label><input class="vdowns" value="${downs}" placeholder="0,5000,10000,20000"></div>
     <div style="display:flex; align-items:flex-end; padding-bottom:2px;">
       <button class="btn btn-danger btn-sm" onclick="this.closest('.variant-row').remove()">✕</button>
     </div>
@@ -641,7 +647,7 @@ function addColorRow(name='', hex='#cc0000', hex2='', img='', variant='') {
   div.style.cssText = 'background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;padding:0.75rem;margin-bottom:0.6rem;';
   const safeImg = img ? img.replace(/"/g, '&quot;') : '';
   const previewBg = hex2
-    ? `linear-gradient(135deg,${hex} 50%,${hex2} 50%)`
+    ? `conic-gradient(${hex} 0deg 180deg,${hex2} 180deg 360deg)`
     : hex;
   // ดึงชื่อรุ่นย่อยจาก variant rows ที่มีอยู่ตอนนี้
   const variantNames = Array.from(document.querySelectorAll('.vname'))
@@ -737,7 +743,7 @@ document.addEventListener('input', function(e) {
     const c1 = row.querySelector('.chex').value;
     const c2el = row.querySelector('.chex2');
     const c2 = (!c2el.dataset.empty) ? c2el.value : '';
-    const bg = c2 ? `linear-gradient(135deg,${c1} 50%,${c2} 50%)` : c1;
+    const bg = c2 ? `conic-gradient(${c1} 0deg 180deg,${c2} 180deg 360deg)` : c1;
     row.querySelector('.chex2-preview').style.background = bg;
   }
 });
@@ -751,8 +757,25 @@ function saveModel() {
   document.querySelectorAll('.variant-row').forEach(row => {
     const vname = row.querySelector('.vname').value.trim() || 'มาตรฐาน';
     const vprice = parseInt(row.querySelector('.vprice').value) || 0;
+    const vfinancebase = parseInt(row.querySelector('.vfinancebase').value) || 0;
     const downs = row.querySelector('.vdowns').value.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
-    if (vprice > 0) variants.push({ name: vname, price: vprice, downs });
+    if (vprice > 0) {
+      const v = { name: vname, price: vprice, downs };
+      if (vfinancebase) v.financeBase = vfinancebase;
+      // เก็บ customInstallments จาก inst editor
+      const ciObj = {};
+      document.querySelectorAll(`.inst-input[data-ri="${variants.length}"]`).forEach(inp => {
+        const dn = inp.dataset.dn; const mo = inp.dataset.mo; const val = parseInt(inp.value);
+        if (val > 0) { if (!ciObj[dn]) ciObj[dn] = {}; ciObj[dn][mo] = val; }
+      });
+      if (Object.keys(ciObj).length) v.customInstallments = ciObj;
+      else if (editModelIdx) {
+        const old = data.categories[editModelIdx.ci].models[editModelIdx.mi];
+        const oldV = old.variants.find(ov => ov.name === vname);
+        if (oldV && oldV.customInstallments) v.customInstallments = oldV.customInstallments;
+      }
+      variants.push(v);
+    }
   });
   if (variants.length === 0) { showToast('กรุณาใส่ราคาอย่างน้อย 1 รุ่น', 'error'); return; }
 
@@ -809,6 +832,45 @@ function deleteModel(ci, mi) {
   saveData();
   renderModelTable();
   showToast('ลบแล้ว', 'success');
+}
+
+function toggleInstEditor() {
+  const wrap = document.getElementById('instEditorWrap');
+  const isOpen = wrap.style.display !== 'none';
+  if (!isOpen) buildInstEditor();
+  wrap.style.display = isOpen ? 'none' : 'block';
+}
+
+function buildInstEditor() {
+  const months = [48,42,36,30,24];
+  const rows = document.querySelectorAll('.variant-row');
+  let html = '';
+  rows.forEach((row, ri) => {
+    const vname = row.querySelector('.vname').value.trim() || 'รุ่นย่อย '+(ri+1);
+    const downs = row.querySelector('.vdowns').value.split(',').map(x=>parseInt(x.trim())).filter(x=>!isNaN(x));
+    // หา customInstallments เดิม
+    let existCI = {};
+    if (editModelIdx) {
+      const old = data.categories[editModelIdx.ci].models[editModelIdx.mi];
+      const oldV = old.variants.find(v => v.name === vname);
+      if (oldV && oldV.customInstallments) existCI = oldV.customInstallments;
+    }
+    html += `<div style="margin-bottom:1.25rem;"><div style="font-weight:700;font-size:.88rem;margin-bottom:.5rem;padding:.4rem .6rem;background:#e8e8e8;border-radius:6px;">📌 ${vname}</div>`;
+    html += `<div style="overflow-x:auto;"><table style="border-collapse:collapse;font-size:.8rem;width:100%;">`;
+    html += `<thead><tr><th style="background:#333;color:white;padding:5px 8px;text-align:center;border:1px solid #999;">ดาวน์</th>`;
+    months.forEach(mo => html += `<th style="background:#333;color:white;padding:5px 8px;text-align:center;border:1px solid #999;">${mo} เดือน</th>`);
+    html += `</tr></thead><tbody>`;
+    downs.forEach(dn => {
+      html += `<tr><td style="padding:4px 8px;font-weight:600;border:1px solid #ddd;white-space:nowrap;">${dn===0?'ฟรีดาวน์':dn.toLocaleString()}</td>`;
+      months.forEach(mo => {
+        const saved = existCI[dn] && existCI[dn][mo] ? existCI[dn][mo] : '';
+        html += `<td style="padding:2px;border:1px solid #ddd;"><input type="number" class="inst-input" data-ri="${ri}" data-dn="${dn}" data-mo="${mo}" value="${saved}" placeholder="อัตโนมัติ" style="width:80px;padding:3px 5px;border:1px solid #ccc;border-radius:4px;font-size:.8rem;text-align:center;"></td>`;
+      });
+      html += `</tr>`;
+    });
+    html += `</tbody></table></div></div>`;
+  });
+  document.getElementById('instEditorContent').innerHTML = html || '<div style="color:#aaa;font-size:.85rem;">กรุณาบันทึกรุ่นย่อยก่อน</div>';
 }
 
 function moveModel(ci, mi, dir) {
@@ -1006,7 +1068,7 @@ section{padding:4rem 1.5rem;}
 .modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text2);}
 .modal h2{font-family:'Kanit',sans-serif;font-size:1.5rem;margin-bottom:.25rem;}
 .modal-price{color:var(--red);font-size:1.3rem;font-weight:700;margin-bottom:1.5rem;}
-.color-swatch{width:32px;height:32px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s;flex-shrink:0;}
+.color-swatch{width:32px;height:32px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s;flex-shrink:0;outline:1.5px solid rgba(0,0,0,.12);outline-offset:0;}
 .color-swatch:hover{transform:scale(1.15);}
 .color-swatch.active{border-color:var(--red);transform:scale(1.15);box-shadow:0 0 0 2px white,0 0 0 4px var(--red);}
 .variant-btn{padding:.4rem 1rem;border-radius:4px;border:1.5px solid var(--gray2);background:white;font-family:'Sarabun',sans-serif;font-size:.88rem;cursor:pointer;color:var(--text);transition:all .2s;}
@@ -1103,13 +1165,13 @@ footer .footer-brand{font-family:'Kanit',sans-serif;font-size:1.2rem;font-weight
     <div id="mVariants" style="display:none;margin-bottom:1rem;"><div style="font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:.5rem;">เลือกรุ่นย่อย</div><div id="mVariantBtns" style="display:flex;gap:.5rem;flex-wrap:wrap;"></div></div>
     <div id="mColors" style="display:none;margin-bottom:1.25rem;"><div style="font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:.6rem;">เลือกสี</div><div id="mColorSwatches" style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;"></div><div id="mColorName" style="margin-top:.5rem;font-size:.85rem;color:var(--text2);"></div></div>
     <div class="modal-price" id="mPrice"></div>
-    <table class="installment-table"><thead><tr><th>ดาวน์ (บาท)</th><th>24 เดือน</th><th>30 เดือน</th><th>36 เดือน</th><th>42 เดือน</th><th>48 เดือน</th></tr></thead><tbody id="mTableBody"></tbody></table>
+    <table class="installment-table"><thead><tr><th>ดาวน์ (บาท)</th><th>ยอดจัด (฿)</th><th>48 เดือน</th><th>42 เดือน</th><th>36 เดือน</th><th>30 เดือน</th><th>24 เดือน</th></tr></thead><tbody id="mTableBody"></tbody></table>
     <div class="calc-box">
       <h3>🧮 คำนวณค่างวดเอง</h3>
       <div class="calc-row">
         <div class="calc-field"><label>ราคารถ (บาท)</label><input type="number" id="calcPrice"></div>
         <div class="calc-field"><label>เงินดาวน์ (บาท)</label><input type="number" id="calcDown" placeholder="เช่น 5000"></div>
-        <div class="calc-field"><label>ระยะเวลา</label><select id="calcMonth"><option value="24" selected>24 เดือน</option><option value="30">30 เดือน</option><option value="36">36 เดือน</option><option value="42">42 เดือน</option><option value="48">48 เดือน</option></select></div>
+        <div class="calc-field"><label>ระยะเวลา</label><select id="calcMonth"><option value="48" selected>48 เดือน</option><option value="42">42 เดือน</option><option value="36">36 เดือน</option><option value="30">30 เดือน</option><option value="24">24 เดือน</option></select></div>
       </div>
       <button class="btn btn-red" onclick="calculate()" style="width:100%">คำนวณ</button>
       <div class="calc-result" id="calcResult" style="display:none;margin-top:1rem;"><span>ผ่อนเดือนละประมาณ</span><strong id="calcOutput"></strong></div>
@@ -1145,7 +1207,7 @@ footer .footer-brand{font-family:'Kanit',sans-serif;font-size:1.2rem;font-weight
           <div class="form-group"><label>เบอร์โทรศัพท์ *</label><input type="tel" required></div>
           <div class="form-group"><label>รุ่นรถที่สนใจ *</label><select required id="intModel"><option value="">-- เลือกรุ่น --</option></select></div>
           <div class="form-group"><label>งบดาวน์ (บาท)</label><input type="number"></div>
-          <div class="form-group"><label>ระยะเวลาผ่อน</label><select><option selected>24 เดือน</option><option>30 เดือน</option><option>36 เดือน</option><option>42 เดือน</option><option>48 เดือน</option></select></div>
+          <div class="form-group"><label>ระยะเวลาผ่อน</label><select><option selected>48 เดือน</option><option>42 เดือน</option><option>36 เดือน</option><option>30 เดือน</option><option>24 เดือน</option></select></div>
           <div class="form-group"><label>ประเภท</label><select><option>สอบถาม</option><option>จองรถ</option><option>ส่งต่อไฟแนนซ์</option><option>นัดทดลองขับ</option></select></div>
           <div class="form-group full"><label>หมายเหตุ</label><textarea></textarea></div>
         </div>
@@ -1202,10 +1264,33 @@ function switchCat(ci){
 function oM(ci,mi){modalModel=categories[ci].models[mi];modalVariantIdx=0;modalColorIdx=0;document.getElementById('mName').textContent=modalModel.name;rV();rC();uT();document.getElementById('calcResult').style.display='none';document.getElementById('modalOverlay').classList.add('open');document.body.style.overflow='hidden';}
 function rV(){const w=document.getElementById('mVariants');const b=document.getElementById('mVariantBtns');if(!modalModel.variants||modalModel.variants.length<=1){w.style.display='none';return;}w.style.display='block';b.innerHTML=modalModel.variants.map((v,i)=>'<button class="variant-btn'+(i===0?' active':'')+'" onclick="sV('+i+')">'+v.name+'</button>').join('');}
 function sV(i){modalVariantIdx=i;document.querySelectorAll('.variant-btn').forEach((b,j)=>b.classList.toggle('active',j===i));uT();rC();}
-function rC(){const w=document.getElementById('mColors');const s=document.getElementById('mColorSwatches');const n=document.getElementById('mColorName');if(!modalModel.colors||!modalModel.colors.length){w.style.display='none';document.getElementById('mCarImg').innerHTML='<span style="font-size:4rem">'+modalModel.icon+'</span>';return;}w.style.display='block';const curVariant=modalModel.variants[modalVariantIdx]?modalModel.variants[modalVariantIdx].name:'';const filtered=modalModel.colors.filter(c=>!c.variant||c.variant===curVariant||!curVariant);const display=filtered.length?filtered:modalModel.colors;s.innerHTML=display.map((c,i)=>{const bg=c.hex2?'linear-gradient(135deg,'+c.hex+' 50%,'+c.hex2+' 50%)':c.hex;return'<div class="color-swatch'+(i===0?' active':'')+'" style="background:'+bg+';'+(c.border?'border:2px solid #bbb;':'')+'\" title="'+c.name+'" onclick="sC('+i+','+JSON.stringify(display).replace(/"/g,'&quot;')+')"></div>';}).join('');window._curColors=display;n.textContent='สี: '+display[0].name;updCarImg2(display[0]);}
+function rC(){const w=document.getElementById('mColors');const s=document.getElementById('mColorSwatches');const n=document.getElementById('mColorName');if(!modalModel.colors||!modalModel.colors.length){w.style.display='none';document.getElementById('mCarImg').innerHTML='<span style="font-size:4rem">'+modalModel.icon+'</span>';return;}w.style.display='block';const curVariant=modalModel.variants[modalVariantIdx]?modalModel.variants[modalVariantIdx].name:'';const filtered=modalModel.colors.filter(c=>!c.variant||c.variant===curVariant||!curVariant);const display=filtered.length?filtered:modalModel.colors;s.innerHTML=display.map((c,i)=>{const bg=c.hex2?'conic-gradient('+c.hex+' 0deg 180deg,'+c.hex2+' 180deg 360deg)':c.hex;return'<div class="color-swatch'+(i===0?' active':'')+'" style="background:'+bg+';'+(c.border?'border:2px solid #bbb;':'')+'\" title="'+c.name+'" onclick="sC('+i+','+JSON.stringify(display).replace(/"/g,'&quot;')+')"></div>';}).join('');window._curColors=display;n.textContent='สี: '+display[0].name;updCarImg2(display[0]);}
 function sC(i,colors){if(colors){window._curColors=typeof colors==='string'?JSON.parse(colors.replace(/&quot;/g,'"')):colors;}modalColorIdx=i;document.querySelectorAll('.color-swatch').forEach((s,j)=>s.classList.toggle('active',j===i));document.getElementById('mColorName').textContent='สี: '+window._curColors[i].name;updCarImg2(window._curColors[i]);}
 function updCarImg2(c){const area=document.getElementById('mCarImg');if(c&&c.img){area.innerHTML='<img src="'+c.img+'" style="max-height:160px;max-width:100%;object-fit:contain;">';}else{area.innerHTML='<span style="font-size:4rem">'+modalModel.icon+'</span>';}}
-function uT(){const d=modalModel.variants[modalVariantIdx];document.getElementById('mPrice').textContent='฿'+fmt(d.price);document.getElementById('calcPrice').value=d.price;const months=[24,30,36,42,48];document.getElementById('mTableBody').innerHTML=d.downs.map(dn=>'<tr><td>'+(dn===0?'ฟรีดาวน์':fmt(dn))+'</td>'+months.map(mo=>'<td>'+fmt(calcInst(d.price,dn,mo))+' บ./เดือน</td>').join('')+'</tr>').join('');}
+function uT(){
+  const d=modalModel.variants[modalVariantIdx];
+  document.getElementById('mPrice').textContent='฿'+fmt(d.price);
+  document.getElementById('calcPrice').value=d.price;
+  const months=[48,42,36,30,24];
+  const hasFinBase = d.financeBase && d.financeBase > 0;
+  document.getElementById('mTableBody').innerHTML=d.downs.map(dn=>{
+    const financed = hasFinBase ? d.financeBase - dn : d.price - dn;
+    const financedCell = '<td style="font-weight:600;">฿'+fmt(financed)+'</td>';
+    const instCols = months.map(mo=>{
+      let inst;
+      if(d.customInstallments && d.customInstallments[dn] && d.customInstallments[dn][mo]) {
+        inst = d.customInstallments[dn][mo];
+      } else {
+        inst = calcInst(d.price, dn, mo);
+      }
+      const totalPay = inst * mo;
+      const interest = totalPay - financed;
+      const intPct = financed > 0 ? (interest/financed*100).toFixed(1) : '-';
+      return '<td>'+fmt(inst)+' บ./เดือน<br><span style="font-size:.7rem;color:#e53935;">ดบ. '+intPct+'%</span></td>';
+    }).join('');
+    return '<tr><td>'+(dn===0?'ฟรีดาวน์':fmt(dn))+'</td>'+financedCell+instCols+'</tr>';
+  }).join('');
+}
 function closeModal(e){if(!e||e.target===document.getElementById('modalOverlay')||!e.target){document.getElementById('modalOverlay').classList.remove('open');document.body.style.overflow='';}}
 function calculate(){const price=parseFloat(document.getElementById('calcPrice').value)||0;const down=parseFloat(document.getElementById('calcDown').value)||0;const months=parseInt(document.getElementById('calcMonth').value);if(price<=0){alert('กรุณากรอกราคารถ');return;}if(down>=price){alert('เงินดาวน์ต้องน้อยกว่าราคารถ');return;}document.getElementById('calcOutput').textContent='฿'+fmt(calcInst(price,down,months))+' / เดือน';document.getElementById('calcResult').style.display='flex';}
 function renderNews(){document.getElementById('newsGrid').innerHTML=newsData.map(n=>'<div class="news-card"><div class="news-img">'+n.icon+'</div><div class="news-body"><div class="news-tag">'+n.tag+'</div><div class="news-date">'+n.date+'</div><div class="news-title">'+n.title+'</div></div></div>').join('');}
