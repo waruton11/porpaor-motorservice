@@ -192,6 +192,7 @@ tr:hover td { background: #fafafa; }
       <a class="sidebar-item" onclick="showPage('shop')">🏪 ข้อมูลร้าน</a>
       <div class="sidebar-section">ระบบ</div>
       <a class="sidebar-item" onclick="showPage('export')">📤 Export HTML</a>
+      <a class="sidebar-item" onclick="showPage('excel')">📊 อัพโหลดราคา Excel</a>
     </div>
 
     <!-- CONTENT -->
@@ -318,6 +319,36 @@ tr:hover td { background: #fafafa; }
         <div class="card">
           <p style="margin-bottom:1rem; color:var(--text2);">ระบบจะรวมข้อมูลทั้งหมดที่แก้ไขใน Admin Panel แล้วสร้างไฟล์ index.html ใหม่ให้อัตโนมัติ</p>
           <button class="btn btn-primary" style="font-size:1rem; padding:0.75rem 2rem;" onclick="exportHTML()">⬇️ Download index.html ใหม่</button>
+        </div>
+      </div>
+
+      <!-- EXCEL UPLOAD PAGE -->
+      <div class="page" id="page-excel">
+        <div class="page-title">📊 อัพโหลดราคาจาก Excel</div>
+        <p class="page-sub">อัพโหลดไฟล์ Excel ราคารถจะอัพเดทบนเว็บไซต์ทันที — ไม่ต้องแก้ไขโค้ด</p>
+        <div class="card">
+          <div class="card-title">📋 รูปแบบไฟล์ Excel ที่รองรับ</div>
+          <p style="color:var(--text2);font-size:.875rem;margin-bottom:.75rem;">ไฟล์ต้องมีคอลัมน์ดังนี้ (แถวแรกเป็นหัวคอลัมน์):</p>
+          <table style="font-size:.82rem;margin-bottom:1rem;">
+            <thead><tr><th>brand</th><th>model</th><th>variant</th><th>type</th><th>price_cash_paopao</th><th>price_suggested</th></tr></thead>
+            <tbody><tr><td>Honda</td><td>Wave110i</td><td>AFS110KDBT</td><td>TH</td><td>46900</td><td>49900</td></tr></tbody>
+          </table>
+          <p style="color:#e65100;font-size:.82rem;">⚠️ การอัพโหลดจะแทนที่ข้อมูลราคาทั้งหมดในฐานข้อมูล กรุณาตรวจสอบไฟล์ก่อนกด Upload</p>
+        </div>
+        <div class="card">
+          <div class="card-title">⬆️ เลือกและอัพโหลดไฟล์</div>
+          <input type="file" id="excelUpload" accept=".xlsx,.xls" style="display:block;margin-bottom:1rem;padding:.5rem;border:1.5px dashed var(--gray2);border-radius:8px;width:100%;cursor:pointer;font-family:inherit;">
+          <button class="btn btn-primary" onclick="uploadToN8n()" style="font-size:1rem;padding:.75rem 2rem;">📤 ส่งข้อมูลไปอัพเดทเว็บ</button>
+          <div id="uploadResult" style="margin-top:1.25rem;"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">ℹ️ ขั้นตอนการทำงาน</div>
+          <ol style="color:var(--text2);font-size:.875rem;line-height:2;padding-left:1.25rem;">
+            <li>เลือกไฟล์ Excel (.xlsx) ที่มีข้อมูลราคารถ</li>
+            <li>กดปุ่ม "ส่งข้อมูลไปอัพเดทเว็บ"</li>
+            <li>ระบบส่งไฟล์ไปที่ n8n → อ่านข้อมูล → อัพเดทฐานข้อมูล</li>
+            <li>เว็บไซต์จะแสดงราคาใหม่โดยอัตโนมัติภายใน 1-2 นาที</li>
+          </ol>
         </div>
       </div>
 
@@ -1048,6 +1079,39 @@ function showToast(msg, type='') {
   t.textContent = msg;
   t.className = 'toast show ' + type;
   setTimeout(() => t.className = 'toast', 2800);
+}
+
+// ========== EXCEL UPLOAD ==========
+async function uploadToN8n() {
+  const fileInput = document.getElementById('excelUpload');
+  const file = fileInput.files[0];
+  if (!file) { showToast('กรุณาเลือกไฟล์ Excel ก่อน', 'error'); return; }
+  const resultDiv = document.getElementById('uploadResult');
+  resultDiv.innerHTML = '<span style="color:var(--blue);">⏳ กำลังอัพโหลด กรุณารอสักครู่...</span>';
+  const formData = new FormData();
+  formData.append('data', file, file.name);
+  try {
+    const res = await fetch('https://n8n-wt11.onrender.com/webhook/upload-prices', {
+      method: 'POST',
+      body: formData
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    let json = {};
+    try { json = await res.json(); } catch(e) {}
+    const updated = json.updated || json.rows || json.count || '?';
+    resultDiv.innerHTML = `<div style="background:#e8f5e9;border:1.5px solid var(--green);border-radius:8px;padding:1rem;color:var(--green);">
+      <strong>✅ อัพเดทสำเร็จ!</strong><br>
+      อัพเดทแล้ว ${updated} รายการ · ราคาบนเว็บไซต์จะเปลี่ยนทันทีเมื่อ refresh หน้า
+    </div>`;
+    showToast('อัพเดทราคาสำเร็จ! ✅', 'success');
+    fileInput.value = '';
+  } catch(e) {
+    resultDiv.innerHTML = `<div style="background:#ffebee;border:1.5px solid #e53935;border-radius:8px;padding:1rem;color:#c62828;">
+      <strong>❌ เกิดข้อผิดพลาด</strong><br>${e.message}<br>
+      <small>ตรวจสอบว่า n8n Workflow "upload-prices" ทำงานอยู่</small>
+    </div>`;
+    showToast('เกิดข้อผิดพลาด ❌', 'error');
+  }
 }
 
 // ========== EXPORT HTML ==========

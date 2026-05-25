@@ -324,7 +324,69 @@ function renderContactModels(){const sel=document.getElementById('intModel');sel
 function submitForm(e){e.preventDefault();document.getElementById('leadForm').style.display='none';document.getElementById('successMsg').style.display='block';}
 function toggleMenu(){document.getElementById('mobileMenu').classList.toggle('open');}
 function closeMenu(){document.getElementById('mobileMenu').classList.remove('open');}
-renderAllRows();renderNews();renderContactModels();
+const PRICE_MAPPING = {
+  'Honda Wave110i': {
+    'ล้อซี่ลวด (ดรัมเบรก)': 'Wave110i|AFS110KDBT|TH',
+    'ล้อซี่ลวด (ดิสก์เบรก)': 'Wave110i|AFS110MSBT|TH',
+    'ล้อแม็ก': 'Wave110i|AFS110MCBT|TH',
+    'ล้อแม็ก (สเปเชียล)': 'Wave110i|AFS110MCBT|3TH'
+  },
+  'Honda Wave125i': {
+    'ล้อลวด': 'Wave125|AFS125MSBT|TH',
+    'ล้อแม็ก': 'Wave125|AFS125CSBT|TH',
+    'ล้อแม็ก (รีโมท)': 'Wave125|AFS125CSBT|2TH'
+  },
+  'Honda Super Cub': { 'ล้อลวด': 'Super|NBC110MSBT|TH' },
+  'Honda Scoopy': {
+    'URBAN (ล้อลวด)': 'Scoopy|ACF110BTT|2TH',
+    'PRESTIGE (ล้อแม็ก)': 'Scoopy|ACF110CBTS|TH',
+    'CLUB12 (ล้อแม็ก รีโมท)': 'Scoopy|ACF110CBTT|TH',
+    'CLUB12 Cinnamoroll Limited Edition': 'Scoopy|ACF110CBTT|2TH'
+  },
+  'Honda Giorno+': { 'CBS': 'GIORNO+|ACF125CBT|TH', 'ABS': 'GIORNO+|ACF125CAT|TH' },
+  'Honda Lead125': { 'CBS': 'Lead125|NHX125T|TH', 'ABS': 'Lead125|NHX125AT|TH' },
+  'Honda Click125': { 'ล้อแม็ก': 'Click125|ACB125CBTP|TH' },
+  'Honda Click160': { 'STANDARD': 'Click160|ACB160CATR|TH', 'SPECIAL': 'Click160|ACB160CATR|2TH' },
+  'Honda ADV160': { 'STANDARD': 'ADV160|ADV160AT|3TH', 'SPECIAL': 'ADV160|ADV160AT|7TH' },
+  'Honda PCX160': { 'STANDARD': 'PCX160|WW160AS|TH', 'ROADSYNC': 'PCX160|WW160SS|TH' },
+  'Honda Forza350': { 'ROADSYNC': 'Forza350|NSS350AS|2TH' },
+  'Honda ADV350': { 'ROADSYNC': 'ADV350|ADV350AS|3TH' },
+  'GROM': { 'ABS': 'MSX|MSX125SF2|TH' },
+  'Honda CBR150R': { 'มาตรฐาน': 'CBR150R|CBR150RAS|TH' },
+  'Honda CB150R': { 'มาตรฐาน': 'CB150R|CBF150NAL|TH' },
+  'Honda CB300R': { 'มาตรฐาน': 'CB300R|CBF300NAP|TH' },
+  'Honda CL300': { 'E-CLUTCH': 'CL300|CL300A3S|TH' },
+  'Honda Rebel300': { 'E-CLUTCH': 'Rebel300|CMX300A3S|TH' },
+  'Honda CRF300 L': { 'มาตรฐาน': 'CRF300L|CRF300LDAS|TH' },
+  'Honda UC3': { 'มาตรฐาน': 'UC3|RSR9004T|4TH' }
+};
+async function fetchLivePrices() {
+  try {
+    const res = await fetch('https://n8n-wt11.onrender.com/webhook/car-prices');
+    if (!res.ok) return;
+    const prices = await res.json();
+    const lookup = {};
+    prices.forEach(function(p) {
+      if (p.price_cash_paopao) {
+        lookup[p.model+'|'+p.variant+'|'+p.type] = parseFloat(p.price_cash_paopao);
+      }
+    });
+    categories.forEach(function(cat) {
+      cat.models.forEach(function(m) {
+        var modelMap = PRICE_MAPPING[m.name];
+        if (!modelMap) return;
+        m.variants.forEach(function(v) {
+          var dbKey = modelMap[v.name];
+          if (dbKey && lookup[dbKey]) { v.price = lookup[dbKey]; }
+        });
+        if (m.variants.length > 0) {
+          m.price = Math.min.apply(null, m.variants.map(function(v){return v.price;}));
+        }
+      });
+    });
+  } catch(e) { console.log('Using default prices — API unavailable', e.message); }
+}
+fetchLivePrices().then(function(){renderAllRows();renderNews();renderContactModels();});
 </script>
 </body>
 </html>
