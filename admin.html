@@ -686,7 +686,7 @@ function openEditModel(ci, mi) {
   document.getElementById('instEditorWrap').style.display = 'none';
   document.getElementById('instEditorContent').innerHTML = '';
   m.variants.forEach(v => {
-    addVariantRow(v.name, v.price, v.downs.join(','), v.financeBase||'');
+    addVariantRow(v.name, v.price, v.downs.join(','));
   });
   // colors
   document.getElementById('colorRows').innerHTML = '';
@@ -694,7 +694,7 @@ function openEditModel(ci, mi) {
   document.getElementById('modelModal').classList.add('open');
 }
 
-function addVariantRow(name='', price='', downs='', financeBase='') {
+function addVariantRow(name='', price='', downs='') {
   const div = document.createElement('div');
   div.className = 'form-row variant-row';
   div.style.background = '#fafafa'; div.style.padding = '0.75rem'; div.style.borderRadius = '8px'; div.style.marginBottom = '0.5rem';
@@ -705,7 +705,6 @@ function addVariantRow(name='', price='', downs='', financeBase='') {
     </div>
     <div class="form-group"><label>ชื่อรุ่นย่อย</label><input class="vname" value="${name}" placeholder="เช่น ล้อลวด"></div>
     <div class="form-group"><label>ราคา (฿)</label><input class="vprice" type="number" value="${price}" placeholder="55900"></div>
-    <div class="form-group"><label>ยอดจัด ฟรีดาวน์ (฿)</label><input class="vfinancebase" type="number" value="${financeBase}" placeholder="เช่น 54900"></div>
     <div class="form-group" style="flex:2"><label>ตัวเลือกดาวน์ (คั่นด้วย ,)</label><input class="vdowns" value="${downs}" placeholder="0,5000,10000,20000"></div>
     <div style="display:flex; align-items:flex-end; padding-bottom:2px;">
       <button class="btn btn-danger btn-sm" onclick="this.closest('.variant-row').remove()">✕</button>
@@ -830,11 +829,9 @@ function saveModel() {
   document.querySelectorAll('#variantRows .variant-row').forEach(row => {
     const vname = row.querySelector('.vname').value.trim() || 'มาตรฐาน';
     const vprice = parseInt(row.querySelector('.vprice').value) || 0;
-    const vfinancebase = parseInt(row.querySelector('.vfinancebase').value) || 0;
     const downs = row.querySelector('.vdowns').value.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
     if (vprice > 0) {
       const v = { name: vname, price: vprice, downs };
-      if (vfinancebase) v.financeBase = vfinancebase;
       // เก็บ rates จาก rate-input
       const ratesObj = {};
       document.querySelectorAll(`.rate-input[data-ri="${variants.length}"]`).forEach(inp => {
@@ -1462,7 +1459,71 @@ function renderContactModels(){const sel=document.getElementById('intModel');sel
 function submitForm(e){e.preventDefault();document.getElementById('leadForm').style.display='none';document.getElementById('successMsg').style.display='block';}
 function toggleMenu(){document.getElementById('mobileMenu').classList.toggle('open');}
 function closeMenu(){document.getElementById('mobileMenu').classList.remove('open');}
-renderAllRows();renderNews();renderContactModels();
+const PRICE_MAPPING = {
+  'Honda Wave110i': {
+    'ล้อซี่ลวด (ดรัมเบรก)': 'Wave110i|AFS110KDBT|TH',
+    'ล้อซี่ลวด (ดิสก์เบรก)': 'Wave110i|AFS110MSBT|TH',
+    'ล้อแม็ก': 'Wave110i|AFS110MCBT|TH',
+    'ล้อแม็ก (สเปเชียล)': 'Wave110i|AFS110MCBT|3TH'
+  },
+  'Honda Wave125i': {
+    'ล้อลวด': 'Wave125|AFS125MSBT|TH',
+    'ล้อแม็ก': 'Wave125|AFS125CSBT|TH',
+    'ล้อแม็ก (รีโมท)': 'Wave125|AFS125CSBT|2TH'
+  },
+  'Honda Super Cub': { 'ล้อลวด': 'Super|NBC110MSBT|TH' },
+  'Honda Scoopy': {
+    'URBAN (ล้อลวด)': 'Scoopy|ACF110BTT|2TH',
+    'PRESTIGE (ล้อแม็ก)': 'Scoopy|ACF110CBTS|TH',
+    'CLUB12 (ล้อแม็ก รีโมท)': 'Scoopy|ACF110CBTT|TH',
+    'CLUB12 Cinnamoroll Limited Edition': 'Scoopy|ACF110CBTT|2TH'
+  },
+  'Honda Giorno+': { 'CBS': 'GIORNO+|ACF125CBT|TH', 'ABS': 'GIORNO+|ACF125CAT|TH' },
+  'Honda Lead125': { 'CBS': 'Lead125|NHX125T|TH', 'ABS': 'Lead125|NHX125AT|TH' },
+  'Honda Click125': { 'ล้อแม็ก': 'Click125|ACB125CBTP|TH' },
+  'Honda Click160': { 'STANDARD': 'Click160|ACB160CATR|TH', 'SPECIAL': 'Click160|ACB160CATR|2TH' },
+  'Honda ADV160': { 'STANDARD': 'ADV160|ADV160AT|3TH', 'SPECIAL': 'ADV160|ADV160AT|7TH' },
+  'Honda PCX160': { 'STANDARD': 'PCX160|WW160AS|TH', 'ROADSYNC': 'PCX160|WW160SS|TH' },
+  'Honda Forza350': { 'ROADSYNC': 'Forza350|NSS350AS|2TH' },
+  'Honda ADV350': { 'ROADSYNC': 'ADV350|ADV350AS|3TH' },
+  'GROM': { 'ABS': 'MSX|MSX125SF2|TH' },
+  'Honda CBR150R': { 'มาตรฐาน': 'CBR150R|CBR150RAS|TH' },
+  'Honda CB150R': { 'มาตรฐาน': 'CB150R|CBF150NAL|TH' },
+  'Honda CB300R': { 'มาตรฐาน': 'CB300R|CBF300NAP|TH' },
+  'Honda CL300': { 'E-CLUTCH': 'CL300|CL300A3S|TH' },
+  'Honda Rebel300': { 'E-CLUTCH': 'Rebel300|CMX300A3S|TH' },
+  'Honda CRF300 L': { 'มาตรฐาน': 'CRF300L|CRF300LDAS|TH' },
+  'Honda UC3': { 'มาตรฐาน': 'UC3|RSR9004T|4TH' }
+};
+async function fetchLivePrices() {
+  try {
+    const res = await fetch('https://n8n-wt11.onrender.com/webhook/car-prices');
+    if (!res.ok) return;
+    const prices = await res.json();
+    const lookupCash = {};
+    const lookupFinance = {};
+    prices.forEach(function(p) {
+      const key = p.model+'|'+p.variant+'|'+p.type;
+      if (p.price_cash_paopao) lookupCash[key] = parseFloat(p.price_cash_paopao);
+      if (p.price_finance_paopao) lookupFinance[key] = parseFloat(p.price_finance_paopao);
+    });
+    categories.forEach(function(cat) {
+      cat.models.forEach(function(m) {
+        var modelMap = PRICE_MAPPING[m.name];
+        if (!modelMap) return;
+        m.variants.forEach(function(v) {
+          var dbKey = modelMap[v.name];
+          if (dbKey && lookupCash[dbKey]) { v.price = lookupCash[dbKey]; }
+          if (dbKey && lookupFinance[dbKey]) { v.financeBase = lookupFinance[dbKey]; }
+        });
+        if (m.variants.length > 0) {
+          m.price = Math.min.apply(null, m.variants.map(function(v){return v.price;}));
+        }
+      });
+    });
+  } catch(e) { console.log('Using default prices — API unavailable', e.message); }
+}
+fetchLivePrices().then(function(){renderAllRows();renderNews();renderContactModels();});
 <\/script>
 </body>
 </html>`;

@@ -365,11 +365,12 @@ async function fetchLivePrices() {
     const res = await fetch('https://n8n-wt11.onrender.com/webhook/car-prices');
     if (!res.ok) return;
     const prices = await res.json();
-    const lookup = {};
+    const lookupCash = {};
+    const lookupFinance = {};
     prices.forEach(function(p) {
-      if (p.price_cash_paopao) {
-        lookup[p.model+'|'+p.variant+'|'+p.type] = parseFloat(p.price_cash_paopao);
-      }
+      const key = p.model+'|'+p.variant+'|'+p.type;
+      if (p.price_cash_paopao) lookupCash[key] = parseFloat(p.price_cash_paopao);
+      if (p.price_finance_paopao) lookupFinance[key] = parseFloat(p.price_finance_paopao);
     });
     categories.forEach(function(cat) {
       cat.models.forEach(function(m) {
@@ -377,7 +378,8 @@ async function fetchLivePrices() {
         if (!modelMap) return;
         m.variants.forEach(function(v) {
           var dbKey = modelMap[v.name];
-          if (dbKey && lookup[dbKey]) { v.price = lookup[dbKey]; }
+          if (dbKey && lookupCash[dbKey]) { v.price = lookupCash[dbKey]; }
+          if (dbKey && lookupFinance[dbKey]) { v.financeBase = lookupFinance[dbKey]; }
         });
         if (m.variants.length > 0) {
           m.price = Math.min.apply(null, m.variants.map(function(v){return v.price;}));
