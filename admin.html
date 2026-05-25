@@ -856,21 +856,32 @@ function saveModel() {
     const downs = row.querySelector('.vdowns').value.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
     if (vprice > 0) {
       const v = { name: vname, price: vprice, downs };
-      // เก็บ rates จาก rate-input
-      const ratesObj = {};
-      document.querySelectorAll(`.rate-input[data-ri="${variants.length}"]`).forEach(inp => {
-        const mo = inp.dataset.mo; const val = parseFloat(inp.value);
-        if (val > 0) ratesObj[mo] = val;
+      // เก็บ rateUnit จาก dropdown
+      const rateUnitEl = document.querySelector(`.rateunit-select[data-ri="${variants.length}"]`);
+      const rateUnitVal = rateUnitEl ? rateUnitEl.value : 'month';
+      // เก็บ ratesPerDown จาก per-down rate inputs
+      const ratesPerDownObj = {};
+      const downRateInputs = document.querySelectorAll(`.down-rate-input[data-ri="${variants.length}"]`);
+      downRateInputs.forEach(inp => {
+        const dn = inp.dataset.dn; const val = parseFloat(inp.value);
+        if (val > 0) ratesPerDownObj[dn] = val;
       });
-      if (Object.keys(ratesObj).length) {
-        v.rates = ratesObj;
-        const rateUnitEl = document.querySelector(`.rateunit-select[data-ri="${variants.length}"]`);
-        if (rateUnitEl && rateUnitEl.value === 'year') v.rateUnit = 'year';
-      }
-      else if (editModelIdx) {
+      if (downRateInputs.length > 0) {
+        // editor ถูกเปิด — ใช้ค่าจาก input
+        if (Object.keys(ratesPerDownObj).length) {
+          v.ratesPerDown = ratesPerDownObj;
+          if (rateUnitVal === 'year') v.rateUnit = 'year';
+        }
+        // ถ้าว่างหมด = ล้าง rates (ไม่ set)
+      } else if (editModelIdx) {
+        // editor ไม่ถูกเปิด — คงค่าเก่าไว้
         const old = data.categories[editModelIdx.ci].models[editModelIdx.mi];
         const oldV = old.variants.find(ov => ov.name === vname);
-        if (oldV && oldV.rates) v.rates = oldV.rates;
+        if (oldV) {
+          if (oldV.ratesPerDown) v.ratesPerDown = oldV.ratesPerDown;
+          if (oldV.rates) v.rates = oldV.rates;
+          if (oldV.rateUnit) v.rateUnit = oldV.rateUnit;
+        }
       }
       // เก็บ customInstallments จาก inst editor
       const ciObj = {};
@@ -965,38 +976,43 @@ function buildInstEditor() {
   rows.forEach((row, ri) => {
     const vname = row.querySelector('.vname').value.trim() || 'รุ่นย่อย '+(ri+1);
     const downs = row.querySelector('.vdowns').value.split(',').map(x=>parseInt(x.trim())).filter(x=>!isNaN(x));
-    let existCI = {}, existRates = {};
+    let existCI = {}, existRatesPerDown = {}, existRateUnit = 'month';
     if (editModelIdx) {
       const old = data.categories[editModelIdx.ci].models[editModelIdx.mi];
       const oldV = old.variants.find(v => v.name === vname);
-      if (oldV && oldV.customInstallments) existCI = oldV.customInstallments;
-      if (oldV && oldV.rates) existRates = oldV.rates;
+      if (oldV) {
+        if (oldV.customInstallments) existCI = oldV.customInstallments;
+        existRateUnit = oldV.rateUnit || 'month';
+        if (oldV.ratesPerDown) {
+          existRatesPerDown = oldV.ratesPerDown;
+        } else if (oldV.rates) {
+          // backwards compat: แปลง uniform rate เป็น per-down
+          const uniformRate = Object.values(oldV.rates)[0] || '';
+          if (uniformRate) downs.forEach(dn => { existRatesPerDown[String(dn)] = uniformRate; });
+        }
+      }
     }
-    const existRateUnit = (editModelIdx && data.categories[editModelIdx.ci].models[editModelIdx.mi].variants.find(v=>v.name===vname)||{}).rateUnit || 'month';
     html += `<div style="margin-bottom:1.5rem;">
       <div style="font-weight:700;font-size:.88rem;margin-bottom:.5rem;padding:.4rem .6rem;background:#e8e8e8;border-radius:6px;">📌 ${vname}</div>
       <div style="overflow-x:auto;"><table style="border-collapse:collapse;font-size:.8rem;width:100%;">
-      <thead>
-        <tr>
-          <th style="background:#333;color:white;padding:5px 8px;text-align:center;border:1px solid #999;white-space:nowrap;">ดาวน์</th>`;
+      <thead><tr>
+        <th style="background:#333;color:white;padding:5px 8px;text-align:center;border:1px solid #999;white-space:nowrap;">ดาวน์</th>
+        <th style="background:#1a3a5c;color:white;padding:5px 8px;text-align:center;border:1px solid #999;white-space:nowrap;">
+          อัตราดบ.<br>
+          <select class="rateunit-select" data-ri="${ri}" style="font-size:.72rem;padding:1px 2px;border:1px solid #aaa;border-radius:3px;margin-top:2px;background:#fff;color:#000;">
+            <option value="month" ${existRateUnit==='month'?'selected':''}>%/เดือน</option>
+            <option value="year" ${existRateUnit==='year'?'selected':''}>%/ปี</option>
+          </select>
+        </th>`;
     months.forEach(mo => html += `<th style="background:#333;color:white;padding:5px 8px;text-align:center;border:1px solid #999;">${mo} เดือน</th>`);
-    html += `</tr>
-        <tr style="background:#e8f0fe;">
-          <td style="padding:4px 8px;font-weight:700;border:1px solid #ddd;font-size:.75rem;white-space:nowrap;text-align:center;">
-            อัตราดบ.<br>
-            <select class="rateunit-select" data-ri="${ri}" style="font-size:.72rem;padding:1px 2px;border:1px solid #aaa;border-radius:3px;margin-top:2px;">
-              <option value="month" ${existRateUnit==='month'?'selected':''}>%/เดือน</option>
-              <option value="year" ${existRateUnit==='year'?'selected':''}>%/ปี</option>
-            </select>
-          </td>`;
-    months.forEach(mo => {
-      const savedRate = existRates[mo] || '';
-      html += `<td style="padding:2px;border:1px solid #ddd;"><input type="number" step="0.01" class="rate-input" data-ri="${ri}" data-mo="${mo}" value="${savedRate}" placeholder="เช่น 1.09" style="width:72px;padding:3px 5px;border:1px solid #ccc;border-radius:4px;font-size:.8rem;text-align:center;background:#e8f4fd;"></td>`;
-    });
-    html += `</tr>
-      </thead><tbody>`;
+    html += `</tr></thead><tbody>`;
     downs.forEach(dn => {
-      html += `<tr><td style="padding:4px 8px;font-weight:600;border:1px solid #ddd;white-space:nowrap;">${dn===0?'ฟรีดาวน์':dn.toLocaleString()}</td>`;
+      const savedRate = existRatesPerDown[String(dn)] !== undefined ? existRatesPerDown[String(dn)] : '';
+      html += `<tr>
+        <td style="padding:4px 8px;font-weight:600;border:1px solid #ddd;white-space:nowrap;">${dn===0?'ฟรีดาวน์':dn.toLocaleString()}</td>
+        <td style="padding:2px;border:1px solid #ddd;background:#eef4fb;">
+          <input type="number" step="0.01" class="down-rate-input" data-ri="${ri}" data-dn="${dn}" value="${savedRate}" placeholder="อัตรา" style="width:65px;padding:3px 5px;border:1px solid #aaa;border-radius:4px;font-size:.8rem;text-align:center;background:#e8f4fd;">
+        </td>`;
       months.forEach(mo => {
         const saved = existCI[dn] && existCI[dn][mo] ? existCI[dn][mo] : '';
         html += `<td style="padding:2px;border:1px solid #ddd;"><input type="number" class="inst-input" data-ri="${ri}" data-dn="${dn}" data-mo="${mo}" value="${saved}" placeholder="อัตโนมัติ" style="width:80px;padding:3px 5px;border:1px solid #ccc;border-radius:4px;font-size:.8rem;text-align:center;"></td>`;
