@@ -874,15 +874,22 @@ function saveModel() {
       }
       // เก็บ customInstallments จาก inst editor
       const ciObj = {};
-      document.querySelectorAll(`.inst-input[data-ri="${variants.length}"]`).forEach(inp => {
+      const instInputs = document.querySelectorAll(`.inst-input[data-ri="${variants.length}"]`);
+      instInputs.forEach(inp => {
         const dn = inp.dataset.dn; const mo = inp.dataset.mo; const val = parseInt(inp.value);
         if (val > 0) { if (!ciObj[dn]) ciObj[dn] = {}; ciObj[dn][mo] = val; }
       });
-      if (Object.keys(ciObj).length) v.customInstallments = ciObj;
-      else if (editModelIdx) {
-        const old = data.categories[editModelIdx.ci].models[editModelIdx.mi];
-        const oldV = old.variants.find(ov => ov.name === vname);
-        if (oldV && oldV.customInstallments) v.customInstallments = oldV.customInstallments;
+      if (instInputs.length > 0) {
+        // เปิด editor แล้ว → ใช้ค่าจาก input (ถ้าว่างทั้งหมด = ล้าง customInstallments)
+        if (Object.keys(ciObj).length) v.customInstallments = ciObj;
+        // ถ้าว่างหมด → ไม่ set → customInstallments ถูกลบออก
+      } else {
+        // ไม่ได้เปิด editor → คงค่าเก่าไว้
+        if (editModelIdx) {
+          const old = data.categories[editModelIdx.ci].models[editModelIdx.mi];
+          const oldV = old.variants.find(ov => ov.name === vname);
+          if (oldV && oldV.customInstallments) v.customInstallments = oldV.customInstallments;
+        }
       }
       variants.push(v);
     }
