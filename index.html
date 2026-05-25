@@ -372,6 +372,21 @@ const PRICE_MAPPING = {
   'Honda CRF300 L': { 'มาตรฐาน': 'CRF300L|CRF300LDAS|TH' },
   'Honda UC3': { 'มาตรฐาน': 'UC3|RSR9004T|4TH' }
 };
+async function fetchSiteData() {
+  try {
+    const res = await fetch('https://n8n-wt11.onrender.com/webhook/site-data');
+    if (!res.ok) return;
+    const d = await res.json();
+    if (d && Array.isArray(d.categories) && d.categories.length > 0) {
+      categories.length = 0;
+      d.categories.forEach(function(c){ categories.push(c); });
+    }
+    if (d && Array.isArray(d.news) && d.news.length > 0) {
+      newsData.length = 0;
+      d.news.forEach(function(n){ newsData.push(n); });
+    }
+  } catch(e) { console.log('Using default site data — API unavailable', e.message); }
+}
 async function fetchLivePrices() {
   try {
     const res = await fetch('https://n8n-wt11.onrender.com/webhook/car-prices');
@@ -400,7 +415,7 @@ async function fetchLivePrices() {
     });
   } catch(e) { console.log('Using default prices — API unavailable', e.message); }
 }
-fetchLivePrices().then(function(){renderAllRows();renderNews();renderContactModels();});
+fetchSiteData().then(fetchLivePrices).then(function(){renderAllRows();renderNews();renderContactModels();});
 </script>
 </body>
 </html>

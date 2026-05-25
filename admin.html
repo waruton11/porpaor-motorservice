@@ -472,6 +472,7 @@ function doLogin() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminPanel').style.display = 'block';
     initAdmin();
+    syncFromServer(); // โหลดข้อมูลล่าสุดจาก server
   } else {
     document.getElementById('loginErr').style.display = 'block';
     document.getElementById('pwInput').value = '';
@@ -576,6 +577,29 @@ let editNewsIdx = null;
 
 function saveData() {
   localStorage.setItem('papao_data', JSON.stringify(data));
+  // Sync to server → เว็บไซต์อัพเดทอัตโนมัติ
+  fetch('https://n8n-wt11.onrender.com/webhook/save-site-data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ categories: data.categories, news: data.news, shop: data.shop })
+  }).then(function(res) {
+    if (res.ok) showToast('อัพเดทเว็บไซต์สำเร็จ ✅', 'success');
+    else showToast('บันทึกในเครื่องแล้ว แต่ server ไม่ตอบสนอง ⚠️', 'error');
+  }).catch(function(e) { console.log('Server sync failed (local backup OK)', e); });
+}
+
+async function syncFromServer() {
+  try {
+    const res = await fetch('https://n8n-wt11.onrender.com/webhook/site-data');
+    if (!res.ok) return;
+    const d = await res.json();
+    if (d && Array.isArray(d.categories) && d.categories.length > 0) {
+      data = d;
+      localStorage.setItem('papao_data', JSON.stringify(data));
+      initAdmin();
+      renderModelTable();
+    }
+  } catch(e) { console.log('Server sync failed, using local data', e); }
 }
 
 function initAdmin() {
