@@ -326,28 +326,32 @@ tr:hover td { background: #fafafa; }
       <div class="page" id="page-excel">
         <div class="page-title">📊 อัพโหลดราคาจาก Excel</div>
         <p class="page-sub">อัพโหลดไฟล์ Excel ราคารถจะอัพเดทบนเว็บไซต์ทันที — ไม่ต้องแก้ไขโค้ด</p>
+
+        <!-- รถเล็ก -->
         <div class="card">
-          <div class="card-title">📋 รูปแบบไฟล์ Excel ที่รองรับ</div>
-          <p style="color:var(--text2);font-size:.875rem;margin-bottom:.75rem;">ไฟล์ต้องมีคอลัมน์ดังนี้ (แถวแรกเป็นหัวคอลัมน์):</p>
-          <table style="font-size:.82rem;margin-bottom:1rem;">
-            <thead><tr><th>brand</th><th>model</th><th>variant</th><th>type</th><th>price_cash_paopao</th><th>price_suggested</th></tr></thead>
-            <tbody><tr><td>Honda</td><td>Wave110i</td><td>AFS110KDBT</td><td>TH</td><td>46900</td><td>49900</td></tr></tbody>
-          </table>
-          <p style="color:#e65100;font-size:.82rem;">⚠️ การอัพโหลดจะแทนที่ข้อมูลราคาทั้งหมดในฐานข้อมูล กรุณาตรวจสอบไฟล์ก่อนกด Upload</p>
+          <div class="card-title">🛵 รถเล็ก (Wave, Scoopy, Click, PCX ฯลฯ)</div>
+          <p style="color:var(--text2);font-size:.875rem;margin-bottom:.5rem;">ไฟล์: <strong>ราคาขายใหม่ล่าสุด.xlsx</strong> · Sheet1 · Col A=รหัสรุ่น, B=Type, G=ราคาเงินสด, M=ราคาไฟแนนซ์</p>
+          <input type="file" id="excelUploadSmall" accept=".xlsx,.xls" style="display:block;margin-bottom:1rem;padding:.5rem;border:1.5px dashed var(--gray2);border-radius:8px;width:100%;cursor:pointer;font-family:inherit;">
+          <button class="btn btn-primary" onclick="uploadToN8n('small')" style="font-size:1rem;padding:.75rem 2rem;">📤 อัพโหลดราคารถเล็ก</button>
+          <div id="uploadResultSmall" style="margin-top:1.25rem;"></div>
         </div>
+
+        <!-- รถใหญ่ -->
         <div class="card">
-          <div class="card-title">⬆️ เลือกและอัพโหลดไฟล์</div>
-          <input type="file" id="excelUpload" accept=".xlsx,.xls" style="display:block;margin-bottom:1rem;padding:.5rem;border:1.5px dashed var(--gray2);border-radius:8px;width:100%;cursor:pointer;font-family:inherit;">
-          <button class="btn btn-primary" onclick="uploadToN8n()" style="font-size:1rem;padding:.75rem 2rem;">📤 ส่งข้อมูลไปอัพเดทเว็บ</button>
-          <div id="uploadResult" style="margin-top:1.25rem;"></div>
+          <div class="card-title">🏍️ Big Bike (Forza, ADV350, CRF300, CL300, Rebel300, CB300R)</div>
+          <p style="color:var(--text2);font-size:.875rem;margin-bottom:.5rem;">ไฟล์: <strong>ราคาขาย BIG Bike ใหม่ล่าสุด.xlsx</strong> · Sheet HONDA · Col B=รหัส+Type, E=ราคาขาย</p>
+          <input type="file" id="excelUploadBig" accept=".xlsx,.xls" style="display:block;margin-bottom:1rem;padding:.5rem;border:1.5px dashed var(--gray2);border-radius:8px;width:100%;cursor:pointer;font-family:inherit;">
+          <button class="btn btn-primary" onclick="uploadToN8n('big')" style="font-size:1rem;padding:.75rem 2rem;">📤 อัพโหลดราคา Big Bike</button>
+          <div id="uploadResultBig" style="margin-top:1.25rem;"></div>
         </div>
+
         <div class="card">
           <div class="card-title">ℹ️ ขั้นตอนการทำงาน</div>
           <ol style="color:var(--text2);font-size:.875rem;line-height:2;padding-left:1.25rem;">
-            <li>เลือกไฟล์ Excel (.xlsx) ที่มีข้อมูลราคารถ</li>
-            <li>กดปุ่ม "ส่งข้อมูลไปอัพเดทเว็บ"</li>
+            <li>เลือกไฟล์ Excel ให้ถูกประเภท (รถเล็ก / Big Bike)</li>
+            <li>กดปุ่มอัพโหลด</li>
             <li>ระบบส่งไฟล์ไปที่ n8n → อ่านข้อมูล → อัพเดทฐานข้อมูล</li>
-            <li>เว็บไซต์จะแสดงราคาใหม่โดยอัตโนมัติภายใน 1-2 นาที</li>
+            <li>เว็บไซต์จะแสดงราคาใหม่ทันทีเมื่อ Refresh หน้า</li>
           </ol>
         </div>
       </div>
@@ -1082,33 +1086,36 @@ function showToast(msg, type='') {
 }
 
 // ========== EXCEL UPLOAD ==========
-async function uploadToN8n() {
-  const fileInput = document.getElementById('excelUpload');
+async function uploadToN8n(type) {
+  const isSmall = type === 'small';
+  const inputId = isSmall ? 'excelUploadSmall' : 'excelUploadBig';
+  const resultId = isSmall ? 'uploadResultSmall' : 'uploadResultBig';
+  const webhook = isSmall
+    ? 'https://n8n-wt11.onrender.com/webhook/upload-prices'
+    : 'https://n8n-wt11.onrender.com/webhook/upload-prices-big';
+  const label = isSmall ? 'รถเล็ก' : 'Big Bike';
+
+  const fileInput = document.getElementById(inputId);
   const file = fileInput.files[0];
   if (!file) { showToast('กรุณาเลือกไฟล์ Excel ก่อน', 'error'); return; }
-  const resultDiv = document.getElementById('uploadResult');
+  const resultDiv = document.getElementById(resultId);
   resultDiv.innerHTML = '<span style="color:var(--blue);">⏳ กำลังอัพโหลด กรุณารอสักครู่...</span>';
   const formData = new FormData();
   formData.append('data', file, file.name);
   try {
-    const res = await fetch('https://n8n-wt11.onrender.com/webhook/upload-prices', {
-      method: 'POST',
-      body: formData
-    });
+    const res = await fetch(webhook, { method: 'POST', body: formData });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     let json = {};
     try { json = await res.json(); } catch(e) {}
-    const updated = json.updated || json.rows || json.count || '?';
     resultDiv.innerHTML = `<div style="background:#e8f5e9;border:1.5px solid var(--green);border-radius:8px;padding:1rem;color:var(--green);">
-      <strong>✅ อัพเดทสำเร็จ!</strong><br>
-      อัพเดทแล้ว ${updated} รายการ · ราคาบนเว็บไซต์จะเปลี่ยนทันทีเมื่อ refresh หน้า
+      <strong>✅ อัพเดท${label}สำเร็จ!</strong><br>
+      ราคาบนเว็บไซต์จะเปลี่ยนทันทีเมื่อ Refresh หน้า
     </div>`;
-    showToast('อัพเดทราคาสำเร็จ! ✅', 'success');
+    showToast('อัพเดทราคา' + label + 'สำเร็จ! ✅', 'success');
     fileInput.value = '';
   } catch(e) {
     resultDiv.innerHTML = `<div style="background:#ffebee;border:1.5px solid #e53935;border-radius:8px;padding:1rem;color:#c62828;">
-      <strong>❌ เกิดข้อผิดพลาด</strong><br>${e.message}<br>
-      <small>ตรวจสอบว่า n8n Workflow "upload-prices" ทำงานอยู่</small>
+      <strong>❌ เกิดข้อผิดพลาด</strong><br>${e.message}
     </div>`;
     showToast('เกิดข้อผิดพลาด ❌', 'error');
   }
