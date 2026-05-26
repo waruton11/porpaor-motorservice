@@ -756,31 +756,75 @@ let editModelIdx = null; // {ci, mi} or null
 let editNewsIdx = null;
 
 function saveData() {
+  data.savedAt = Date.now(); // บันทึก timestamp ทุกครั้ง
   localStorage.setItem('papao_data', JSON.stringify(data));
-  // Sync to server → เว็บไซต์อัพเดทอัตโนมัติ
-  fetch('https://n8n-wt11.onrender.com/webhook/save-site-data', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ categories: data.categories, news: data.news, shop: data.shop })
-  }).then(function(res) {
-    if (res.ok) showToast('อัพเดทเว็บไซต์สำเร็จ ✅', 'success');
-    else showToast('บันทึกในเครื่องแล้ว แต่ server ไม่ตอบสนอง ⚠️', 'error');
-  }).catch(function(e) { console.log('Server sync failed (local backup OK)', e); });
+  _syncToN8n(false); // sync ไป server — retry อัตโนมัติถ้า Render หลับ
+}
+
+// ส่งข้อมูลไป n8n — ถ้าล้มเหลวครั้งแรก รอ 35 วิแล้วลองใหม่อัตโนมัติ
+async function _syncToN8n(isRetry) {
+  // ส่งเฉพาะ news + shop — ไม่ส่ง categories รถ (ป้องกันข้อมูลรถถูกทับด้วยข้อมูลเก่า)
+  const payload = { news: data.news, shop: data.shop, savedAt: data.savedAt };
+  if (isRetry) showToast('⏳ กำลังรอ server ตื่น...', '', 38000);
+  try {
+    const res = await fetch('https://n8n-wt11.onrender.com/webhook/save-site-data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      showToast('อัพเดทเว็บไซต์สำเร็จ ✅', 'success');
+    } else {
+      if (!isRetry) {
+        showToast('Server กำลังตื่น... ลองใหม่อัตโนมัติใน 35 วินาที ⏳', 'error', 36000);
+        setTimeout(function() { _syncToN8n(true); }, 35000);
+      } else {
+        showToast('บันทึกในเครื่องแล้ว แต่ server ไม่ตอบสนอง ⚠️', 'error');
+      }
+    }
+  } catch(e) {
+    console.log('Server sync failed (local backup OK)', e);
+    if (!isRetry) {
+      showToast('Server กำลังตื่น... ลองใหม่อัตโนมัติใน 35 วินาที ⏳', 'error', 36000);
+      setTimeout(function() { _syncToN8n(true); }, 35000);
+    } else {
+      showToast('บันทึกในเครื่องแล้ว แต่ server ไม่ตอบสนอง ⚠️', 'error');
+    }
+  }
 }
 
 async function syncFromServer() {
+  showToast('⏳ กำลังดึงข้อมูลจาก server...', '', 0); // แสดงค้างไว้จนกว่าจะเสร็จ
   try {
     const res = await fetch('https://n8n-wt11.onrender.com/webhook/site-data');
-    if (!res.ok) return;
+    if (!res.ok) { showToast('Server ไม่ตอบสนอง ⚠️', 'error'); return; }
     const d = await res.json();
-    if (d && Array.isArray(d.categories) && d.categories.length > 0) {
-      data = d;
-      if (!data.catalog) data.catalog = []; // คงค่า catalog ที่มีอยู่
-      localStorage.setItem('papao_data', JSON.stringify(data));
-      initAdmin();
-      renderModelTable();
+    if (!d) { showToast('Server ไม่มีข้อมูล', 'error'); return; }
+
+    const serverTime = d.savedAt || 0;
+    const localTime  = data.savedAt || 0;
+
+    // ถ้าข้อมูลในเครื่องใหม่กว่าหรือเท่ากัน → ห้าม sync (ป้องกัน data loss)
+    if (serverTime > 0 && serverTime <= localTime) {
+      showToast('ข้อมูลในเครื่องใหม่กว่า server — ไม่จำเป็นต้อง sync ✅', 'success');
+      return;
     }
-  } catch(e) { console.log('Server sync failed, using local data', e); }
+
+    // Merge เฉพาะ news + shop — ไม่แตะ categories รถ และ catalog
+    const savedCatalog = data.catalog || [];
+    if (Array.isArray(d.news) && d.news.length > 0) data.news = d.news;
+    if (d.shop && typeof d.shop === 'object') data.shop = d.shop;
+    if (serverTime > 0) data.savedAt = serverTime;
+    data.catalog = savedCatalog;
+
+    localStorage.setItem('papao_data', JSON.stringify(data));
+    initAdmin();
+    renderNewsTable();
+    showToast('sync จาก server สำเร็จ ✅', 'success');
+  } catch(e) {
+    console.log('syncFromServer failed', e);
+    showToast('เชื่อมต่อ server ไม่ได้ ⚠️', 'error');
+  }
 }
 
 function initAdmin() {
@@ -1317,11 +1361,13 @@ function closeModal(id) {
 }
 
 // ========== TOAST ==========
-function showToast(msg, type='') {
+// duration=0 → ค้างไว้จนกว่าจะเรียก showToast ครั้งถัดไป
+function showToast(msg, type='', duration=2800) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.className = 'toast show ' + type;
-  setTimeout(() => t.className = 'toast', 2800);
+  clearTimeout(t._hideTimer);
+  if (duration > 0) t._hideTimer = setTimeout(() => { t.className = 'toast'; }, duration);
 }
 
 // ========== EXCEL UPLOAD ==========
@@ -1587,16 +1633,34 @@ function loadPriceFile(inputEl, fileType) {
   });
 }
 
-// เติม datalist ชื่อรุ่นย่อย จาก bikeModelsData (Sheet เว็บ)
+// คืนค่า Set ของ "model|||variant" ที่ถูก map ใน catalog แล้ว (ยกเว้น entry ที่กำลัง edit)
+function getPairedCombos() {
+  return new Set(
+    data.catalog
+      .filter(function(_, i) { return i !== editCatalogIdx; })
+      .map(function(c) { return c.model + '|||' + (c.variant || ''); })
+  );
+}
+
+// เติม datalist ชื่อทางการตลาด จาก bikeModelsData (Sheet เว็บ) — กรองที่ใช้แล้ว
 function populateSubmodelDatalist(cat) {
   const dl = document.getElementById('c_submodel_list');
   if (!dl) return;
   let rows = bikeModelsData;
   if (cat) rows = rows.filter(function(r) { return r.category_name === cat; });
+  // กรองชื่อที่ถูกใช้ใน catalog แล้ว
+  const usedSubmodels = new Set(
+    data.catalog
+      .filter(function(_, i) { return i !== editCatalogIdx; })
+      .map(function(c) { return c.submodelName; })
+      .filter(Boolean)
+  );
   dl.innerHTML = '';
   rows.forEach(function(r) {
+    const val = r.model_name + ' / ' + r.variant_name;
+    if (usedSubmodels.has(val)) return; // ข้ามที่ใช้แล้ว
     const opt = document.createElement('option');
-    opt.value = r.model_name + ' / ' + r.variant_name;
+    opt.value = val;
     dl.appendChild(opt);
   });
 }
@@ -1632,12 +1696,21 @@ function onCatalogCategoryChange() {
   else if (!isBig && priceData.small.length > 0)  source = priceData.small;
   else                                             source = priceData.small.concat(priceData.big);
 
+  const paired = getPairedCombos();
+
   if (source.length === 0) {
     // ยังไม่โหลด Excel → fallback ใช้ bikeModelsData (Sheet เว็บ)
     if (bikeModelsData.length > 0) {
-      const fbModels = [...new Set(
-        bikeModelsData.filter(function(r) { return r.category_name === cat; }).map(function(r) { return r.model_name; })
-      )];
+      // จัดกลุ่ม model → variants จาก bikeModelsData
+      const mvMap = {};
+      bikeModelsData.filter(function(r) { return r.category_name === cat; }).forEach(function(r) {
+        if (!mvMap[r.model_name]) mvMap[r.model_name] = [];
+        mvMap[r.model_name].push(r.variant_name);
+      });
+      // กรองเฉพาะ model ที่ยังมี variant ที่ยังไม่ได้ map
+      const fbModels = Object.keys(mvMap).filter(function(mn) {
+        return mvMap[mn].some(function(v) { return !paired.has(mn + '|||' + v); });
+      });
       if (fbModels.length > 0) {
         const fbLabel = JSON.parse('"-- \\u0e40\\u0e25\\u0e37\\u0e2d\\u0e01\\u0e23\\u0e38\\u0e48\\u0e19 (Sheet \\u0e40\\u0e27\\u0e47\\u0e1a) --"');
         csSetOptions('c_model_w', fbModels.map(function(m) { return {val: m, label: m}; }), fbLabel, onCatalogModelChange);
@@ -1649,7 +1722,13 @@ function onCatalogCategoryChange() {
     csSetOptions('c_model_w', [], noExcel, onCatalogModelChange);
     return;
   }
-  csSetOptions('c_model_w', source.map(function(d) { return {val: d.model, label: d.model}; }), '-- เลือกรุ่น --', onCatalogModelChange);
+
+  // กรอง source: model ยังแสดงถ้ามี variant ที่ยังไม่ถูก map อย่างน้อย 1 ตัว
+  const filteredSource = source.filter(function(d) {
+    if (d.variants.length === 0) return !paired.has(d.model + '|||');
+    return d.variants.some(function(v) { return !paired.has(d.model + '|||' + v); });
+  });
+  csSetOptions('c_model_w', filteredSource.map(function(d) { return {val: d.model, label: d.model}; }), '-- เลือกรุ่น --', onCatalogModelChange);
 }
 
 function onCatalogModelChange() {
@@ -1657,19 +1736,24 @@ function onCatalogModelChange() {
   csSetOptions('c_variant_w', [], '-- ไม่ระบุแบบ --', onCatalogVariantChange);
   if (!model) return;
 
+  const paired = getPairedCombos();
+
   // หา variants จาก priceData ก่อน ถ้าไม่มี fallback ไป bikeModelsData
   const allSrc = priceData.small.concat(priceData.big);
   const found = allSrc.find(function(d) { return d.model === model; });
   if (found && found.variants.length > 0) {
-    csSetOptions('c_variant_w', found.variants.map(function(v) { return {val: v, label: v}; }), CS_PH_VARIANT, onCatalogVariantChange);
-    if (found.variants.length === 1) {
-      csPick('c_variant_w', found.variants[0], found.variants[0], onCatalogVariantChange);
+    // กรองเฉพาะ variant ที่ยังไม่ถูก map
+    const avail = found.variants.filter(function(v) { return !paired.has(model + '|||' + v); });
+    if (avail.length > 0) {
+      csSetOptions('c_variant_w', avail.map(function(v) { return {val: v, label: v}; }), CS_PH_VARIANT, onCatalogVariantChange);
+      if (avail.length === 1) csPick('c_variant_w', avail[0], avail[0], onCatalogVariantChange);
     }
   } else if (bikeModelsData.length > 0) {
     // Fallback: ใช้ variant names จาก bikeModelsData
     const cat = document.getElementById('c_type').value;
     const fbRows = bikeModelsData.filter(function(r) {
-      return r.model_name === model || (cat && r.category_name === cat && r.model_name === model);
+      return (r.model_name === model || (cat && r.category_name === cat && r.model_name === model))
+        && !paired.has(model + '|||' + r.variant_name); // กรองที่ map แล้ว
     });
     if (fbRows.length > 0) {
       csSetOptions('c_variant_w', fbRows.map(function(r) { return {val: r.variant_name, label: r.variant_name}; }), CS_PH_VARIANT, onCatalogVariantChange);

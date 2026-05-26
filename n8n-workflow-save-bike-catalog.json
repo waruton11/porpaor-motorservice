@@ -1,0 +1,111 @@
+{
+  "name": "Save Bike Catalog",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "save-bike-catalog",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "bc200001-cafe-4000-b001-porpaor000001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "bike-catalog-save-porpaor"
+    },
+    {
+      "parameters": {
+        "jsCode": "// รับข้อมูล catalog จาก Admin Panel\nconst body = $input.first().json.body || $input.first().json;\nconst catalog = body.catalog || [];\n\nif (catalog.length === 0) {\n  return [{ json: { sql: 'DELETE FROM bike_catalog;', count: 0 } }];\n}\n\n// สร้าง SQL: DELETE ทั้งหมด แล้ว INSERT ใหม่\nconst esc = (s) => String(s||'').replace(/'/g, \"''\");\n\nconst values = catalog.map((c, i) => {\n  const bt   = esc(c.bike_type);\n  const mn   = esc(c.model_name);\n  const vn   = esc(c.variant_name || '');\n  const cc   = parseInt(c.engine_cc) || 0;\n  const tr   = esc(c.transmission || 'Automatic');\n  const ia   = (c.is_active !== false && c.is_active !== 0) ? 'true' : 'false';\n  const so   = parseInt(c.sort_order) || i;\n  const note = esc(c.note || '');\n  return `('${bt}','${mn}','${vn}',${cc},'${tr}',${ia},${so},'${note}',NOW())`;\n});\n\nconst sql = `DELETE FROM bike_catalog;\\nINSERT INTO bike_catalog (bike_type,model_name,variant_name,engine_cc,transmission,is_active,sort_order,note,updated_at) VALUES ${values.join(',')};`;\n\nreturn [{ json: { sql, count: catalog.length } }];"
+      },
+      "id": "bc200002-cafe-4000-b002-porpaor000002",
+      "name": "Build SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "bc200003-cafe-4000-b003-porpaor000003",
+      "name": "Execute SQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [680, 300],
+      "credentials": {
+        "postgres": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, saved: $('Build SQL').first().json.count, message: 'bike_catalog updated' }) }}",
+        "options": {}
+      },
+      "id": "bc200004-cafe-4000-b004-porpaor000004",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build SQL": {
+      "main": [
+        [
+          {
+            "node": "Execute SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute SQL": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "note": "Import ไฟล์นี้เข้า n8n แล้วเลือก Credential PostgreSQL ให้ถูกต้อง แล้ว Activate"
+  },
+  "pinData": {},
+  "versionId": "bc200099-cafe-4000-b099-porpaor000099",
+  "triggerCount": 0,
+  "tags": [
+    { "name": "porpaor", "createdAt": "2026-01-01T00:00:00.000Z", "updatedAt": "2026-01-01T00:00:00.000Z" }
+  ]
+}

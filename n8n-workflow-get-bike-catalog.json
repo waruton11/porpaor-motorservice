@@ -1,0 +1,101 @@
+{
+  "name": "n8n-workflow-get-bike-catalog",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "bike-catalog",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "065ef5df-d372-42b9-9b37-2017297e615e",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        48,
+        64
+      ],
+      "webhookId": "bike-catalog-get-porpaor"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, bike_type, model_name, variant_name, engine_cc, transmission, is_active, sort_order, note FROM bike_catalog ORDER BY sort_order ASC, id ASC",
+        "options": {}
+      },
+      "id": "b4787435-a948-4db1-ad03-4bc8ab76ccd3",
+      "name": "Query bike_catalog",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        272,
+        64
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "8MCWrd4HMMHaJf4D",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "id": "550c50c7-454c-431c-8900-0ee57f6eb416",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        496,
+        64
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Query bike_catalog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query bike_catalog": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bde4d9ad-569c-4098-ab36-7510bf4aa63c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8e7d3f62b628a32fff91202f4d2b728e956e45ecfe0e6343be33611ff9be61f5"
+  },
+  "id": "B9RefxDyC8EdAFDW",
+  "tags": [
+    {
+      "name": "porpaor",
+      "id": "yZqjZlFSE1V2dsBE",
+      "createdAt": "2026-05-25T08:12:23.004Z",
+      "updatedAt": "2026-05-25T08:12:23.004Z"
+    }
+  ]
+}
