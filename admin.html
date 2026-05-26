@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel — ป.เปา มอเตอร์เซอร์วิส</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root {
   --red: #cc0000; --red-dark: #990000;
@@ -137,6 +138,28 @@ tr:hover td { background: #fafafa; }
 .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--text2); }
 .modal-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 1.5rem; }
 
+/* CUSTOM SELECT (แก้ปัญหา Thai แสดงเป็น ???? ใน native OS dropdown) */
+.cs-wrap { position: relative; }
+.cs-trigger {
+  width: 100%; padding: 0.6rem 0.8rem; border: 1.5px solid var(--gray2);
+  border-radius: 6px; background: #fff; cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: inherit; font-size: 0.9rem; min-height: 37px; box-sizing: border-box;
+}
+.cs-trigger:hover { border-color: #bbb; }
+.cs-trigger.cs-open { border-color: var(--red); }
+.cs-list {
+  display: none; position: absolute; z-index: 999;
+  top: calc(100% + 2px); left: 0; width: 100%;
+  background: #fff; border: 1.5px solid var(--gray2); border-radius: 6px;
+  max-height: 220px; overflow-y: auto; box-shadow: 0 4px 14px rgba(0,0,0,.12);
+}
+.cs-list.cs-open { display: block; }
+.cs-opt { padding: 0.55rem 0.8rem; cursor: pointer; font-size: 0.9rem; font-family: inherit; color: var(--text); }
+.cs-opt:hover { background: #f5f5f5; }
+.cs-opt.cs-sel { color: var(--red); background: #fff5f5; font-weight: 600; }
+.cs-ph { color: var(--text2) !important; font-weight: normal !important; }
+
 /* TOAST */
 .toast {
   position: fixed; bottom: 2rem; right: 2rem; z-index: 200;
@@ -190,6 +213,7 @@ tr:hover td { background: #fafafa; }
       <a class="sidebar-item active" onclick="showPage('models')">🏍️ รุ่นรถ & ราคา</a>
       <a class="sidebar-item" onclick="showPage('news')">📰 ข่าวกิจกรรม</a>
       <a class="sidebar-item" onclick="showPage('shop')">🏪 ข้อมูลร้าน</a>
+      <a class="sidebar-item" onclick="showPage('catalog')">📋 แคตตาล็อกรถ</a>
       <div class="sidebar-section">ระบบ</div>
       <a class="sidebar-item" onclick="showPage('export')">📤 Export HTML</a>
       <a class="sidebar-item" onclick="showPage('excel')">📊 อัพโหลดราคา Excel</a>
@@ -309,6 +333,82 @@ tr:hover td { background: #fafafa; }
             </div>
           </div>
           <button class="btn btn-success" onclick="saveShop()" style="margin-top:1rem;">💾 บันทึกข้อมูลร้าน</button>
+        </div>
+      </div>
+
+      <!-- CATALOG PAGE -->
+      <div class="page" id="page-catalog">
+        <div class="page-title">📋 แคตตาล็อกรถจักรยานยนต์</div>
+        <p class="page-sub">จัดการข้อมูลรุ่น แบบ และประเภทรถ Honda ที่มีจำหน่าย — บันทึกลงฐานข้อมูลแยกต่างหากจากระบบราคา</p>
+
+        <div style="display:flex; gap:0.75rem; margin-bottom:1.5rem; flex-wrap:wrap; align-items:center;">
+          <select id="catalogTypeFilter" onchange="renderCatalogTable()" style="padding:0.5rem 1rem; border:1.5px solid var(--gray2); border-radius:6px; font-family:inherit; font-size:0.9rem; min-width:180px;">
+            <option value="">ทุกประเภท</option>
+          </select>
+          <input id="catalogSearch" oninput="renderCatalogTable()" placeholder="🔍 ค้นหาชื่อรุ่น..." style="padding:0.5rem 1rem; border:1.5px solid var(--gray2); border-radius:6px; font-family:inherit; font-size:0.9rem; min-width:200px;">
+          <button class="btn btn-primary" onclick="openAddCatalog()">+ เพิ่มรุ่นรถ</button>
+          <button class="btn btn-gray" onclick="syncCatalog(false)" style="margin-left:auto;">🔄 โหลดจาก Server</button>
+        </div>
+
+        <!-- สถานะไฟล์ราคา Excel (โหลดอัตโนมัติจากการอัพโหลดในหน้า Excel) -->
+        <div class="card" style="margin-bottom:1.25rem; border:1.5px dashed var(--gray2); background:#fafeff;">
+          <div class="card-title" style="margin-bottom:.75rem; font-size:.9rem;">
+            📊 ข้อมูลไฟล์ราคา Excel
+            <span style="font-size:.76rem; font-weight:400; color:var(--text2);">— dropdown รุ่น/แบบ ใช้ข้อมูลจากการอัพโหลดล่าสุด</span>
+          </div>
+          <div style="display:flex; gap:1.25rem; flex-wrap:wrap; margin-bottom:.75rem;">
+            <div style="flex:1; min-width:230px;">
+              <div style="font-size:.83rem; font-weight:600; margin-bottom:.3rem;">🛵 รถเล็ก</div>
+              <div id="priceStatusSmall" style="font-size:.8rem; color:var(--text2);">ยังไม่มีข้อมูล — กรุณาอัพโหลดในหน้า "อัพโหลดราคา Excel"</div>
+            </div>
+            <div style="flex:1; min-width:230px;">
+              <div style="font-size:.83rem; font-weight:600; margin-bottom:.3rem;">🏍️ Big Bike</div>
+              <div id="priceStatusBig" style="font-size:.8rem; color:var(--text2);">ยังไม่มีข้อมูล — กรุณาอัพโหลดในหน้า "อัพโหลดราคา Excel"</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:.75rem; align-items:center; flex-wrap:wrap;">
+            <button class="btn btn-gray btn-sm" onclick="document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-excel').classList.add('active');document.querySelectorAll('.sidebar-item').forEach(s=>s.classList.remove('active'));" style="font-size:.8rem;">📤 ไปหน้าอัพโหลด Excel</button>
+            <span style="font-size:.73rem; color:#bbb;">หรือโหลดไฟล์ตรงนี้ได้เลย:</span>
+            <label style="font-size:.78rem; color:var(--blue); cursor:pointer; text-decoration:underline;">
+              รถเล็ก <input type="file" accept=".xlsx,.xls" onchange="loadPriceFile(this,'small')" style="display:none;">
+            </label>
+            <label style="font-size:.78rem; color:var(--blue); cursor:pointer; text-decoration:underline;">
+              Big Bike <input type="file" accept=".xlsx,.xls" onchange="loadPriceFile(this,'big')" style="display:none;">
+            </label>
+          </div>
+        </div>
+
+        <div class="card" style="padding:0;">
+          <div style="padding:1rem 1.5rem; border-bottom:1px solid var(--gray2); display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-weight:700; font-size:0.95rem;">รายการรถทั้งหมด</div>
+            <div id="catalogCount" style="font-size:0.85rem; color:var(--text2);"></div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table id="catalogTable">
+              <thead>
+                <tr>
+                  <th>ลำดับ</th>
+                  <th>ประเภท</th>
+                  <th>รุ่น (ไฟล์ราคา)</th>
+                  <th>แบบ (ไฟล์ราคา)</th>
+                  <th>ชื่อรุ่นย่อย (เว็บ)</th>
+                  <th>ชื่อทางการตลาด</th>
+                  <th>cc</th>
+                  <th>เกียร์</th>
+                  <th>สถานะ</th>
+                  <th>จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="catalogTbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:1.25rem;">
+          <div class="card-title">💾 บันทึกไปยังฐานข้อมูล</div>
+          <p style="color:var(--text2); font-size:.875rem; margin-bottom:1rem;">กด "บันทึกทั้งหมดไปยัง Server" เพื่ออัปเดตตาราง <code style="background:#f5f5f5;padding:1px 6px;border-radius:4px;">bike_catalog</code> ใน PostgreSQL</p>
+          <button class="btn btn-success" onclick="saveCatalogToServer()" style="font-size:1rem; padding:.75rem 2rem;">💾 บันทึกทั้งหมดไปยัง Server</button>
+          <div id="catalogSaveResult" style="margin-top:1rem;"></div>
         </div>
       </div>
 
@@ -459,6 +559,107 @@ tr:hover td { background: #fafafa; }
   </div>
 </div>
 
+<!-- CATALOG MODAL -->
+<div class="modal-bg" id="catalogModal">
+  <div class="modal-box" style="max-width:540px;">
+    <button class="modal-close" onclick="closeModal('catalogModal')">✕</button>
+    <div class="modal-title" id="catalogModalTitle">+ เพิ่มรุ่นรถ</div>
+
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label>ประเภทรถ (Type) <span style="color:var(--red);">*</span></label>
+        <div class="cs-wrap" id="c_type_w">
+          <input type="hidden" id="c_type" value="">
+          <div class="cs-trigger" onclick="csToggle('c_type_w')">
+            <span id="c_type_t" class="cs-ph">...</span>
+            <span style="font-size:.75rem;color:#aaa;">▾</span>
+          </div>
+          <div class="cs-list" id="c_type_l"><!-- populated by initCatalogTypeDropdown() --></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>สถานะ</label>
+        <select id="c_active" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray2);border-radius:6px;font-family:inherit;font-size:0.9rem;">
+          <option value="1">✅ มีจำหน่าย</option>
+          <option value="0">❌ ไม่มีจำหน่าย</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label>รุ่น (ไฟล์ราคา) <span style="color:var(--red);">*</span></label>
+        <div class="cs-wrap" id="c_model_w">
+          <input type="hidden" id="c_model" value="">
+          <div class="cs-trigger" onclick="csToggle('c_model_w')">
+            <span id="c_model_t" class="cs-ph">-- เลือกประเภทก่อน --</span>
+            <span style="font-size:.75rem;color:#aaa;">▾</span>
+          </div>
+          <div class="cs-list" id="c_model_l">
+            <div class="cs-opt cs-ph">-- เลือกประเภทก่อน --</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group" style="flex:1.5">
+        <label>แบบ (ไฟล์ราคา)</label>
+        <div class="cs-wrap" id="c_variant_w">
+          <input type="hidden" id="c_variant" value="">
+          <div class="cs-trigger" onclick="csToggle('c_variant_w')">
+            <span id="c_variant_t" class="cs-ph">-- ไม่ระบุแบบ --</span>
+            <span style="font-size:.75rem;color:#aaa;">▾</span>
+          </div>
+          <div class="cs-list" id="c_variant_l">
+            <div class="cs-opt cs-ph" onclick="csPick('c_variant_w','','-- ไม่ระบุแบบ --',updateMarketingName)">-- ไม่ระบุแบบ --</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:1rem;">
+      <label>ชื่อรุ่นย่อย <span style="font-size:.78rem;color:var(--text2);">(ชื่อบนเว็บ — เลือกจาก Sheet เว็บ)</span></label>
+      <input id="c_submodel" list="c_submodel_list" placeholder="เช่น Wave 110i / ล้อลวด" oninput="onSubmodelInput()"
+        style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray2);border-radius:6px;font-family:inherit;font-size:0.9rem;background:#f3e5f5;">
+      <datalist id="c_submodel_list"></datalist>
+    </div>
+
+    <div class="form-group" style="margin-bottom:1rem;">
+      <label>ชื่อทางการตลาด <span style="font-size:.78rem;color:var(--text2);">(กรอกอัตโนมัติ — แก้ไขได้)</span></label>
+      <input id="c_marketing_name" placeholder="เช่น HONDA Wave 110i ล้อลวด" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray2);border-radius:6px;font-family:inherit;font-size:0.9rem;background:#fffde7;">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>ขนาดเครื่องยนต์ (cc)</label>
+        <input id="c_cc" type="number" placeholder="เช่น 110, 125, 160, 300, 350">
+      </div>
+      <div class="form-group">
+        <label>ระบบเกียร์</label>
+        <select id="c_transmission" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray2);border-radius:6px;font-family:inherit;font-size:0.9rem;">
+          <option value="Automatic">Automatic (ออโตเมติก)</option>
+          <option value="Manual">Manual (เกียร์มือ)</option>
+          <option value="Semi-Auto">Semi-Auto</option>
+          <option value="E-Clutch">E-Clutch</option>
+          <option value="DCT">DCT</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>ลำดับแสดง</label>
+        <input id="c_sort" type="number" placeholder="0" value="0" style="width:100%;">
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:1rem;">
+      <label>หมายเหตุ (ถ้ามี)</label>
+      <textarea id="c_note" placeholder="เช่น รุ่นใหม่ปี 2025, มี ABS เสริม ฯลฯ" style="min-height:55px;"></textarea>
+    </div>
+
+    <div style="margin-top:1.25rem; display:flex; gap:0.75rem;">
+      <button class="btn btn-primary" onclick="saveCatalogItem()">💾 บันทึก</button>
+      <button class="btn btn-gray" onclick="closeModal('catalogModal')">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -569,8 +770,10 @@ let data = JSON.parse(localStorage.getItem('papao_data') || 'null') || {
     heroLines: ["ตัวแทนจำหน่ายและศูนย์บริการ Honda ครบวงจร", "วังน้อย อยุธยา"],
     btn1text: "ดูรุ่นรถและราคา", btn1url: "#models",
     btn2text: "สอบถาม / จองรถ", btn2url: "#contact"
-  }
+  },
+  catalog: []
 };
+if (!data.catalog) data.catalog = [];
 
 let editModelIdx = null; // {ci, mi} or null
 let editNewsIdx = null;
@@ -595,6 +798,7 @@ async function syncFromServer() {
     const d = await res.json();
     if (d && Array.isArray(d.categories) && d.categories.length > 0) {
       data = d;
+      if (!data.catalog) data.catalog = []; // คงค่า catalog ที่มีอยู่
       localStorage.setItem('papao_data', JSON.stringify(data));
       initAdmin();
       renderModelTable();
@@ -631,6 +835,9 @@ function initAdmin() {
 
   renderModelTable();
   renderNewsTable();
+  renderCatalogTable();
+  initCatalogTypeDropdown(); // inject Thai text via DOM (ไม่ผ่าน HTML encoding)
+  loadStoredPriceData();     // restore priceData จาก localStorage (จากการอัพโหลดครั้งก่อน)
 }
 
 // ========== PAGES ==========
@@ -1149,12 +1356,23 @@ async function uploadToN8n(type) {
     ? 'https://n8n-wt11.onrender.com/webhook/upload-prices'
     : 'https://n8n-wt11.onrender.com/webhook/upload-prices-big';
   const label = isSmall ? 'รถเล็ก' : 'Big Bike';
+  const priceKey = isSmall ? 'small' : 'big';
 
   const fileInput = document.getElementById(inputId);
   const file = fileInput.files[0];
   if (!file) { showToast('กรุณาเลือกไฟล์ Excel ก่อน', 'error'); return; }
+
   const resultDiv = document.getElementById(resultId);
   resultDiv.innerHTML = '<span style="color:var(--blue);">⏳ กำลังอัพโหลด กรุณารอสักครู่...</span>';
+
+  // === Parse สำหรับ catalog dropdown พร้อมกัน ===
+  _parsePriceXlsx(file, priceKey, function(count) {
+    if (count > 0) {
+      console.log('[catalog] price data ' + priceKey + ' ready: ' + count + ' models');
+    }
+  });
+
+  // === ส่งไฟล์ไปยัง n8n ===
   const formData = new FormData();
   formData.append('data', file, file.name);
   try {
@@ -1164,7 +1382,8 @@ async function uploadToN8n(type) {
     try { json = await res.json(); } catch(e) {}
     resultDiv.innerHTML = `<div style="background:#e8f5e9;border:1.5px solid var(--green);border-radius:8px;padding:1rem;color:var(--green);">
       <strong>✅ อัพเดท${label}สำเร็จ!</strong><br>
-      ราคาบนเว็บไซต์จะเปลี่ยนทันทีเมื่อ Refresh หน้า
+      ราคาบนเว็บไซต์จะเปลี่ยนทันทีเมื่อ Refresh หน้า<br>
+      <small style="opacity:.8;">ข้อมูลรุ่น/แบบบันทึกแล้ว — dropdown ในหน้า แคตตาล็อก พร้อมใช้งาน ✅</small>
     </div>`;
     showToast('อัพเดทราคา' + label + 'สำเร็จ! ✅', 'success');
     fileInput.value = '';
@@ -1173,6 +1392,588 @@ async function uploadToN8n(type) {
       <strong>❌ เกิดข้อผิดพลาด</strong><br>${e.message}
     </div>`;
     showToast('เกิดข้อผิดพลาด ❌', 'error');
+  }
+}
+
+// ========== CUSTOM SELECT HELPERS ==========
+document.addEventListener('click', e => {
+  if (!e.target.closest('.cs-wrap')) {
+    document.querySelectorAll('.cs-list.cs-open').forEach(l => l.classList.remove('cs-open'));
+    document.querySelectorAll('.cs-trigger.cs-open').forEach(t => t.classList.remove('cs-open'));
+  }
+});
+
+function csToggle(wrapId) {
+  const wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+  const list = wrap.querySelector('.cs-list');
+  const trigger = wrap.querySelector('.cs-trigger');
+  const isOpen = list.classList.contains('cs-open');
+  // Close all others
+  document.querySelectorAll('.cs-list.cs-open').forEach(l => l.classList.remove('cs-open'));
+  document.querySelectorAll('.cs-trigger.cs-open').forEach(t => t.classList.remove('cs-open'));
+  if (!isOpen) {
+    list.classList.add('cs-open');
+    trigger.classList.add('cs-open');
+  }
+}
+
+function csPick(wrapId, val, label, callback) {
+  const wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+  const hidden = document.getElementById(wrapId.replace('_w',''));
+  const textEl = document.getElementById(wrapId.replace('_w','_t'));
+  const list = wrap.querySelector('.cs-list');
+  const trigger = wrap.querySelector('.cs-trigger');
+  if (hidden) hidden.value = val;
+  if (textEl) {
+    textEl.textContent = label || '-- เลือก --';
+    textEl.classList.toggle('cs-ph', !val);
+  }
+  if (list) {
+    list.classList.remove('cs-open');
+    list.querySelectorAll('.cs-opt').forEach(o => o.classList.toggle('cs-sel', o.dataset.csVal === val && val !== ''));
+  }
+  if (trigger) trigger.classList.remove('cs-open');
+  if (typeof callback === 'function') callback();
+}
+
+function csSetVal(wrapId, val, label) {
+  const wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+  const hidden = document.getElementById(wrapId.replace('_w',''));
+  const textEl = document.getElementById(wrapId.replace('_w','_t'));
+  if (hidden) hidden.value = val;
+  if (textEl) {
+    textEl.textContent = label || val || '-- เลือก --';
+    textEl.classList.toggle('cs-ph', !val);
+  }
+  const list = wrap.querySelector('.cs-list');
+  if (list) list.querySelectorAll('.cs-opt').forEach(o => o.classList.toggle('cs-sel', o.dataset.csVal === val && val !== ''));
+}
+
+function csSetOptions(wrapId, opts, placeholder, callback) {
+  // opts: [{val, label}]  — ใช้ DOM API เพื่อหลีกเลี่ยงปัญหา encoding
+  const wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+  const list = wrap.querySelector('.cs-list');
+  if (!list) return;
+  list.innerHTML = '';
+  list.appendChild(_csOpt('', placeholder || '-- เลือก --', true, wrapId, callback));
+  opts.forEach(o => list.appendChild(_csOpt(o.val, o.label, false, wrapId, callback)));
+  csSetVal(wrapId, '', placeholder || '-- เลือก --');
+}
+
+// ========== CATALOG ==========
+let editCatalogIdx = null;
+let bikeModelsData = []; // [{category_name, model_name, variant_name}] from bike_models relational tables
+let priceData = {
+  small: [], // [{model: 'HONDA Wave 110i', variants: ['ล้อลวด','ล้อแม็ก']}] — จาก Col A, B ของ Excel รถเล็ก
+  big:   []  // [{model: 'HONDA Forza350', variants: []}]               — จาก Col A, B ของ Excel Big Bike
+};
+
+// JSON.parse trick: \\uXXXX ใน JS string literal → JSON.parse แปลเป็น Thai ที่ถูกต้อง
+// ไม่ขึ้นกับ file encoding ของ browser เลย (ASCII ล้วนในซอร์ส)
+const CATALOG_CATS = JSON.parse(
+  '["\\u0e04\\u0e23\\u0e2d\\u0e1a\\u0e04\\u0e23\\u0e31\\u0e27 (Family)",' +
+  '"\\u0e2a\\u0e01\\u0e39\\u0e4a\\u0e15\\u0e40\\u0e15\\u0e2d\\u0e23\\u0e4c\\u0e2d\\u0e2d\\u0e42\\u0e15\\u0e40\\u0e21\\u0e15\\u0e34\\u0e01",' +
+  '"\\u0e2a\\u0e1b\\u0e2d\\u0e23\\u0e4c\\u0e15 (Sport)",' +
+  '"\\u0e1c\\u0e08\\u0e0d\\u0e20\\u0e31\\u0e22 (Adventure)",' +
+  '"\\u0e1a\\u0e4a\\u0e2d\\u0e1a\\u0e40\\u0e1a\\u0e2d\\u0e23\\u0e4c & \\u0e19\\u0e35\\u0e42\\u0e2d\\u0e2a\\u0e1b\\u0e2d\\u0e23\\u0e4c\\u0e15\\u0e04\\u0e32\\u0e40\\u0e1f\\u0e48",' +
+  '"Big Bike (\\u0e1e\\u0e23\\u0e35\\u0e40\\u0e21\\u0e35\\u0e22\\u0e21)",' +
+  '"\\u0e23\\u0e16\\u0e44\\u0e1f\\u0e1f\\u0e49\\u0e32 (EV)",' +
+  '"\\u0e2d\\u0e37\\u0e48\\u0e19\\u0e46"]'
+);
+// ครอบครัว (Family), สกู๊ตเตอร์ออโตเมติก, สปอร์ต (Sport), ผจญภัย (Adventure),
+// บ๊อบเบอร์ & นีโอสปอร์ตคาเฟ่, Big Bike (พรีเมียม), รถไฟฟ้า (EV), อื่นๆ
+
+const CS_PH_TYPE    = JSON.parse('"-- \\u0e40\\u0e25\\u0e37\\u0e2d\\u0e01\\u0e1b\\u0e23\\u0e30\\u0e40\\u0e20\\u0e17 --"');
+const CS_PH_MODEL   = JSON.parse('"-- \\u0e40\\u0e25\\u0e37\\u0e2d\\u0e01\\u0e23\\u0e38\\u0e48\\u0e19 --"');
+const CS_PH_MODEL0  = JSON.parse('"-- \\u0e40\\u0e25\\u0e37\\u0e2d\\u0e01\\u0e1b\\u0e23\\u0e30\\u0e40\\u0e20\\u0e17\\u0e01\\u0e48\\u0e2d\\u0e19 --"');
+const CS_PH_VARIANT = JSON.parse('"-- \\u0e44\\u0e21\\u0e48\\u0e23\\u0e30\\u0e1a\\u0e38\\u0e41\\u0e1a\\u0e1a --"');
+// เลือกประเภท, เลือกรุ่น, เลือกประเภทก่อน, ไม่ระบุแบบ
+
+function _csOpt(val, label, isPh, wrapId, cb) {
+  const d = document.createElement('div');
+  d.className = 'cs-opt' + (isPh ? ' cs-ph' : '');
+  d.textContent = label;
+  d.dataset.csVal = val;
+  d.addEventListener('click', () => csPick(wrapId, val, label, cb));
+  return d;
+}
+
+function initCatalogTypeDropdown() {
+  const list = document.getElementById('c_type_l');
+  if (!list) return;
+  list.innerHTML = '';
+  list.appendChild(_csOpt('', CS_PH_TYPE, true, 'c_type_w', onCatalogCategoryChange));
+  CATALOG_CATS.forEach(c => list.appendChild(_csOpt(c, c, false, 'c_type_w', onCatalogCategoryChange)));
+  // reset trigger text
+  const t = document.getElementById('c_type_t');
+  if (t) { t.textContent = CS_PH_TYPE; t.classList.add('cs-ph'); }
+  document.getElementById('c_type').value = '';
+}
+
+async function loadBikeModelsData() {
+  if (bikeModelsData.length > 0) { populateSubmodelDatalist(''); return; }
+  try {
+    const res = await fetch('https://n8n-wt11.onrender.com/webhook/bike-models-list');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const arr = await res.json();
+    bikeModelsData = Array.isArray(arr) ? arr : [];
+    populateSubmodelDatalist('');
+  } catch(e) {
+    console.warn('loadBikeModelsData failed:', e.message);
+    bikeModelsData = [];
+  }
+}
+
+// ========== PRICE DATA — SHARED PARSING ==========
+// Core parser: อ่าน Excel → Col A = model, Col B = variant
+// เรียกได้จากทั้งหน้า Catalog (file input) และหน้า Excel upload
+function _parsePriceXlsx(file, fileType, onDone) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+      const map = new Map();
+      rows.forEach(function(row) {
+        const model   = String(row[0] || '').trim();
+        const variant = String(row[1] || '').trim();
+        if (!model) return;
+        const ml = model.toLowerCase();
+        if (ml === 'model' || ml === 'รุ่น' || ml === 'รหัส' || ml === 'a' || ml === 'ลำดับ') return;
+        if (!map.has(model)) map.set(model, []);
+        if (variant && !map.get(model).includes(variant)) map.get(model).push(variant);
+      });
+
+      priceData[fileType] = Array.from(map.entries()).map(function(entry) {
+        return { model: entry[0], variants: entry[1] };
+      });
+
+      // บันทึกลง localStorage เพื่อใช้ข้ามหน้า/session
+      try { localStorage.setItem('papao_price_data', JSON.stringify(priceData)); } catch(e) {}
+
+      updatePriceStatusUI();
+      if (typeof onDone === 'function') onDone(priceData[fileType].length);
+    } catch(err) {
+      console.warn('_parsePriceXlsx error:', err.message);
+      if (typeof onDone === 'function') onDone(0, err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// โหลดจาก localStorage เมื่อ login — ไม่ต้องโหลดไฟล์ใหม่ถ้าเคยอัพโหลดแล้ว
+function loadStoredPriceData() {
+  try {
+    const stored = localStorage.getItem('papao_price_data');
+    if (!stored) return;
+    const parsed = JSON.parse(stored);
+    if (Array.isArray(parsed.small)) priceData.small = parsed.small;
+    if (Array.isArray(parsed.big))   priceData.big   = parsed.big;
+    updatePriceStatusUI();
+  } catch(e) {}
+}
+
+// อัปเดต status label ในหน้า Catalog (ถ้ามี element อยู่)
+function updatePriceStatusUI() {
+  const labels = [
+    { id: 'priceStatusSmall', key: 'small' },
+    { id: 'priceStatusBig',   key: 'big'   }
+  ];
+  labels.forEach(function(l) {
+    const el = document.getElementById(l.id);
+    if (!el) return;
+    const arr = priceData[l.key];
+    if (arr && arr.length > 0) {
+      const preview = arr.slice(0, 4).map(function(d) { return d.model; }).join(', ');
+      el.innerHTML = '<span style="color:var(--green);">✅ โหลดแล้ว ' + arr.length + ' รุ่น — ' + preview + (arr.length > 4 ? '...' : '') + '</span>';
+    }
+  });
+}
+
+// โหลด Excel ราคา จากหน้า Catalog (file input) — fallback ถ้ายังไม่ได้อัพโหลดในหน้า Excel
+function loadPriceFile(inputEl, fileType) {
+  const file = inputEl.files[0];
+  if (!file) return;
+  const statusId = fileType === 'small' ? 'priceStatusSmall' : 'priceStatusBig';
+  document.getElementById(statusId).innerHTML = '<span style="color:var(--blue);">⏳ กำลังอ่านไฟล์...</span>';
+  _parsePriceXlsx(file, fileType, function(count, err) {
+    if (err) {
+      document.getElementById(statusId).innerHTML = '<span style="color:#e53935;">❌ อ่านไฟล์ไม่ได้: ' + err + '</span>';
+    }
+    // updatePriceStatusUI() ถูกเรียกใน _parsePriceXlsx อยู่แล้ว
+  });
+}
+
+// เติม datalist ชื่อรุ่นย่อย จาก bikeModelsData (Sheet เว็บ)
+function populateSubmodelDatalist(cat) {
+  const dl = document.getElementById('c_submodel_list');
+  if (!dl) return;
+  let rows = bikeModelsData;
+  if (cat) rows = rows.filter(function(r) { return r.category_name === cat; });
+  dl.innerHTML = '';
+  rows.forEach(function(r) {
+    const opt = document.createElement('option');
+    opt.value = r.model_name + ' / ' + r.variant_name;
+    dl.appendChild(opt);
+  });
+}
+
+function populateCatalogTypeDropdown(selectedVal) {
+  const list = document.getElementById('c_type_l');
+  if (!list) return;
+  list.innerHTML = '';
+  list.appendChild(_csOpt('', CS_PH_TYPE, true, 'c_type_w', onCatalogCategoryChange));
+  const cats = bikeModelsData.length > 0
+    ? [...new Set(bikeModelsData.map(r => r.category_name))]
+    : CATALOG_CATS;
+  cats.forEach(c => list.appendChild(_csOpt(c, c, false, 'c_type_w', onCatalogCategoryChange)));
+  csSetVal('c_type_w', selectedVal || '', selectedVal || CS_PH_TYPE);
+}
+
+function onCatalogCategoryChange() {
+  const cat = document.getElementById('c_type').value;
+  // รีเซ็ต dropdown รุ่น/แบบ/ชื่อรุ่นย่อย/ชื่อตลาด
+  csSetOptions('c_model_w', [], '-- เลือกรุ่น (ไฟล์ราคา) --', onCatalogModelChange);
+  csSetOptions('c_variant_w', [], '-- ไม่ระบุแบบ --', onCatalogVariantChange);
+  document.getElementById('c_submodel').value = '';
+  document.getElementById('c_marketing_name').value = '';
+
+  if (!cat) return;
+
+  // อัปเดต datalist ชื่อรุ่นย่อย ตามประเภทที่เลือก
+  populateSubmodelDatalist(cat);
+
+  // โหลดรุ่นจาก Excel priceData
+  const isBig = cat.indexOf('Big Bike') !== -1 || cat.indexOf('พรีเมียม') !== -1;
+  let source = [];
+  if (isBig && priceData.big.length > 0)         source = priceData.big;
+  else if (!isBig && priceData.small.length > 0)  source = priceData.small;
+  else                                             source = priceData.small.concat(priceData.big);
+
+  if (source.length === 0) {
+    // ยังไม่โหลด Excel → fallback ใช้ bikeModelsData (Sheet เว็บ)
+    if (bikeModelsData.length > 0) {
+      const fbModels = [...new Set(
+        bikeModelsData.filter(function(r) { return r.category_name === cat; }).map(function(r) { return r.model_name; })
+      )];
+      if (fbModels.length > 0) {
+        const fbLabel = JSON.parse('"-- \\u0e40\\u0e25\\u0e37\\u0e2d\\u0e01\\u0e23\\u0e38\\u0e48\\u0e19 (Sheet \\u0e40\\u0e27\\u0e47\\u0e1a) --"');
+        csSetOptions('c_model_w', fbModels.map(function(m) { return {val: m, label: m}; }), fbLabel, onCatalogModelChange);
+        return;
+      }
+    }
+    // ไม่มีทั้ง Excel และ bikeModelsData → แสดงข้อความและปล่อยให้พิมพ์เอง
+    const noExcel = JSON.parse('"-- \\u0e22\\u0e31\\u0e07\\u0e44\\u0e21\\u0e48\\u0e21\\u0e35\\u0e02\\u0e49\\u0e2d\\u0e21\\u0e39\\u0e25 --"');
+    csSetOptions('c_model_w', [], noExcel, onCatalogModelChange);
+    return;
+  }
+  csSetOptions('c_model_w', source.map(function(d) { return {val: d.model, label: d.model}; }), '-- เลือกรุ่น --', onCatalogModelChange);
+}
+
+function onCatalogModelChange() {
+  const model = document.getElementById('c_model').value;
+  csSetOptions('c_variant_w', [], '-- ไม่ระบุแบบ --', onCatalogVariantChange);
+  // Auto-fill ชื่อการตลาดเบื้องต้นจาก Excel model (ถ้ายังไม่มี submodel)
+  if (!document.getElementById('c_submodel').value.trim()) {
+    document.getElementById('c_marketing_name').value = model ? 'HONDA ' + model : '';
+  }
+  if (!model) return;
+
+  // หา variants จาก priceData ก่อน ถ้าไม่มี fallback ไป bikeModelsData
+  const allSrc = priceData.small.concat(priceData.big);
+  const found = allSrc.find(function(d) { return d.model === model; });
+  if (found && found.variants.length > 0) {
+    csSetOptions('c_variant_w', found.variants.map(function(v) { return {val: v, label: v}; }), CS_PH_VARIANT, onCatalogVariantChange);
+    if (found.variants.length === 1) {
+      csPick('c_variant_w', found.variants[0], found.variants[0], onCatalogVariantChange);
+    }
+  } else if (bikeModelsData.length > 0) {
+    // Fallback: ใช้ variant names จาก bikeModelsData
+    const cat = document.getElementById('c_type').value;
+    const fbRows = bikeModelsData.filter(function(r) {
+      return r.model_name === model || (cat && r.category_name === cat && r.model_name === model);
+    });
+    if (fbRows.length > 0) {
+      csSetOptions('c_variant_w', fbRows.map(function(r) { return {val: r.variant_name, label: r.variant_name}; }), CS_PH_VARIANT, onCatalogVariantChange);
+      if (fbRows.length === 1) csPick('c_variant_w', fbRows[0].variant_name, fbRows[0].variant_name, onCatalogVariantChange);
+    }
+  }
+}
+
+function onCatalogVariantChange() {
+  // อัปเดตชื่อการตลาดจาก Excel model+variant (ถ้ายังไม่มี submodel)
+  if (document.getElementById('c_submodel').value.trim()) return;
+  const model   = document.getElementById('c_model').value;
+  const variant = document.getElementById('c_variant').value;
+  if (!model) { document.getElementById('c_marketing_name').value = ''; return; }
+  let name = 'HONDA ' + model;
+  if (variant) name += ' ' + variant;
+  document.getElementById('c_marketing_name').value = name;
+}
+
+// เมื่อ user พิมพ์/เลือก ชื่อรุ่นย่อย → auto-fill ชื่อทางการตลาดจาก bikeModelsData
+function onSubmodelInput() {
+  const val = document.getElementById('c_submodel').value.trim();
+  if (!val) {
+    // ล้าง submodel → ย้อนกลับไปใช้ Excel model+variant
+    onCatalogVariantChange();
+    return;
+  }
+  // format datalist = "model_name / variant_name"
+  const parts = val.split(' / ');
+  if (parts.length === 2) {
+    const mn = parts[0].trim();
+    const vn = parts[1].trim();
+    document.getElementById('c_marketing_name').value = 'HONDA ' + mn + (vn ? ' ' + vn : '');
+  } else {
+    document.getElementById('c_marketing_name').value = 'HONDA ' + val;
+  }
+}
+
+// (kept as alias for backward-compat with any remaining inline calls)
+function updateMarketingName() { onCatalogVariantChange(); }
+
+function renderCatalogTable() {
+  const filterType = document.getElementById('catalogTypeFilter')?.value || '';
+  const searchQ = (document.getElementById('catalogSearch')?.value || '').toLowerCase();
+
+  // อัปเดต dropdown ประเภท
+  const typesSel = document.getElementById('catalogTypeFilter');
+  if (typesSel) {
+    const types = [...new Set(data.catalog.map(c => c.bikeType))].sort();
+    typesSel.innerHTML = '<option value="">ทุกประเภท</option>' +
+      types.map(t => `<option value="${t}" ${t===filterType?'selected':''}>${t}</option>`).join('');
+  }
+
+  let list = data.catalog;
+  if (filterType) list = list.filter(c => c.bikeType === filterType);
+  if (searchQ) list = list.filter(c =>
+    (c.model||'').toLowerCase().includes(searchQ) ||
+    (c.variant||'').toLowerCase().includes(searchQ)
+  );
+
+  document.getElementById('catalogCount').textContent =
+    `แสดง ${list.length} / ${data.catalog.length} รายการ`;
+
+  const tbody = document.getElementById('catalogTbody');
+  if (!tbody) return;
+  tbody.innerHTML = list.map(c => {
+    const realIdx = data.catalog.indexOf(c);
+    const typeColor = {
+      'ครอบครัว (Family)': '#e8f5e9',
+      'สกู๊ตเตอร์ออโตเมติก': '#fff3e0',
+      'สปอร์ต (Sport)': '#fce4ec',
+      'ผจญภัย (Adventure)': '#e3f2fd',
+      'รถไฟฟ้า (EV)': '#e0f7fa',
+      'Big Bike (พรีเมียม)': '#f3e5f5',
+    }[c.bikeType] || '#f5f5f5';
+    return `<tr>
+      <td style="text-align:center;color:var(--text2);font-size:.8rem;">${c.sortOrder??realIdx}</td>
+      <td><span style="background:${typeColor};padding:2px 8px;border-radius:4px;font-size:.78rem;font-weight:700;">${c.bikeType}</span></td>
+      <td><strong>${c.model}</strong></td>
+      <td style="color:var(--text2);font-size:.82rem;">${c.variant || '<span style="color:#ccc;">—</span>'}</td>
+      <td style="font-size:.82rem;color:#7b1fa2;">${c.submodelName || '<span style="color:#ccc;">—</span>'}</td>
+      <td style="font-size:.82rem;color:var(--blue);">${c.marketingName || '<span style="color:#ccc;">—</span>'}</td>
+      <td style="text-align:center;">${c.cc ? c.cc+'<small>cc</small>' : '<span style="color:#ccc;">—</span>'}</td>
+      <td style="font-size:.82rem;">${c.transmission || '—'}</td>
+      <td><span class="badge ${c.isActive!==false ? 'badge-green' : 'badge-red'}">${c.isActive!==false ? 'มีจำหน่าย' : 'ไม่มี'}</span></td>
+      <td>
+        <button class="btn btn-gray btn-sm" onclick="moveCatalog(${realIdx},'up')" style="padding:2px 7px;margin-right:2px;">▲</button>
+        <button class="btn btn-gray btn-sm" onclick="moveCatalog(${realIdx},'down')" style="padding:2px 7px;margin-right:6px;">▼</button>
+        <button class="btn btn-info btn-sm" onclick="openEditCatalog(${realIdx})" style="margin-right:4px;">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCatalog(${realIdx})">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="10" style="text-align:center;color:var(--text2);padding:2rem;">ไม่มีข้อมูล — กด "+ เพิ่มรุ่นรถ" เพื่อเริ่มต้น</td></tr>';
+}
+
+async function openAddCatalog() {
+  editCatalogIdx = null;
+  document.getElementById('catalogModalTitle').textContent = '+ เพิ่มรุ่นรถใหม่';
+  document.getElementById('c_cc').value = '';
+  document.getElementById('c_note').value = '';
+  document.getElementById('c_transmission').value = 'Automatic';
+  document.getElementById('c_active').value = '1';
+  document.getElementById('c_sort').value = data.catalog.length;
+  document.getElementById('c_marketing_name').value = '';
+  document.getElementById('c_submodel').value = '';
+  csSetVal('c_type_w', '', '-- เลือกประเภท --');
+  csSetOptions('c_model_w', [], '-- เลือกประเภทก่อน --', onCatalogModelChange);
+  csSetOptions('c_variant_w', [], '-- ไม่ระบุแบบ --', onCatalogVariantChange);
+  document.getElementById('catalogModal').classList.add('open');
+
+  await loadBikeModelsData();
+  populateCatalogTypeDropdown('');
+  populateSubmodelDatalist('');
+}
+
+async function openEditCatalog(idx) {
+  editCatalogIdx = idx;
+  const c = data.catalog[idx];
+  document.getElementById('catalogModalTitle').textContent = '✏️ แก้ไข — ' + (c.submodelName || c.model) + (c.variant ? ' ' + c.variant : '');
+  document.getElementById('c_cc').value = c.cc || '';
+  document.getElementById('c_transmission').value = c.transmission || 'Automatic';
+  document.getElementById('c_active').value = c.isActive !== false ? '1' : '0';
+  document.getElementById('c_sort').value = c.sortOrder ?? idx;
+  document.getElementById('c_note').value = c.note || '';
+  document.getElementById('c_marketing_name').value = c.marketingName || '';
+  document.getElementById('c_submodel').value = c.submodelName || '';
+  document.getElementById('catalogModal').classList.add('open');
+
+  await loadBikeModelsData();
+
+  // Category dropdown
+  populateCatalogTypeDropdown(c.bikeType || '');
+  populateSubmodelDatalist(c.bikeType || '');
+
+  // Model dropdown — จาก priceData (Excel) ถ้ามี, fallback = ค่าที่บันทึกไว้
+  const cat = c.bikeType || '';
+  const isBig = cat.indexOf('Big Bike') !== -1 || cat.indexOf('พรีเมียม') !== -1;
+  const src = (isBig && priceData.big.length > 0) ? priceData.big
+            : (!isBig && priceData.small.length > 0) ? priceData.small
+            : priceData.small.concat(priceData.big);
+
+  if (src.length > 0) {
+    csSetOptions('c_model_w', src.map(function(d) { return {val: d.model, label: d.model}; }), '-- เลือกรุ่น --', onCatalogModelChange);
+  } else {
+    // Excel ยังไม่ได้โหลด → ใส่ค่าเดิมไว้ก่อน
+    csSetOptions('c_model_w', c.model ? [{val: c.model, label: c.model}] : [], '-- เลือกรุ่น --', onCatalogModelChange);
+  }
+  csSetVal('c_model_w', c.model || '', c.model || '-- เลือกรุ่น --');
+
+  // Variant dropdown — จาก priceData หรือค่าเดิม
+  const allSrc = priceData.small.concat(priceData.big);
+  const foundModel = allSrc.find(function(d) { return d.model === c.model; });
+  if (foundModel && foundModel.variants.length > 0) {
+    csSetOptions('c_variant_w', foundModel.variants.map(function(v) { return {val: v, label: v}; }), '-- ไม่ระบุแบบ --', onCatalogVariantChange);
+  } else {
+    csSetOptions('c_variant_w', c.variant ? [{val: c.variant, label: c.variant}] : [], '-- ไม่ระบุแบบ --', onCatalogVariantChange);
+  }
+  csSetVal('c_variant_w', c.variant || '', c.variant || '-- ไม่ระบุแบบ --');
+}
+
+function saveCatalogItem() {
+  const model = document.getElementById('c_model').value.trim();
+  if (!model) { showToast('กรุณาเลือกรุ่น', 'error'); return; }
+
+  const item = {
+    bikeType: document.getElementById('c_type').value,
+    model,
+    variant: document.getElementById('c_variant').value.trim(),
+    submodelName: document.getElementById('c_submodel').value.trim(),
+    marketingName: document.getElementById('c_marketing_name').value.trim(),
+    cc: parseInt(document.getElementById('c_cc').value) || 0,
+    transmission: document.getElementById('c_transmission').value,
+    isActive: document.getElementById('c_active').value === '1',
+    sortOrder: parseInt(document.getElementById('c_sort').value) || 0,
+    note: document.getElementById('c_note').value.trim()
+  };
+
+  if (editCatalogIdx !== null) {
+    data.catalog[editCatalogIdx] = { ...data.catalog[editCatalogIdx], ...item };
+  } else {
+    item.id = Date.now();
+    data.catalog.push(item);
+  }
+
+  localStorage.setItem('papao_data', JSON.stringify(data));
+  renderCatalogTable();
+  closeModal('catalogModal');
+  showToast('บันทึกในเครื่องแล้ว ✅ (กด "บันทึกไปยัง Server" เพื่อซิงค์)', 'success');
+}
+
+function deleteCatalog(idx) {
+  const c = data.catalog[idx];
+  if (!confirm(`ลบ "${c.model}${c.variant ? ' '+c.variant : ''}" ออก?`)) return;
+  data.catalog.splice(idx, 1);
+  localStorage.setItem('papao_data', JSON.stringify(data));
+  renderCatalogTable();
+  showToast('ลบแล้ว', 'success');
+}
+
+function moveCatalog(idx, dir) {
+  const arr = data.catalog;
+  if (dir === 'up' && idx > 0) {
+    [arr[idx-1], arr[idx]] = [arr[idx], arr[idx-1]];
+    arr[idx-1].sortOrder = idx-1; arr[idx].sortOrder = idx;
+  } else if (dir === 'down' && idx < arr.length-1) {
+    [arr[idx], arr[idx+1]] = [arr[idx+1], arr[idx]];
+    arr[idx].sortOrder = idx; arr[idx+1].sortOrder = idx+1;
+  }
+  localStorage.setItem('papao_data', JSON.stringify(data));
+  renderCatalogTable();
+}
+
+async function syncCatalog(silent=false) {
+  if (!silent) showToast('กำลังโหลด...', '');
+  try {
+    const res = await fetch('https://n8n-wt11.onrender.com/webhook/bike-catalog');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const arr = await res.json();
+    if (Array.isArray(arr) && arr.length > 0) {
+      data.catalog = arr.map(r => ({
+        id: r.id,
+        bikeType: r.bike_type || '',
+        model: r.model_name || '',
+        variant: r.variant_name || '',
+        submodelName: r.submodel_name || '',
+        marketingName: r.marketing_name || '',
+        cc: parseInt(r.engine_cc) || 0,
+        transmission: r.transmission || 'Automatic',
+        isActive: r.is_active !== false && r.is_active !== 0,
+        sortOrder: parseInt(r.sort_order) || 0,
+        note: r.note || ''
+      }));
+      localStorage.setItem('papao_data', JSON.stringify(data));
+      renderCatalogTable();
+      if (!silent) showToast(`โหลดสำเร็จ ${data.catalog.length} รายการ ✅`, 'success');
+    } else if (!silent) {
+      showToast('Server ตอบกลับแต่ไม่มีข้อมูล', 'error');
+    }
+  } catch(e) {
+    if (!silent) showToast('โหลดไม่สำเร็จ: ' + e.message, 'error');
+    console.log('syncCatalog failed', e);
+  }
+}
+
+async function saveCatalogToServer() {
+  const resultDiv = document.getElementById('catalogSaveResult');
+  resultDiv.innerHTML = '<span style="color:var(--blue);">⏳ กำลังบันทึก กรุณารอสักครู่...</span>';
+  try {
+    const payload = data.catalog.map((c, i) => ({
+      bike_type: c.bikeType || '',
+      model_name: c.model || '',
+      variant_name: c.variant || '',
+      submodel_name: c.submodelName || '',
+      marketing_name: c.marketingName || '',
+      engine_cc: c.cc || 0,
+      transmission: c.transmission || 'Automatic',
+      is_active: c.isActive !== false,
+      sort_order: c.sortOrder !== undefined ? c.sortOrder : i,
+      note: c.note || ''
+    }));
+    const res = await fetch('https://n8n-wt11.onrender.com/webhook/save-bike-catalog', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ catalog: payload })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    resultDiv.innerHTML = `<div style="background:#e8f5e9;border:1.5px solid var(--green);border-radius:8px;padding:1rem;color:var(--green);">
+      <strong>✅ บันทึก ${payload.length} รายการสำเร็จ!</strong><br>
+      ตาราง bike_catalog ใน PostgreSQL อัปเดตแล้ว
+    </div>`;
+    showToast('บันทึกแคตตาล็อกสำเร็จ ✅', 'success');
+  } catch(e) {
+    resultDiv.innerHTML = `<div style="background:#ffebee;border:1.5px solid #e53935;border-radius:8px;padding:1rem;color:#c62828;">
+      <strong>❌ เกิดข้อผิดพลาด</strong><br>${e.message}
+    </div>`;
+    showToast('บันทึกไม่สำเร็จ ❌', 'error');
   }
 }
 
@@ -1595,8 +2396,8 @@ async function fetchLivePrices() {
 }
 fetchLivePrices().then(function(){renderAllRows();renderNews();renderContactModels();});
 <\/script>
-</body>
-</html>`;
+<\/body>
+<\/html>`;
 
   const blob = new Blob([html], {type:'text/html'});
   const a = document.createElement('a');

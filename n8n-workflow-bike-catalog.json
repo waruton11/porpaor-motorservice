@@ -1,0 +1,247 @@
+{
+  "name": "Bike Catalog (Get + Save + Models List)",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "bike-catalog",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "065ef5df-d372-42b9-9b37-2017297e615e",
+      "name": "GET bike-catalog",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [48, 64],
+      "webhookId": "bike-catalog-get-porpaor"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, bike_type, model_name, variant_name, submodel_name, marketing_name, engine_cc, transmission, is_active, sort_order, note FROM bike_catalog ORDER BY sort_order ASC, id ASC",
+        "options": {}
+      },
+      "id": "b4787435-a948-4db1-ad03-4bc8ab76ccd3",
+      "name": "Query bike_catalog",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [272, 64],
+      "credentials": {
+        "postgres": {
+          "id": "8MCWrd4HMMHaJf4D",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "id": "550c50c7-454c-431c-8900-0ee57f6eb416",
+      "name": "Respond GET",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [496, 64]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "save-bike-catalog",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "bc200001-cafe-4000-b001-porpaor000001",
+      "name": "POST save-bike-catalog",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [48, 300],
+      "webhookId": "bike-catalog-save-porpaor"
+    },
+    {
+      "parameters": {
+        "jsCode": "// รับข้อมูล catalog จาก Admin Panel\nconst body = $input.first().json.body || $input.first().json;\nconst catalog = body.catalog || [];\n\nif (catalog.length === 0) {\n  return [{ json: { sql: 'DELETE FROM bike_catalog;', count: 0 } }];\n}\n\n// สร้าง SQL: DELETE ทั้งหมด แล้ว INSERT ใหม่\nconst esc = (s) => String(s||'').replace(/'/g, \"''\");\n\nconst values = catalog.map((c, i) => {\n  const bt   = esc(c.bike_type);\n  const mn   = esc(c.model_name);\n  const vn   = esc(c.variant_name || '');\n  const sm   = esc(c.submodel_name || '');\n  const mkt  = esc(c.marketing_name || '');\n  const cc   = parseInt(c.engine_cc) || 0;\n  const tr   = esc(c.transmission || 'Automatic');\n  const ia   = (c.is_active !== false && c.is_active !== 0) ? 'true' : 'false';\n  const so   = parseInt(c.sort_order) || i;\n  const note = esc(c.note || '');\n  return `('${bt}','${mn}','${vn}','${sm}','${mkt}',${cc},'${tr}',${ia},${so},'${note}',NOW())`;\n});\n\nconst sql = `DELETE FROM bike_catalog;\\nINSERT INTO bike_catalog (bike_type,model_name,variant_name,submodel_name,marketing_name,engine_cc,transmission,is_active,sort_order,note,updated_at) VALUES ${values.join(',')};`;\n\nreturn [{ json: { sql, count: catalog.length } }];"
+      },
+      "id": "bc200002-cafe-4000-b002-porpaor000002",
+      "name": "Build SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [272, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "bc200003-cafe-4000-b003-porpaor000003",
+      "name": "Execute SQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [496, 300],
+      "credentials": {
+        "postgres": {
+          "id": "8MCWrd4HMMHaJf4D",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, saved: $('Build SQL').first().json.count, message: 'bike_catalog updated' }) }}",
+        "options": {}
+      },
+      "id": "bc200004-cafe-4000-b004-porpaor000004",
+      "name": "Respond SAVE",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "path": "bike-models-list",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "bml00001-cafe-4000-c001-porpaor000001",
+      "name": "GET bike-models-list",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [48, 540],
+      "webhookId": "bike-models-list-porpaor"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT bc.name AS category_name, bm.name AS model_name, bv.name AS variant_name FROM bike_variants bv JOIN bike_models bm ON bv.model_id = bm.id JOIN bike_categories bc ON bm.category_id = bc.id ORDER BY bc.sort_order ASC, bm.sort_order ASC, bv.sort_order ASC",
+        "options": {}
+      },
+      "id": "bml00002-cafe-4000-c002-porpaor000002",
+      "name": "Query bike_models",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [272, 540],
+      "credentials": {
+        "postgres": {
+          "id": "8MCWrd4HMMHaJf4D",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "id": "bml00003-cafe-4000-c003-porpaor000003",
+      "name": "Respond Models List",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [496, 540]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "GET bike-catalog": {
+      "main": [
+        [
+          {
+            "node": "Query bike_catalog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query bike_catalog": {
+      "main": [
+        [
+          {
+            "node": "Respond GET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST save-bike-catalog": {
+      "main": [
+        [
+          {
+            "node": "Build SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build SQL": {
+      "main": [
+        [
+          {
+            "node": "Execute SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute SQL": {
+      "main": [
+        [
+          {
+            "node": "Respond SAVE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET bike-models-list": {
+      "main": [
+        [
+          {
+            "node": "Query bike_models",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query bike_models": {
+      "main": [
+        [
+          {
+            "node": "Respond Models List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8e7d3f62b628a32fff91202f4d2b728e956e45ecfe0e6343be33611ff9be61f5"
+  },
+  "versionId": "bde4d9ad-569c-4098-ab36-7510bf4aa63c",
+  "tags": [
+    {
+      "name": "porpaor",
+      "id": "yZqjZlFSE1V2dsBE",
+      "createdAt": "2026-05-25T08:12:23.004Z",
+      "updatedAt": "2026-05-25T08:12:23.004Z"
+    }
+  ]
+}
