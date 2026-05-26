@@ -391,9 +391,8 @@ tr:hover td { background: #fafafa; }
                   <th>ประเภท</th>
                   <th>รุ่น (ไฟล์ราคา)</th>
                   <th>แบบ (ไฟล์ราคา)</th>
-                  <th>ชื่อรุ่นย่อย (เว็บ)</th>
+                  <th>ชื่อทางการตลาด</th>
                   <th>cc</th>
-                  <th>เกียร์</th>
                   <th>สถานะ</th>
                   <th>จัดการ</th>
                 </tr>
@@ -615,31 +614,15 @@ tr:hover td { background: #fafafa; }
     </div>
 
     <div class="form-group" style="margin-bottom:1rem;">
-      <label>ชื่อรุ่นย่อย <span style="font-size:.78rem;color:var(--text2);">(ชื่อบนเว็บ — เลือกจาก Sheet เว็บ)</span></label>
-      <input id="c_submodel" list="c_submodel_list" placeholder="เช่น Wave 110i / ล้อลวด" oninput="onSubmodelInput()"
+      <label>ชื่อทางการตลาด <span style="font-size:.78rem;color:var(--text2);">(เลือกจาก Sheet เว็บ หรือพิมพ์เอง)</span></label>
+      <input id="c_submodel" list="c_submodel_list" placeholder="เช่น HONDA Wave110i ล้อซี่ลวด (ดรัมเบรก)" oninput="onSubmodelInput()"
         style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray2);border-radius:6px;font-family:inherit;font-size:0.9rem;background:#f3e5f5;">
       <datalist id="c_submodel_list"></datalist>
     </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>ขนาดเครื่องยนต์ (cc)</label>
-        <input id="c_cc" type="number" placeholder="เช่น 110, 125, 160, 300, 350">
-      </div>
-      <div class="form-group">
-        <label>ระบบเกียร์</label>
-        <select id="c_transmission" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray2);border-radius:6px;font-family:inherit;font-size:0.9rem;">
-          <option value="Automatic">Automatic (ออโตเมติก)</option>
-          <option value="Manual">Manual (เกียร์มือ)</option>
-          <option value="Semi-Auto">Semi-Auto</option>
-          <option value="E-Clutch">E-Clutch</option>
-          <option value="DCT">DCT</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>ลำดับแสดง</label>
-        <input id="c_sort" type="number" placeholder="0" value="0" style="width:100%;">
-      </div>
+    <div class="form-group" style="margin-bottom:1rem;">
+      <label>ขนาดเครื่องยนต์ (cc)</label>
+      <input id="c_cc" type="number" placeholder="เช่น 110, 125, 160, 300, 350" style="width:100%;">
     </div>
 
     <div class="form-group" style="margin-bottom:1rem;">
@@ -1743,7 +1726,6 @@ function renderCatalogTable() {
       <td style="color:var(--text2);font-size:.82rem;">${c.variant || '<span style="color:#ccc;">—</span>'}</td>
       <td style="font-size:.82rem;color:#7b1fa2;">${c.submodelName || '<span style="color:#ccc;">—</span>'}</td>
       <td style="text-align:center;">${c.cc ? c.cc+'<small>cc</small>' : '<span style="color:#ccc;">—</span>'}</td>
-      <td style="font-size:.82rem;">${c.transmission || '—'}</td>
       <td><span class="badge ${c.isActive!==false ? 'badge-green' : 'badge-red'}">${c.isActive!==false ? 'มีจำหน่าย' : 'ไม่มี'}</span></td>
       <td>
         <button class="btn btn-gray btn-sm" onclick="moveCatalog(${realIdx},'up')" style="padding:2px 7px;margin-right:2px;">▲</button>
@@ -1760,9 +1742,7 @@ async function openAddCatalog() {
   document.getElementById('catalogModalTitle').textContent = '+ เพิ่มรุ่นรถใหม่';
   document.getElementById('c_cc').value = '';
   document.getElementById('c_note').value = '';
-  document.getElementById('c_transmission').value = 'Automatic';
   document.getElementById('c_active').value = '1';
-  document.getElementById('c_sort').value = data.catalog.length;
   document.getElementById('c_submodel').value = '';
   csSetVal('c_type_w', '', '-- เลือกประเภท --');
   csSetOptions('c_model_w', [], '-- เลือกประเภทก่อน --', onCatalogModelChange);
@@ -1779,9 +1759,7 @@ async function openEditCatalog(idx) {
   const c = data.catalog[idx];
   document.getElementById('catalogModalTitle').textContent = '✏️ แก้ไข — ' + (c.submodelName || c.model) + (c.variant ? ' ' + c.variant : '');
   document.getElementById('c_cc').value = c.cc || '';
-  document.getElementById('c_transmission').value = c.transmission || 'Automatic';
   document.getElementById('c_active').value = c.isActive !== false ? '1' : '0';
-  document.getElementById('c_sort').value = c.sortOrder ?? idx;
   document.getElementById('c_note').value = c.note || '';
   document.getElementById('c_submodel').value = c.submodelName || '';
   document.getElementById('catalogModal').classList.add('open');
@@ -1829,9 +1807,9 @@ function saveCatalogItem() {
     submodelName: document.getElementById('c_submodel').value.trim(),
     marketingName: '',
     cc: parseInt(document.getElementById('c_cc').value) || 0,
-    transmission: document.getElementById('c_transmission').value,
+    transmission: 'Automatic',
     isActive: document.getElementById('c_active').value === '1',
-    sortOrder: parseInt(document.getElementById('c_sort').value) || 0,
+    sortOrder: editCatalogIdx !== null ? (data.catalog[editCatalogIdx]?.sortOrder ?? editCatalogIdx) : data.catalog.length,
     note: document.getElementById('c_note').value.trim()
   };
 
