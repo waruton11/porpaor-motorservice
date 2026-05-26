@@ -392,7 +392,6 @@ tr:hover td { background: #fafafa; }
                   <th>รุ่น (ไฟล์ราคา)</th>
                   <th>แบบ (ไฟล์ราคา)</th>
                   <th>ชื่อรุ่นย่อย (เว็บ)</th>
-                  <th>ชื่อทางการตลาด</th>
                   <th>cc</th>
                   <th>เกียร์</th>
                   <th>สถานะ</th>
@@ -620,11 +619,6 @@ tr:hover td { background: #fafafa; }
       <input id="c_submodel" list="c_submodel_list" placeholder="เช่น Wave 110i / ล้อลวด" oninput="onSubmodelInput()"
         style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray2);border-radius:6px;font-family:inherit;font-size:0.9rem;background:#f3e5f5;">
       <datalist id="c_submodel_list"></datalist>
-    </div>
-
-    <div class="form-group" style="margin-bottom:1rem;">
-      <label>ชื่อทางการตลาด <span style="font-size:.78rem;color:var(--text2);">(กรอกอัตโนมัติ — แก้ไขได้)</span></label>
-      <input id="c_marketing_name" placeholder="เช่น HONDA Wave 110i ล้อลวด" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray2);border-radius:6px;font-family:inherit;font-size:0.9rem;background:#fffde7;">
     </div>
 
     <div class="form-row">
@@ -1642,7 +1636,6 @@ function onCatalogCategoryChange() {
   csSetOptions('c_model_w', [], '-- เลือกรุ่น (ไฟล์ราคา) --', onCatalogModelChange);
   csSetOptions('c_variant_w', [], '-- ไม่ระบุแบบ --', onCatalogVariantChange);
   document.getElementById('c_submodel').value = '';
-  document.getElementById('c_marketing_name').value = '';
 
   if (!cat) return;
 
@@ -1679,10 +1672,6 @@ function onCatalogCategoryChange() {
 function onCatalogModelChange() {
   const model = document.getElementById('c_model').value;
   csSetOptions('c_variant_w', [], '-- ไม่ระบุแบบ --', onCatalogVariantChange);
-  // Auto-fill ชื่อการตลาดเบื้องต้นจาก Excel model (ถ้ายังไม่มี submodel)
-  if (!document.getElementById('c_submodel').value.trim()) {
-    document.getElementById('c_marketing_name').value = model ? 'HONDA ' + model : '';
-  }
   if (!model) return;
 
   // หา variants จาก priceData ก่อน ถ้าไม่มี fallback ไป bikeModelsData
@@ -1706,35 +1695,9 @@ function onCatalogModelChange() {
   }
 }
 
-function onCatalogVariantChange() {
-  // อัปเดตชื่อการตลาดจาก Excel model+variant (ถ้ายังไม่มี submodel)
-  if (document.getElementById('c_submodel').value.trim()) return;
-  const model   = document.getElementById('c_model').value;
-  const variant = document.getElementById('c_variant').value;
-  if (!model) { document.getElementById('c_marketing_name').value = ''; return; }
-  let name = 'HONDA ' + model;
-  if (variant) name += ' ' + variant;
-  document.getElementById('c_marketing_name').value = name;
-}
+function onCatalogVariantChange() {}
 
-// เมื่อ user พิมพ์/เลือก ชื่อรุ่นย่อย → auto-fill ชื่อทางการตลาดจาก bikeModelsData
-function onSubmodelInput() {
-  const val = document.getElementById('c_submodel').value.trim();
-  if (!val) {
-    // ล้าง submodel → ย้อนกลับไปใช้ Excel model+variant
-    onCatalogVariantChange();
-    return;
-  }
-  // format datalist = "model_name / variant_name"
-  const parts = val.split(' / ');
-  if (parts.length === 2) {
-    const mn = parts[0].trim();
-    const vn = parts[1].trim();
-    document.getElementById('c_marketing_name').value = 'HONDA ' + mn + (vn ? ' ' + vn : '');
-  } else {
-    document.getElementById('c_marketing_name').value = 'HONDA ' + val;
-  }
-}
+function onSubmodelInput() {}
 
 // (kept as alias for backward-compat with any remaining inline calls)
 function updateMarketingName() { onCatalogVariantChange(); }
@@ -1779,7 +1742,6 @@ function renderCatalogTable() {
       <td><strong>${c.model}</strong></td>
       <td style="color:var(--text2);font-size:.82rem;">${c.variant || '<span style="color:#ccc;">—</span>'}</td>
       <td style="font-size:.82rem;color:#7b1fa2;">${c.submodelName || '<span style="color:#ccc;">—</span>'}</td>
-      <td style="font-size:.82rem;color:var(--blue);">${c.marketingName || '<span style="color:#ccc;">—</span>'}</td>
       <td style="text-align:center;">${c.cc ? c.cc+'<small>cc</small>' : '<span style="color:#ccc;">—</span>'}</td>
       <td style="font-size:.82rem;">${c.transmission || '—'}</td>
       <td><span class="badge ${c.isActive!==false ? 'badge-green' : 'badge-red'}">${c.isActive!==false ? 'มีจำหน่าย' : 'ไม่มี'}</span></td>
@@ -1801,7 +1763,6 @@ async function openAddCatalog() {
   document.getElementById('c_transmission').value = 'Automatic';
   document.getElementById('c_active').value = '1';
   document.getElementById('c_sort').value = data.catalog.length;
-  document.getElementById('c_marketing_name').value = '';
   document.getElementById('c_submodel').value = '';
   csSetVal('c_type_w', '', '-- เลือกประเภท --');
   csSetOptions('c_model_w', [], '-- เลือกประเภทก่อน --', onCatalogModelChange);
@@ -1822,7 +1783,6 @@ async function openEditCatalog(idx) {
   document.getElementById('c_active').value = c.isActive !== false ? '1' : '0';
   document.getElementById('c_sort').value = c.sortOrder ?? idx;
   document.getElementById('c_note').value = c.note || '';
-  document.getElementById('c_marketing_name').value = c.marketingName || '';
   document.getElementById('c_submodel').value = c.submodelName || '';
   document.getElementById('catalogModal').classList.add('open');
 
@@ -1867,7 +1827,7 @@ function saveCatalogItem() {
     model,
     variant: document.getElementById('c_variant').value.trim(),
     submodelName: document.getElementById('c_submodel').value.trim(),
-    marketingName: document.getElementById('c_marketing_name').value.trim(),
+    marketingName: '',
     cc: parseInt(document.getElementById('c_cc').value) || 0,
     transmission: document.getElementById('c_transmission').value,
     isActive: document.getElementById('c_active').value === '1',
