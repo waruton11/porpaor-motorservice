@@ -283,7 +283,16 @@ function oM(ci,mi){modalModel=categories[ci].models[mi];modalVariantIdx=0;modalC
 function rV(){const w=document.getElementById('mVariants');const b=document.getElementById('mVariantBtns');if(!modalModel.variants||modalModel.variants.length<=1){w.style.display='none';return;}w.style.display='block';b.innerHTML=modalModel.variants.map((v,i)=>'<button class="variant-btn'+(i===0?' active':'')+'" onclick="sV('+i+')">'+v.name+'</button>').join('');}
 function sV(i){modalVariantIdx=i;document.querySelectorAll('.variant-btn').forEach((b,j)=>b.classList.toggle('active',j===i));uT();rC();}
 function rC(){const w=document.getElementById('mColors');const s=document.getElementById('mColorSwatches');const n=document.getElementById('mColorName');if(!modalModel.colors||!modalModel.colors.length){w.style.display='none';document.getElementById('mCarImg').innerHTML='<span style="font-size:4rem">'+modalModel.icon+'</span>';return;}w.style.display='block';const curVariant=modalModel.variants[modalVariantIdx]?modalModel.variants[modalVariantIdx].name:'';const filtered=modalModel.colors.filter(c=>!c.variant||c.variant===curVariant||!curVariant);const display=filtered.length?filtered:modalModel.colors;s.innerHTML=display.map((c,i)=>{const bg=c.hex2?'conic-gradient('+c.hex+' 0deg 180deg,'+c.hex2+' 180deg 360deg)':c.hex;return'<div class="color-swatch'+(i===0?' active':'')+'" style="background:'+bg+';'+(c.border?'border:2px solid #bbb;':'')+'" title="'+c.name+'" onclick="sC('+i+','+JSON.stringify(display).replace(/"/g,'&quot;')+')"></div>';}).join('');window._curColors=display;n.textContent='สี: '+display[0].name;updCarImg2(display[0]);}
-function sC(i,colors){if(colors){window._curColors=typeof colors==='string'?JSON.parse(colors.replace(/&quot;/g,'"')):colors;}modalColorIdx=i;document.querySelectorAll('.color-swatch').forEach((s,j)=>s.classList.toggle('active',j===i));document.getElementById('mColorName').textContent='สี: '+window._curColors[i].name;updCarImg2(window._curColors[i]);}
+function sC(i,colors){
+  if(colors){window._curColors=typeof colors==='string'?JSON.parse(colors.replace(/&quot;/g,'"')):colors;}
+  modalColorIdx=i;
+  document.querySelectorAll('.color-swatch').forEach((s,j)=>s.classList.toggle('active',j===i));
+  document.getElementById('mColorName').textContent='สี: '+window._curColors[i].name;
+  updCarImg2(window._curColors[i]);
+  // อัปเดตราคาและตารางผ่อนตามสีที่เลือก
+  const colorPrice = (window._curColors[i]._price) || 0;
+  if (colorPrice > 0) _renderPriceAndTable(colorPrice, null);
+}
 function updCarImg2(c){const area=document.getElementById('mCarImg');if(c&&c.img){area.innerHTML='<img src="'+c.img+'" style="max-height:160px;max-width:100%;object-fit:contain;">';}else{area.innerHTML='<span style="font-size:4rem">'+modalModel.icon+'</span>';}}
 function calcInstFlat(financed, ratePct, months){
   return Math.ceil(financed*(1+ratePct/100*months)/months);
@@ -291,11 +300,8 @@ function calcInstFlat(financed, ratePct, months){
 function calcInstFlatAnnual(financed, annualRatePct, months){
   return Math.ceil(financed*(1+annualRatePct/100*months/12)/months);
 }
-function uT(){
-  const d = modalModel.variants[modalVariantIdx];
-  const price = parseInt(d.price) || 0;
+function _renderPriceAndTable(price, downs) {
   if (price > 0) {
-    // มีราคา — แสดงราคาและตารางผ่อน
     document.getElementById('mPrice').textContent = '฿' + fmt(price);
     document.getElementById('mPrice').style.display = '';
     document.getElementById('mPricePlaceholder').style.display = 'none';
@@ -303,8 +309,9 @@ function uT(){
     document.getElementById('mFinanceNote').style.display = '';
     document.getElementById('calcPrice').value = price;
     const months = [48, 42, 36, 30, 24];
-    const downs = d.downs && d.downs.length ? d.downs : [0];
-    const rows = downs.map(function(dn) {
+    const dList = (downs && downs.length) ? downs
+      : [0, Math.round(price*0.1/500)*500, Math.round(price*0.2/500)*500, Math.round(price*0.3/500)*500];
+    const rows = dList.map(function(dn) {
       const financed = price - dn;
       const instCols = months.map(function(mo) {
         return '<td>' + fmt(calcInst(price, dn, mo)) + ' บ./เดือน</td>';
@@ -315,7 +322,6 @@ function uT(){
     }).join('');
     document.getElementById('mTableBody').innerHTML = rows;
   } else {
-    // ยังไม่มีราคา — แสดง placeholder
     document.getElementById('mPrice').style.display = 'none';
     document.getElementById('mPricePlaceholder').style.display = 'block';
     document.getElementById('mInstTable').style.display = 'none';
@@ -323,6 +329,17 @@ function uT(){
     document.getElementById('mTableBody').innerHTML = '';
     document.getElementById('calcPrice').value = '';
   }
+}
+function uT(){
+  const d = modalModel.variants[modalVariantIdx];
+  let price = parseInt(d.price) || 0;
+  let downs = (d.downs && d.downs.length) ? d.downs : null;
+  // ถ้าสีปัจจุบันมีราคาเฉพาะ (จาก Excel) ให้ใช้ราคาของสีนั้นแทน
+  if (window._curColors && window._curColors[modalColorIdx] && window._curColors[modalColorIdx]._price > 0) {
+    price = window._curColors[modalColorIdx]._price;
+    downs = null; // คำนวณดาวน์ใหม่จากราคาของสีนี้
+  }
+  _renderPriceAndTable(price, downs);
 }
 function closeModal(e){if(!e||e.target===document.getElementById('modalOverlay')||!e.target){document.getElementById('modalOverlay').classList.remove('open');document.body.style.overflow='';}}
 function calculate(){const price=parseFloat(document.getElementById('calcPrice').value)||0;const down=parseFloat(document.getElementById('calcDown').value)||0;const months=parseInt(document.getElementById('calcMonth').value);if(price<=0){alert('กรุณากรอกราคารถ');return;}if(down>=price){alert('เงินดาวน์ต้องน้อยกว่าราคารถ');return;}document.getElementById('calcOutput').textContent='฿'+fmt(calcInst(price,down,months))+' / เดือน';document.getElementById('calcResult').style.display='flex';}
@@ -404,11 +421,14 @@ function buildCategoriesFromAPI(rows) {
         : [0];
       bike.variants.push({ name: variantName, price: price, downs: downs, _sortOrder: row.sort_order || 0 });
     }
-    // Merge สีเข้าด้วยกัน
+    // Merge สีเข้าด้วยกัน — แนบราคาของรหัสนี้ไปกับแต่ละสี
+    const rowPrice = parseInt(row.price) || 0;
     const colors = Array.isArray(row.colors) ? row.colors
       : (typeof row.colors === 'string' ? (function(){ try{return JSON.parse(row.colors);}catch(e){return [];} })() : []);
     colors.forEach(function(c) {
-      if (!bike.colors.find(function(e) { return e.name === c.name; })) bike.colors.push(c);
+      if (!bike.colors.find(function(e) { return e.name === c.name; })) {
+        bike.colors.push(Object.assign({}, c, { _price: rowPrice }));
+      }
     });
   });
   return catOrder.map(function(catName) {
