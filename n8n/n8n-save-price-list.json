@@ -1,0 +1,80 @@
+{
+  "name": "POST save-price-list",
+  "nodes": [
+    {
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "name": "POST save-price-list",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "save-price-list",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "save-price-list",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "a1b2c3d4-0001-0001-0001-000000000002",
+      "name": "Build Upsert SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// รับ array ราคาจาก admin.html\nconst body = $input.first().json.body || $input.first().json;\nconst prices = body.prices || [];\n\nif (prices.length === 0) {\n  return [{ json: { sql: 'SELECT 1;', count: 0 } }];\n}\n\n// สร้าง VALUES string สำหรับ UPSERT\nconst esc = (s) => String(s || '').replace(/'/g, \"''\");\n\nconst values = prices.map(p => {\n  const mc = esc(p.model_code);\n  const vc = esc(p.variant_code || '');\n  const pr = parseInt(p.price) || 0;\n  const ft = esc(p.file_type || 'small');\n  return `('${mc}','${vc}',${pr},'${ft}',NOW())`;\n}).join(',');\n\nconst sql = `INSERT INTO price_list (model_code, variant_code, price, file_type, updated_at)\nVALUES ${values}\nON CONFLICT (model_code, variant_code)\nDO UPDATE SET\n  price = EXCLUDED.price,\n  file_type = EXCLUDED.file_type,\n  updated_at = NOW();`;\n\nreturn [{ json: { sql, count: prices.length } }];"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0001-0001-0001-000000000003",
+      "name": "Execute Upsert",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [680, 300],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "a1b2c3d4-0001-0001-0001-000000000004",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [900, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, count: $('Build Upsert SQL').first().json.count }) }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "POST save-price-list": {
+      "main": [
+        [{ "node": "Build Upsert SQL", "type": "main", "index": 0 }]
+      ]
+    },
+    "Build Upsert SQL": {
+      "main": [
+        [{ "node": "Execute Upsert", "type": "main", "index": 0 }]
+      ]
+    },
+    "Execute Upsert": {
+      "main": [
+        [{ "node": "Respond OK", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

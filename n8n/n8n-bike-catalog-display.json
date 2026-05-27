@@ -1,0 +1,73 @@
+{
+  "name": "GET bike-catalog-display",
+  "nodes": [
+    {
+      "id": "b2c3d4e5-0002-0002-0002-000000000001",
+      "name": "GET bike-catalog-display",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "bike-catalog-display",
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "bike-catalog-display",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "b2c3d4e5-0002-0002-0002-000000000002",
+      "name": "Query Catalog with Prices",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [460, 300],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  bc.id,\n  bc.bike_type,\n  bc.submodel_name,\n  bc.model_name,\n  bc.variant_name,\n  bc.colors,\n  bc.engine_cc,\n  bc.is_active,\n  bc.sort_order,\n  pl.price\nFROM bike_catalog bc\nLEFT JOIN price_list pl\n  ON bc.model_name = pl.model_code\n  AND bc.variant_name = pl.variant_code\nWHERE bc.is_active = true\nORDER BY bc.sort_order ASC, bc.id ASC;",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "b2c3d4e5-0002-0002-0002-000000000003",
+      "name": "Respond with Data",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [680, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($input.all().map(item => item.json)) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "GET bike-catalog-display": {
+      "main": [
+        [{ "node": "Query Catalog with Prices", "type": "main", "index": 0 }]
+      ]
+    },
+    "Query Catalog with Prices": {
+      "main": [
+        [{ "node": "Respond with Data", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

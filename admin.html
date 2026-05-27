@@ -159,6 +159,14 @@ tr:hover td { background: #fafafa; }
 .cs-opt:hover { background: #f5f5f5; }
 .cs-opt.cs-sel { color: var(--red); background: #fff5f5; font-weight: 600; }
 .cs-ph { color: var(--text2) !important; font-weight: normal !important; }
+.cs-search {
+  display: block; width: 100%; padding: 0.5rem 0.8rem;
+  border: none; border-bottom: 1.5px solid var(--gray2);
+  font-size: 0.9rem; font-family: inherit;
+  background: #fafafa; outline: none;
+  position: sticky; top: 0; z-index: 2; box-sizing: border-box;
+}
+.cs-search:focus { border-bottom-color: var(--red); background: #fff; }
 
 /* TOAST */
 .toast {
@@ -618,6 +626,15 @@ tr:hover td { background: #fafafa; }
       <input id="c_submodel" list="c_submodel_list" placeholder="เช่น HONDA Wave110i ล้อซี่ลวด (ดรัมเบรก)" oninput="onSubmodelInput()"
         style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray2);border-radius:6px;font-family:inherit;font-size:0.9rem;background:#f3e5f5;">
       <datalist id="c_submodel_list"></datalist>
+    </div>
+
+    <!-- สีที่มีจำหน่าย — แสดงเมื่อเลือกชื่อทางการตลาดแล้ว -->
+    <div id="c_colors_wrap" style="display:none;margin-bottom:1rem;">
+      <label style="font-size:0.88rem;font-weight:600;color:#555;display:block;margin-bottom:6px;">
+        🎨 สีที่มีจำหน่าย
+        <span style="font-weight:400;font-size:.78rem;color:var(--text2);">(เลือกสีที่ตรงกับแบบนี้ — เลือกได้หลายสี)</span>
+      </label>
+      <div id="c_colors_list" style="display:flex;flex-wrap:wrap;gap:8px;padding:10px;background:#fafafa;border:1.5px solid var(--gray2);border-radius:8px;min-height:42px;"></div>
     </div>
 
     <div class="form-group" style="margin-bottom:1rem;">
@@ -1391,10 +1408,11 @@ async function uploadToN8n(type) {
   const resultDiv = document.getElementById(resultId);
   resultDiv.innerHTML = '<span style="color:var(--blue);">⏳ กำลังอัพโหลด กรุณารอสักครู่...</span>';
 
-  // === Parse สำหรับ catalog dropdown พร้อมกัน ===
+  // === Parse สำหรับ catalog dropdown + sync ราคาไป server ===
   _parsePriceXlsx(file, priceKey, function(count) {
     if (count > 0) {
       console.log('[catalog] price data ' + priceKey + ' ready: ' + count + ' models');
+      _syncPriceListToServer(false); // sync ราคาไป price_list table (silent)
     }
   });
 
@@ -1441,6 +1459,13 @@ function csToggle(wrapId) {
   if (!isOpen) {
     list.classList.add('cs-open');
     trigger.classList.add('cs-open');
+    // reset search + show ทุก option
+    const si = list.querySelector('.cs-search');
+    if (si) {
+      si.value = '';
+      list.querySelectorAll('.cs-opt').forEach(o => o.style.display = '');
+      setTimeout(function() { si.focus(); }, 50);
+    }
   }
 }
 
@@ -1485,6 +1510,22 @@ function csSetOptions(wrapId, opts, placeholder, callback) {
   const list = wrap.querySelector('.cs-list');
   if (!list) return;
   list.innerHTML = '';
+  // เพิ่ม search box อัตโนมัติเมื่อมีตัวเลือก >= 8 รายการ
+  if (opts.length >= 8) {
+    const si = document.createElement('input');
+    si.type = 'text';
+    si.className = 'cs-search';
+    si.placeholder = 'พิมพ์ค้นหา...'; // "พิมพ์ค้นหา..."
+    si.addEventListener('click', function(e) { e.stopPropagation(); });
+    si.addEventListener('input', function() {
+      const q = this.value.toLowerCase();
+      list.querySelectorAll('.cs-opt').forEach(function(opt) {
+        const txt = (opt.dataset.csVal || opt.textContent || '').toLowerCase();
+        opt.style.display = (!q || txt.includes(q)) ? '' : 'none';
+      });
+    });
+    list.appendChild(si);
+  }
   list.appendChild(_csOpt('', placeholder || '-- เลือก --', true, wrapId, callback));
   opts.forEach(o => list.appendChild(_csOpt(o.val, o.label, false, wrapId, callback)));
   csSetVal(wrapId, '', placeholder || '-- เลือก --');
@@ -1576,23 +1617,29 @@ function _parsePriceXlsx(file, fileType, onDone) {
 
       const map = new Map();
       rows.forEach(function(row) {
-        // บิ๊กไบค์: Col B (index 1) = รหัส+Type (ชื่อรุ่น), ไม่มี variant แยก
-        // ขนาดเล็ก: Col A (index 0) = model, Col B (index 1) = variant
+        // บิ๊กไบค์: Col B (index 1) = รหัส+Type (ชื่อรุ่น), Col C (index 2) = ราคา
+        // ขนาดเล็ก: Col A (index 0) = model, Col B (index 1) = variant, Col C (index 2) = ราคา
         const model   = fileType === 'big'
           ? String(row[1] || '').trim()
           : String(row[0] || '').trim();
         const variant = fileType === 'big'
           ? ''
           : String(row[1] || '').trim();
+        const priceRaw = row[2];
+        const price = typeof priceRaw === 'number'
+          ? Math.round(priceRaw)
+          : parseInt(String(priceRaw || '').replace(/[^0-9]/g, '')) || 0;
         if (!model) return;
         const ml = model.toLowerCase();
         if (ml === 'model' || ml === 'รุ่น' || ml === 'รหัส' || ml === 'a' || ml === 'ลำดับ' || ml === 'type' || ml === 'b') return;
-        if (!map.has(model)) map.set(model, []);
-        if (variant && !map.get(model).includes(variant)) map.get(model).push(variant);
+        if (!map.has(model)) map.set(model, { variants: [], prices: {} });
+        const entry = map.get(model);
+        if (variant && !entry.variants.includes(variant)) entry.variants.push(variant);
+        if (price > 0) entry.prices[variant || ''] = price;
       });
 
       priceData[fileType] = Array.from(map.entries()).map(function(entry) {
-        return { model: entry[0], variants: entry[1] };
+        return { model: entry[0], variants: entry[1].variants, prices: entry[1].prices };
       });
 
       // บันทึกลง localStorage เพื่อใช้ข้ามหน้า/session
@@ -1606,6 +1653,41 @@ function _parsePriceXlsx(file, fileType, onDone) {
     }
   };
   reader.readAsArrayBuffer(file);
+}
+
+// ส่งราคาจาก priceData ทั้งหมดไปเก็บใน price_list table ผ่าน n8n
+async function _syncPriceListToServer(showUI) {
+  const items = [];
+  priceData.small.forEach(function(d) {
+    const prices = d.prices || {};
+    if (d.variants && d.variants.length > 0) {
+      d.variants.forEach(function(v) {
+        const price = prices[v] || 0;
+        items.push({ model_code: d.model, variant_code: v, price: price, file_type: 'small' });
+      });
+    } else {
+      items.push({ model_code: d.model, variant_code: '', price: prices[''] || 0, file_type: 'small' });
+    }
+  });
+  priceData.big.forEach(function(d) {
+    const prices = d.prices || {};
+    items.push({ model_code: d.model, variant_code: '', price: prices[''] || 0, file_type: 'big' });
+  });
+  if (items.length === 0) return;
+  try {
+    const res = await fetch('https://n8n-wt11.onrender.com/webhook/save-price-list', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prices: items })
+    });
+    if (showUI) {
+      if (res.ok) showToast('ซิงค์ราคา ' + items.length + ' รายการไป server สำเร็จ ✅', 'success');
+      else showToast('ซิงค์ราคาไม่สำเร็จ HTTP ' + res.status + ' ⚠️', 'error');
+    }
+  } catch(e) {
+    if (showUI) showToast('ซิงค์ราคาล้มเหลว: ' + e.message, 'error');
+    console.warn('_syncPriceListToServer failed', e);
+  }
 }
 
 // โหลดจาก localStorage เมื่อ login — ไม่ต้องโหลดไฟล์ใหม่ถ้าเคยอัพโหลดแล้ว
@@ -1660,26 +1742,42 @@ function getPairedCombos() {
   );
 }
 
-// เติม datalist ชื่อทางการตลาด จาก bikeModelsData (Sheet เว็บ) — กรองที่ใช้แล้ว
+// เติม datalist ชื่อทางการตลาด
+// รวมจาก 2 แหล่ง: bikeModelsData (PostgreSQL) + data.categories (local admin)
+// ไม่ซ่อนชื่อที่ใช้แล้ว — เพราะรหัสหลายตัวสามารถจับคู่ชื่อเดียวกันได้
 function populateSubmodelDatalist(cat) {
   const dl = document.getElementById('c_submodel_list');
   if (!dl) return;
+  const seen = new Set();
+  dl.innerHTML = '';
+
+  // === 1. จาก bikeModelsData (PostgreSQL) ===
   let rows = bikeModelsData;
   if (cat) rows = rows.filter(function(r) { return r.category_name === cat; });
-  // กรองชื่อที่ถูกใช้ใน catalog แล้ว
-  const usedSubmodels = new Set(
-    data.catalog
-      .filter(function(_, i) { return i !== editCatalogIdx; })
-      .map(function(c) { return c.submodelName; })
-      .filter(Boolean)
-  );
-  dl.innerHTML = '';
   rows.forEach(function(r) {
     const val = r.model_name + ' / ' + r.variant_name;
-    if (usedSubmodels.has(val)) return; // ข้ามที่ใช้แล้ว
+    if (seen.has(val)) return;
+    seen.add(val);
     const opt = document.createElement('option');
     opt.value = val;
     dl.appendChild(opt);
+  });
+
+  // === 2. จาก data.categories (local) — รวมรุ่นย่อยที่เพิ่งแก้ไขและยังไม่ sync DB ===
+  (data.categories || []).forEach(function(c) {
+    if (cat && c.name !== cat) return;
+    (c.models || []).forEach(function(bike) {
+      (bike.variants || []).forEach(function(v) {
+        const vname = (typeof v === 'string') ? v : (v.name || '');
+        if (!vname || vname === 'มาตรฐาน' && bike.variants.length > 1) return;
+        const val = bike.name + ' / ' + vname;
+        if (seen.has(val)) return;
+        seen.add(val);
+        const opt = document.createElement('option');
+        opt.value = val;
+        dl.appendChild(opt);
+      });
+    });
   });
 }
 
@@ -1688,10 +1786,15 @@ function populateCatalogTypeDropdown(selectedVal) {
   if (!list) return;
   list.innerHTML = '';
   list.appendChild(_csOpt('', CS_PH_TYPE, true, 'c_type_w', onCatalogCategoryChange));
-  const cats = bikeModelsData.length > 0
-    ? [...new Set(bikeModelsData.map(r => r.category_name))]
-    : CATALOG_CATS;
-  cats.forEach(c => list.appendChild(_csOpt(c, c, false, 'c_type_w', onCatalogCategoryChange)));
+  // ใช้ CATALOG_CATS เป็น base เสมอ (รวม Big Bike พรีเมียม)
+  // เพิ่ม category จาก DB ถ้ามีที่ไม่อยู่ใน list
+  const allCats = [...CATALOG_CATS];
+  if (bikeModelsData.length > 0) {
+    bikeModelsData.forEach(function(r) {
+      if (r.category_name && !allCats.includes(r.category_name)) allCats.push(r.category_name);
+    });
+  }
+  allCats.forEach(c => list.appendChild(_csOpt(c, c, false, 'c_type_w', onCatalogCategoryChange)));
   csSetVal('c_type_w', selectedVal || '', selectedVal || CS_PH_TYPE);
 }
 
@@ -1782,7 +1885,69 @@ function onCatalogModelChange() {
 
 function onCatalogVariantChange() {}
 
-function onSubmodelInput() {}
+function onSubmodelInput() {
+  populateCatalogColorCheckboxes(document.getElementById('c_submodel').value.trim());
+}
+
+// ดึงสีจาก data.categories ตามชื่อทางการตลาดที่เลือก
+// submodelName format: "Honda Wave110i / ล้อซี่ลวด (ดรัมเบรก)"
+function populateCatalogColorCheckboxes(submodelName, preSelected) {
+  const wrap = document.getElementById('c_colors_wrap');
+  const list = document.getElementById('c_colors_list');
+  if (!wrap || !list) return;
+  wrap.style.display = 'none';
+  list.innerHTML = '';
+  if (!submodelName) return;
+
+  // แยก model name และ variant name จาก marketing name
+  const slashIdx = submodelName.indexOf(' / ');
+  const bikeName    = slashIdx !== -1 ? submodelName.substring(0, slashIdx).trim() : submodelName.trim();
+  const variantName = slashIdx !== -1 ? submodelName.substring(slashIdx + 3).trim() : '';
+
+  // ค้นหาสีจาก data.categories
+  const foundColors = [];
+  (data.categories || []).forEach(function(cat) {
+    (cat.models || []).forEach(function(bike) {
+      if (bike.name !== bikeName) return;
+      (bike.colors || []).forEach(function(c) {
+        // แสดงสีที่ตรงกับ variant หรือสีที่ไม่ได้ระบุ variant (= ทุกรุ่นย่อย)
+        if (!variantName || !c.variant || c.variant === variantName) {
+          if (!foundColors.find(function(f) { return f.name === c.name && f.hex === c.hex; }))
+            foundColors.push(c);
+        }
+      });
+    });
+  });
+
+  if (foundColors.length === 0) return;
+  wrap.style.display = 'block';
+
+  const preSet = new Set(Array.isArray(preSelected) ? preSelected : []);
+  foundColors.forEach(function(c) {
+    const label = document.createElement('label');
+    label.style.cssText = 'display:inline-flex;align-items:center;gap:5px;cursor:pointer;padding:5px 10px;border:1.5px solid #e0e0e0;border-radius:20px;background:#fff;user-select:none;transition:border-color .15s;';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = c.name;
+    cb.className = 'c_color_cb';
+    if (preSet.has(c.name)) { cb.checked = true; label.style.borderColor = 'var(--red)'; label.style.background = '#fff5f5'; }
+    cb.addEventListener('change', function() {
+      label.style.borderColor = cb.checked ? 'var(--red)' : '#e0e0e0';
+      label.style.background  = cb.checked ? '#fff5f5' : '#fff';
+    });
+    // สี swatch
+    const sw = document.createElement('span');
+    const bg = c.hex2 ? 'conic-gradient('+c.hex+' 0deg 180deg,'+c.hex2+' 180deg 360deg)' : (c.hex || '#ccc');
+    sw.style.cssText = 'display:inline-block;width:16px;height:16px;border-radius:50%;background:'+bg+';border:1px solid #ccc;flex-shrink:0;';
+    const txt = document.createElement('span');
+    txt.textContent = c.name;
+    txt.style.fontSize = '0.85rem';
+    label.appendChild(cb);
+    label.appendChild(sw);
+    label.appendChild(txt);
+    list.appendChild(label);
+  });
+}
 
 // (kept as alias for backward-compat with any remaining inline calls)
 function updateMarketingName() { onCatalogVariantChange(); }
@@ -1846,6 +2011,7 @@ async function openAddCatalog() {
   document.getElementById('c_note').value = '';
   document.getElementById('c_active').value = '1';
   document.getElementById('c_submodel').value = '';
+  populateCatalogColorCheckboxes(''); // reset color section
   csSetVal('c_type_w', '', '-- เลือกประเภท --');
   csSetOptions('c_model_w', [], '-- เลือกประเภทก่อน --', onCatalogModelChange);
   csSetOptions('c_variant_w', [], '-- ไม่ระบุแบบ --', onCatalogVariantChange);
@@ -1913,11 +2079,16 @@ async function openEditCatalog(idx) {
     }
   }
   csSetVal('c_variant_w', c.variant || '', c.variant || CS_PH_VARIANT);
+
+  // โหลดสีและ restore สีที่เลือกไว้ก่อนหน้า
+  populateCatalogColorCheckboxes(c.submodelName || '', c.colors || []);
 }
 
 function saveCatalogItem() {
   const model = document.getElementById('c_model').value.trim();
   if (!model) { showToast('กรุณาเลือกรุ่น', 'error'); return; }
+
+  const selectedColors = Array.from(document.querySelectorAll('.c_color_cb:checked')).map(function(cb) { return cb.value; });
 
   const item = {
     bikeType: document.getElementById('c_type').value,
@@ -1925,12 +2096,32 @@ function saveCatalogItem() {
     variant: document.getElementById('c_variant').value.trim(),
     submodelName: document.getElementById('c_submodel').value.trim(),
     marketingName: '',
+    colors: selectedColors,
     cc: parseInt(document.getElementById('c_cc').value) || 0,
     transmission: 'Automatic',
     isActive: document.getElementById('c_active').value === '1',
     sortOrder: editCatalogIdx !== null ? (data.catalog[editCatalogIdx]?.sortOrder ?? editCatalogIdx) : data.catalog.length,
     note: document.getElementById('c_note').value.trim()
   };
+
+  // แจ้งเตือนถ้าชื่อทางการตลาดซ้ำกับรายการอื่นที่มีอยู่แล้ว
+  if (item.submodelName) {
+    const dupEntries = data.catalog.filter(function(c, i) {
+      return i !== editCatalogIdx && c.submodelName === item.submodelName;
+    });
+    if (dupEntries.length > 0) {
+      const dupCodes = dupEntries.map(function(c) {
+        return (c.model || '') + (c.variant ? ' ' + c.variant : '');
+      }).join(', ');
+      const confirmed = confirm(
+        '⚠️ ชื่อทางการตลาด "' + item.submodelName + '"\n' +
+        'ถูกใช้แล้วโดย: ' + dupCodes + '\n\n' +
+        'ถ้ารหัสเหล่านี้ราคาต่างกัน เว็บจะดึงราคาจากรหัสแรกที่จับคู่\n' +
+        'ยืนยันเพิ่มรายการนี้หรือไม่?'
+      );
+      if (!confirmed) return;
+    }
+  }
 
   if (editCatalogIdx !== null) {
     data.catalog[editCatalogIdx] = { ...data.catalog[editCatalogIdx], ...item };
@@ -1985,7 +2176,12 @@ async function syncCatalog(silent=false) {
         transmission: r.transmission || 'Automatic',
         isActive: r.is_active !== false && r.is_active !== 0,
         sortOrder: parseInt(r.sort_order) || 0,
-        note: r.note || ''
+        note: r.note || '',
+        colors: (function(v) {
+          if (!v) return [];
+          if (Array.isArray(v)) return v;
+          try { return JSON.parse(v); } catch(e) { return []; }
+        })(r.colors)
       }));
       localStorage.setItem('papao_data', JSON.stringify(data));
       renderCatalogTable();
@@ -2013,7 +2209,8 @@ async function saveCatalogToServer() {
       transmission: c.transmission || 'Automatic',
       is_active: c.isActive !== false,
       sort_order: c.sortOrder !== undefined ? c.sortOrder : i,
-      note: c.note || ''
+      note: c.note || '',
+      colors: JSON.stringify(c.colors || [])
     }));
     const res = await fetch('https://n8n-wt11.onrender.com/webhook/save-bike-catalog', {
       method: 'POST',

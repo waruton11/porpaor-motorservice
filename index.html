@@ -165,8 +165,8 @@ footer .footer-brand{font-family:'Kanit',sans-serif;font-size:1.2rem;font-weight
 </div>
 <section id="models">
   <div class="section-inner">
-    <h2 class="section-title">รุ่นรถฮอนด้า & ราคา</h2>
-    <p class="section-sub">ราคาและตารางผ่อนดาวน์อัปเดตล่าสุด · กดรถที่สนใจเพื่อดูตารางผ่อนและคำนวณค่างวด</p>
+    <h2 class="section-title">รุ่นรถฮอนด้า</h2>
+    <p class="section-sub">กดรถที่สนใจเพื่อดูสีและรุ่นย่อย · สอบถามราคาและตารางผ่อนได้ที่ร้าน</p>
     <div id="catRows"></div>
   </div>
 </section>
@@ -177,12 +177,15 @@ footer .footer-brand{font-family:'Kanit',sans-serif;font-size:1.2rem;font-weight
     <div id="mCarImg" style="text-align:center;margin-bottom:1rem;min-height:80px;display:flex;align-items:center;justify-content:center;background:#f9f9f9;border-radius:8px;"></div>
     <div id="mVariants" style="display:none;margin-bottom:1rem;"><div style="font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:.5rem;">เลือกรุ่นย่อย</div><div id="mVariantBtns" style="display:flex;gap:.5rem;flex-wrap:wrap;"></div></div>
     <div id="mColors" style="display:none;margin-bottom:1.25rem;"><div style="font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:.6rem;">เลือกสี</div><div id="mColorSwatches" style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;"></div><div id="mColorName" style="margin-top:.5rem;font-size:.85rem;color:var(--text2);"></div></div>
-    <div class="modal-price" id="mPrice"></div>
-    <div style="display:flex;justify-content:flex-end;margin-bottom:.5rem;">
-      <div id="mRateBadge" style="display:none;background:#1a3a5c;color:white;padding:.35rem 1rem;border-radius:8px;font-size:.85rem;font-weight:700;white-space:nowrap;">อัตราดอกเบี้ย <span id="mRateVal"></span></div>
+    <div class="modal-price" id="mPrice" style="display:none;"></div>
+    <div style="display:none;">
+      <div id="mRateBadge"><span id="mRateVal"></span></div>
     </div>
-    <table class="installment-table"><thead><tr><th>ดาวน์ (บาท)</th><th>ยอดจัด (฿)</th><th>48 เดือน</th><th>42 เดือน</th><th>36 เดือน</th><th>30 เดือน</th><th>24 เดือน</th></tr></thead><tbody id="mTableBody"></tbody></table>
-    <div style="background:#e8f0fe;border-radius:6px;padding:.5rem .9rem;margin-bottom:1.25rem;font-size:.82rem;color:#1a3a5c;">ℹ️ เงื่อนไขเป็นไปตามบริษัทไฟแนนซ์กำหนด</div>
+    <div id="mPricePlaceholder" style="background:#f5f5f5;border:1.5px dashed #ccc;border-radius:8px;padding:1.2rem;text-align:center;margin-bottom:1.25rem;color:#888;font-size:.92rem;">
+      💬 สอบถามราคาและตารางผ่อนได้ที่ร้าน หรือกด <strong>Line / โทร</strong> ด้านล่าง
+    </div>
+    <table class="installment-table" id="mInstTable" style="display:none;"><thead><tr><th>ดาวน์ (บาท)</th><th>ยอดจัด (฿)</th><th>48 เดือน</th><th>42 เดือน</th><th>36 เดือน</th><th>30 เดือน</th><th>24 เดือน</th></tr></thead><tbody id="mTableBody"></tbody></table>
+    <div id="mFinanceNote" style="display:none;background:#e8f0fe;border-radius:6px;padding:.5rem .9rem;margin-bottom:1.25rem;font-size:.82rem;color:#1a3a5c;">ℹ️ เงื่อนไขเป็นไปตามบริษัทไฟแนนซ์กำหนด</div>
     <div class="calc-box">
       <h3>🧮 คำนวณค่างวดเอง</h3>
       <div class="calc-row">
@@ -265,9 +268,7 @@ function renderAllRows(){
       (m.colors&&m.colors[0]&&m.colors[0].img?'<img src="'+m.colors[0].img+'" style="width:100%;height:180px;object-fit:contain;">':'<span style="font-size:3.5rem">'+m.icon+'</span>')+
       '</div>'+
       '<div class="mcard-name">'+m.name+'</div>'+
-      '<div class="mcard-price">เริ่มต้น ฿'+fmt(m.variants[0].price)+'</div>'+
-      '<div class="mcard-down">'+(m.downText ? m.downText : (m.variants[0].downs[0]===0?'ฟรีดาวน์':'ดาวน์เริ่มต้น ฿'+fmt(m.variants[0].downs[0])))+'</div>'+
-      '<button class="mcard-btn" onclick="event.stopPropagation();oM('+ci+','+mi+')">ดูตารางผ่อน →</button>'+
+      '<button class="mcard-btn" onclick="event.stopPropagation();oM('+ci+','+mi+')">ดูรายละเอียด →</button>'+
       '</div>'
     ).join('')+
     '</div></div>'
@@ -291,54 +292,37 @@ function calcInstFlatAnnual(financed, annualRatePct, months){
   return Math.ceil(financed*(1+annualRatePct/100*months/12)/months);
 }
 function uT(){
-  const d=modalModel.variants[modalVariantIdx];
-  document.getElementById('mPrice').textContent='฿'+fmt(d.price);
-  document.getElementById('calcPrice').value=d.price;
-  const months=[48,42,36,30,24];
-  const hasFinBase = d.financeBase && d.financeBase > 0;
-  const hasRates = d.rates && Object.keys(d.rates).length > 0;
-  const hasRatesPerDown = d.ratesPerDown && Object.keys(d.ratesPerDown).length > 0;
-  const isAnnual = d.rateUnit === 'year';
-  // badge อัตราดอกเบี้ย (มุมขวาบน)
-  const badge = document.getElementById('mRateBadge');
-  const rateValEl = document.getElementById('mRateVal');
-  if (badge) {
-    if (hasRatesPerDown) {
-      const rateVals = Object.values(d.ratesPerDown).map(Number);
-      const minR = Math.min(...rateVals); const maxR = Math.max(...rateVals);
-      const rateText = minR === maxR ? minR+'%' : minR+'–'+maxR+'%';
-      rateValEl.textContent = rateText + ' ' + (isAnnual ? 'ต่อปี' : 'ต่อเดือน');
-      badge.style.display = 'inline-block';
-    } else if (hasRates) {
-      const sampleRate = d.rates[Object.keys(d.rates)[0]];
-      rateValEl.textContent = sampleRate + '% ' + (isAnnual ? 'ต่อปี' : 'ต่อเดือน');
-      badge.style.display = 'inline-block';
-    } else { badge.style.display = 'none'; }
-  }
-  const tableRows = d.downs.map(dn=>{
-    const financed = hasFinBase ? d.financeBase - dn : d.price - dn;
-    const financedCell = '<td style="font-weight:600;">฿'+fmt(financed)+'</td>';
-    // หา rate เฉพาะของ down amount นี้ (ratesPerDown → rates → default)
-    const rateForDown = hasRatesPerDown ? (d.ratesPerDown[String(dn)] || d.ratesPerDown[dn] || null) : null;
-    const instCols = months.map(mo=>{
-      let inst;
-      if(d.customInstallments && d.customInstallments[dn] && d.customInstallments[dn][mo]) {
-        inst = d.customInstallments[dn][mo];
-      } else if(rateForDown) {
-        inst = isAnnual ? calcInstFlatAnnual(financed, rateForDown, mo) : calcInstFlat(financed, rateForDown, mo);
-      } else if(hasRates && d.rates[mo]) {
-        inst = isAnnual ? calcInstFlatAnnual(financed, d.rates[mo], mo) : calcInstFlat(financed, d.rates[mo], mo);
-      } else {
-        inst = calcInst(d.price, dn, mo);
-      }
-      const totalPay = inst * mo;
-      const interest = totalPay - financed;
-      const intPct = (financed > 0 && !hasRates && !hasRatesPerDown) ? ' <span style="font-size:.7rem;color:#e53935;">'+(interest/financed*100).toFixed(1)+'%</span>' : '';
-      return '<td>'+fmt(inst)+' บ./เดือน'+intPct+'</td>';
+  const d = modalModel.variants[modalVariantIdx];
+  const price = parseInt(d.price) || 0;
+  if (price > 0) {
+    // มีราคา — แสดงราคาและตารางผ่อน
+    document.getElementById('mPrice').textContent = '฿' + fmt(price);
+    document.getElementById('mPrice').style.display = '';
+    document.getElementById('mPricePlaceholder').style.display = 'none';
+    document.getElementById('mInstTable').style.display = '';
+    document.getElementById('mFinanceNote').style.display = '';
+    document.getElementById('calcPrice').value = price;
+    const months = [48, 42, 36, 30, 24];
+    const downs = d.downs && d.downs.length ? d.downs : [0];
+    const rows = downs.map(function(dn) {
+      const financed = price - dn;
+      const instCols = months.map(function(mo) {
+        return '<td>' + fmt(calcInst(price, dn, mo)) + ' บ./เดือน</td>';
+      }).join('');
+      return '<tr><td>' + (dn === 0 ? 'ฟรีดาวน์' : fmt(dn)) + '</td>'
+           + '<td style="font-weight:600;">฿' + fmt(financed) + '</td>'
+           + instCols + '</tr>';
     }).join('');
-    return '<tr><td>'+(dn===0?'ฟรีดาวน์':fmt(dn))+'</td>'+financedCell+instCols+'</tr>';
-  }).join('');
-  document.getElementById('mTableBody').innerHTML = tableRows;
+    document.getElementById('mTableBody').innerHTML = rows;
+  } else {
+    // ยังไม่มีราคา — แสดง placeholder
+    document.getElementById('mPrice').style.display = 'none';
+    document.getElementById('mPricePlaceholder').style.display = 'block';
+    document.getElementById('mInstTable').style.display = 'none';
+    document.getElementById('mFinanceNote').style.display = 'none';
+    document.getElementById('mTableBody').innerHTML = '';
+    document.getElementById('calcPrice').value = '';
+  }
 }
 function closeModal(e){if(!e||e.target===document.getElementById('modalOverlay')||!e.target){document.getElementById('modalOverlay').classList.remove('open');document.body.style.overflow='';}}
 function calculate(){const price=parseFloat(document.getElementById('calcPrice').value)||0;const down=parseFloat(document.getElementById('calcDown').value)||0;const months=parseInt(document.getElementById('calcMonth').value);if(price<=0){alert('กรุณากรอกราคารถ');return;}if(down>=price){alert('เงินดาวน์ต้องน้อยกว่าราคารถ');return;}document.getElementById('calcOutput').textContent='฿'+fmt(calcInst(price,down,months))+' / เดือน';document.getElementById('calcResult').style.display='flex';}
@@ -384,49 +368,78 @@ const PRICE_MAPPING = {
   'Honda UC3': { 'มาตรฐาน': 'UC3|RSR9004T|4TH' }
 };
 async function fetchSiteData() {
+  // ดึงเฉพาะ news (categories รถดึงจาก fetchCatalogDisplay แทน)
   try {
     const res = await fetch('https://n8n-wt11.onrender.com/webhook/site-data');
     if (!res.ok) return;
     const d = await res.json();
-    if (d && Array.isArray(d.categories) && d.categories.length > 0) {
-      categories.length = 0;
-      d.categories.forEach(function(c){ categories.push(c); });
-    }
     if (d && Array.isArray(d.news) && d.news.length > 0) {
       newsData.length = 0;
       d.news.forEach(function(n){ newsData.push(n); });
     }
   } catch(e) { console.log('Using default site data — API unavailable', e.message); }
 }
-async function fetchLivePrices() {
-  try {
-    const res = await fetch('https://n8n-wt11.onrender.com/webhook/car-prices');
-    if (!res.ok) return;
-    const prices = await res.json();
-    const lookupCash = {};
-    const lookupFinance = {};
-    prices.forEach(function(p) {
-      const key = p.model+'|'+p.variant+'|'+p.type;
-      if (p.price_cash_paopao) lookupCash[key] = parseFloat(p.price_cash_paopao);
-      if (p.price_finance_paopao) lookupFinance[key] = parseFloat(p.price_finance_paopao);
+// แปลงข้อมูลจาก bike-catalog-display API เป็น categories format
+function buildCategoriesFromAPI(rows) {
+  const catOrder = [];
+  const catMap = {};
+  rows.forEach(function(row) {
+    const submodel = row.submodel_name || '';
+    const slashIdx = submodel.indexOf(' / ');
+    const bikeName    = slashIdx !== -1 ? submodel.substring(0, slashIdx).trim() : submodel.trim();
+    const variantName = slashIdx !== -1 ? submodel.substring(slashIdx + 3).trim() : 'มาตรฐาน';
+    const catName = row.bike_type || 'อื่นๆ';
+    if (!catMap[catName]) { catMap[catName] = {}; catOrder.push(catName); }
+    if (!catMap[catName][bikeName]) {
+      catMap[catName][bikeName] = { colors: [], variants: [], sortOrder: row.sort_order || 0 };
+    }
+    const bike = catMap[catName][bikeName];
+    bike.sortOrder = Math.min(bike.sortOrder, row.sort_order !== undefined ? row.sort_order : 999);
+    // เพิ่ม variant ถ้ายังไม่มี
+    if (!bike.variants.find(function(v) { return v.name === variantName; })) {
+      const price = parseInt(row.price) || 0;
+      // สร้าง downs อัตโนมัติจากราคา (0%, 10%, 20%, 30%)
+      const downs = price > 0
+        ? [0, Math.round(price*0.1/500)*500, Math.round(price*0.2/500)*500, Math.round(price*0.3/500)*500]
+        : [0];
+      bike.variants.push({ name: variantName, price: price, downs: downs, _sortOrder: row.sort_order || 0 });
+    }
+    // Merge สีเข้าด้วยกัน
+    const colors = Array.isArray(row.colors) ? row.colors
+      : (typeof row.colors === 'string' ? (function(){ try{return JSON.parse(row.colors);}catch(e){return [];} })() : []);
+    colors.forEach(function(c) {
+      if (!bike.colors.find(function(e) { return e.name === c.name; })) bike.colors.push(c);
     });
-    categories.forEach(function(cat) {
-      cat.models.forEach(function(m) {
-        var modelMap = PRICE_MAPPING[m.name];
-        if (!modelMap) return;
-        m.variants.forEach(function(v) {
-          var dbKey = modelMap[v.name];
-          if (dbKey && lookupCash[dbKey]) { v.price = lookupCash[dbKey]; }
-          if (dbKey && lookupFinance[dbKey]) { v.financeBase = lookupFinance[dbKey]; }
-        });
-        if (m.variants.length > 0) {
-          m.price = Math.min.apply(null, m.variants.map(function(v){return v.price;}));
-        }
+  });
+  return catOrder.map(function(catName) {
+    const models = Object.entries(catMap[catName])
+      .sort(function(a,b){ return a[1].sortOrder - b[1].sortOrder; })
+      .map(function(entry) {
+        const bike = entry[1];
+        bike.variants.sort(function(a,b){ return a._sortOrder - b._sortOrder; });
+        return { name: entry[0], icon: '🏍️', colors: bike.colors, variants: bike.variants };
       });
-    });
-  } catch(e) { console.log('Using default prices — API unavailable', e.message); }
+    return { name: catName, models: models };
+  });
 }
-fetchSiteData().then(fetchLivePrices).then(function(){renderAllRows();renderNews();renderContactModels();});
+
+// ดึง catalog+ราคาจาก n8n — ถ้าสำเร็จอัปเดต categories, ถ้าล้มเหลวใช้ hardcoded
+async function fetchCatalogDisplay() {
+  try {
+    const res = await fetch('https://n8n-wt11.onrender.com/webhook/bike-catalog-display');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+    if (Array.isArray(rows) && rows.length > 0) {
+      const built = buildCategoriesFromAPI(rows);
+      if (built.length > 0) {
+        categories.length = 0;
+        built.forEach(function(c){ categories.push(c); });
+        console.log('[catalog] loaded ' + rows.length + ' entries from API');
+      }
+    }
+  } catch(e) { console.log('Using hardcoded categories — catalog API unavailable:', e.message); }
+}
+fetchSiteData().then(fetchCatalogDisplay).then(function(){renderAllRows();renderNews();renderContactModels();});
 </script>
 </body>
 </html>
