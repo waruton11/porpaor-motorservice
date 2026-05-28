@@ -411,16 +411,6 @@ tr:hover td { background: #fafafa; }
           </div>
         </div>
 
-        <div class="card" style="margin-top:1.25rem;background:#fff8e1;border:1.5px solid #ffd54f;">
-          <div class="card-title">🎨 อัปเดตสีและป้ายจาก "รุ่นรถ & ราคา" (ทำครั้งเดียว)</div>
-          <p style="color:var(--text2); font-size:.875rem; margin-bottom:1rem;">
-            คลิกปุ่มนี้เพื่อดึงข้อมูลสี (hex, รูปภาพ) และป้ายสถานะ (NEW, ขายดี ฯลฯ) จากหัวข้อ "รุ่นรถ & ราคา" มาใส่ในแคตตาล็อกอัตโนมัติ
-            แล้วกด "บันทึกทั้งหมดไปยัง Server" เพื่อซิงค์ขึ้น DB
-          </p>
-          <button class="btn btn-primary" onclick="migrateCatalogColorsFromCategories()" style="margin-right:0.75rem;">🔄 อัปเดตสีและป้ายอัตโนมัติ</button>
-          <span id="migrateCatalogResult" style="font-size:.875rem;color:var(--green);"></span>
-        </div>
-
         <div class="card" style="margin-top:1.25rem;">
           <div class="card-title">💾 บันทึกไปยังฐานข้อมูล</div>
           <p style="color:var(--text2); font-size:.875rem; margin-bottom:1rem;">กด "บันทึกทั้งหมดไปยัง Server" เพื่ออัปเดตตาราง <code style="background:#f5f5f5;padding:1px 6px;border-radius:4px;">bike_catalog</code> ใน PostgreSQL</p>
@@ -447,7 +437,7 @@ tr:hover td { background: #fafafa; }
         <!-- รถเล็ก -->
         <div class="card">
           <div class="card-title">🛵 รถเล็ก (Wave, Scoopy, Click, PCX ฯลฯ)</div>
-          <p style="color:var(--text2);font-size:.875rem;margin-bottom:.5rem;">ไฟล์: <strong>ราคาขายใหม่ล่าสุด.xlsx</strong> · Sheet1 · Col A=รหัสรุ่น, B=Type, C=ราคาเงินสด, M=ราคาขายไฟแนนซ์</p>
+          <p style="color:var(--text2);font-size:.875rem;margin-bottom:.5rem;">ไฟล์: <strong>ราคาขายใหม่ล่าสุด.xlsx</strong> · Sheet1 · Col A=รหัสรุ่น, B=Type, F=ราคาเงินสด ป.เปา, K=ราคาขายไฟแนนซ์ ป.เปา</p>
           <input type="file" id="excelUploadSmall" accept=".xlsx,.xls" style="display:block;margin-bottom:1rem;padding:.5rem;border:1.5px dashed var(--gray2);border-radius:8px;width:100%;cursor:pointer;font-family:inherit;">
           <button class="btn btn-primary" onclick="uploadToN8n('small')" style="font-size:1rem;padding:.75rem 2rem;">📤 อัพโหลดราคารถเล็ก</button>
           <div id="uploadResultSmall" style="margin-top:1.25rem;"></div>
@@ -493,10 +483,6 @@ tr:hover td { background: #fafafa; }
       </div>
     </div>
     <div class="form-row">
-      <div class="form-group">
-        <label>Badge (เช่น NEW, ยอดนิยม)</label>
-        <input id="m_badge" placeholder="เว้นว่างได้">
-      </div>
       <div class="form-group">
         <label>ไอคอน (emoji)</label>
         <input id="m_icon" value="🛵">
@@ -650,24 +636,6 @@ tr:hover td { background: #fafafa; }
 
     <div style="display:flex;gap:0.75rem;margin-bottom:1rem;">
       <div class="form-group" style="flex:1;margin-bottom:0;">
-        <label>อัตราดอกเบี้ย (%)</label>
-        <input id="c_auto_rate" type="number" step="0.01" placeholder="เช่น 0.65 หรือ 13" style="width:100%;">
-      </div>
-      <div class="form-group" style="flex:1;margin-bottom:0;">
-        <label>หน่วย</label>
-        <select id="c_auto_rate_unit" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray2);border-radius:6px;font-family:inherit;font-size:0.9rem;">
-          <option value="month">% / เดือน</option>
-          <option value="year">% / ปี</option>
-        </select>
-      </div>
-      <div class="form-group" style="flex:1;margin-bottom:0;">
-        <label>ดาวน์ % (คั่นด้วย ,)</label>
-        <input id="c_auto_down_pcts" type="text" placeholder="เช่น 0,10,20" style="width:100%;">
-      </div>
-    </div>
-
-    <div style="display:flex;gap:0.75rem;margin-bottom:1rem;">
-      <div class="form-group" style="flex:1;margin-bottom:0;">
         <label>ป้ายสถานะ (Badge)</label>
         <input id="c_badge" type="text" placeholder="เช่น NEW, ขายดี, พรีเมียม, EV" style="width:100%;">
       </div>
@@ -814,9 +782,14 @@ function syncRatesToDB() {
       const rate = parseFloat(v.autoRate) || 0;
       const rateUnit = v.autoRateUnit || 'month';
       const downPcts = Array.isArray(v.autoDownPcts) ? v.autoDownPcts.join(',') : (v.autoDownPcts || '');
-      if (rate > 0 || downPcts) {
-        rates.push({ model_name: model.name, auto_rate: rate, auto_rate_unit: rateUnit, auto_down_pcts: downPcts });
-      }
+      if (rate <= 0 && !downPcts) return;
+      // จับคู่ด้วย submodel_name จาก data.catalog (exact match — ไม่ใช้ LIKE)
+      (data.catalog || []).forEach(function(c) {
+        const cBikeName = (c.submodelName || '').split(' / ')[0].trim();
+        if (cBikeName === model.name && c.submodelName) {
+          rates.push({ submodel_name: c.submodelName, auto_rate: rate, auto_rate_unit: rateUnit, auto_down_pcts: downPcts, auto_rate2: parseFloat(v.autoRate2) || 0, auto_rate2_min_down: parseInt(v.autoRate2MinDown) || 0 });
+        }
+      });
     });
   });
   if (rates.length === 0) return;
@@ -983,7 +956,6 @@ function openAddModel() {
   editModelIdx = null;
   document.getElementById('modelModalTitle').textContent = '+ เพิ่มรุ่นรถใหม่';
   document.getElementById('m_name').value = '';
-  document.getElementById('m_badge').value = '';
   document.getElementById('m_icon').value = '🛵';
   document.getElementById('m_logo').value = '';
   document.getElementById('m_downtext').value = '';
@@ -1001,14 +973,13 @@ function openEditModel(ci, mi) {
   document.getElementById('modelModalTitle').textContent = '✏️ แก้ไข — ' + m.name;
   document.getElementById('m_cat').value = ci;
   document.getElementById('m_name').value = m.name;
-  document.getElementById('m_badge').value = m.badge || '';
   document.getElementById('m_icon').value = m.icon || '🛵';
   document.getElementById('m_logo').value = m.logo || '';
   document.getElementById('m_downtext').value = m.downText || '';
   // variants
   document.getElementById('variantRows').innerHTML = '';
   m.variants.forEach(v => {
-    addVariantRow(v.name, v.price, v.autoRate || '', v.autoRateUnit || 'month', v.autoDownPcts ? v.autoDownPcts.join(',') : '');
+    addVariantRow(v.name, v.price, v.autoRate || '', v.autoRateUnit || 'month', v.autoDownPcts ? v.autoDownPcts.join(',') : '', v.autoRate2 || '', v.autoRate2MinDown || '');
   });
   // colors
   document.getElementById('colorRows').innerHTML = '';
@@ -1016,7 +987,7 @@ function openEditModel(ci, mi) {
   document.getElementById('modelModal').classList.add('open');
 }
 
-function addVariantRow(name='', price='', autoRate='', autoRateUnit='month', autoDownPcts='') {
+function addVariantRow(name='', price='', autoRate='', autoRateUnit='month', autoDownPcts='', autoRate2='', autoRate2MinDown='') {
   const div = document.createElement('div');
   div.className = 'form-row variant-row';
   div.style.background = '#fafafa'; div.style.padding = '0.75rem'; div.style.borderRadius = '8px'; div.style.marginBottom = '0.5rem';
@@ -1043,6 +1014,18 @@ function addVariantRow(name='', price='', autoRate='', autoRateUnit='month', aut
       <input class="vautoDownPcts" value="${autoDownPcts}" placeholder="0,10,20"
         style="width:100%;padding:.45rem .4rem;border:1.5px solid var(--gray2);border-radius:6px;font-size:.85rem;text-align:center;">
       <div style="font-size:.68rem;color:#999;margin-top:2px;">0=ฟรีดาวน์, เช่น 0,10,20 หรือ 10,15,20</div>
+    </div>
+    <div class="form-group" style="flex:0 0 auto;min-width:150px;">
+      <label style="white-space:nowrap;">อัตรา 2 (ดาวน์สูง)</label>
+      <div style="display:flex;gap:4px;align-items:center;">
+        <span style="font-size:.8rem;color:#888;white-space:nowrap;">ดาวน์≥</span>
+        <input class="vautoRate2MinDown" type="number" min="0" max="100" step="1" value="${autoRate2MinDown}" placeholder="15"
+          style="width:38px;padding:.45rem .3rem;border:1.5px solid var(--gray2);border-radius:6px;font-size:.85rem;text-align:center;" title="ดาวน์ขั้นต่ำ (%) ที่ใช้อัตรา 2">
+        <span style="font-size:.8rem;color:#888;">%→</span>
+        <input class="vautoRate2" type="number" step="0.01" min="0" value="${autoRate2}" placeholder="5"
+          style="width:50px;padding:.45rem .3rem;border:1.5px solid var(--gray2);border-radius:6px;font-size:.85rem;text-align:center;" title="อัตราดอกเบี้ยดาวน์สูง">
+      </div>
+      <div style="font-size:.68rem;color:#999;margin-top:2px;">เช่น ดาวน์≥15%→5%/ปี</div>
     </div>
     <div style="display:flex; align-items:flex-end; padding-bottom:2px;">
       <button class="btn btn-danger btn-sm" onclick="this.closest('.variant-row').remove()">✕</button>
@@ -1179,6 +1162,10 @@ function saveModel() {
         const pcts = vautoDownPctsRaw.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x) && x >= 0);
         if (pcts.length > 0) v.autoDownPcts = pcts;
       }
+      // อัตรา 2 (ดาวน์สูง) — เช่น ดาวน์≥15% ใช้ 5%/ปี
+      const vautoRate2 = parseFloat(row.querySelector('.vautoRate2')?.value) || 0;
+      const vautoRate2MinDown = parseInt(row.querySelector('.vautoRate2MinDown')?.value) || 0;
+      if (vautoRate2 > 0 && vautoRate2MinDown > 0) { v.autoRate2 = vautoRate2; v.autoRate2MinDown = vautoRate2MinDown; }
       // preserve ค่าเดิมเมื่อ edit (ถ้า field ว่าง)
       if (editModelIdx) {
         const old = data.categories[editModelIdx.ci].models[editModelIdx.mi];
@@ -1186,6 +1173,7 @@ function saveModel() {
         if (oldV) {
           if (!v.autoRate && oldV.autoRate) { v.autoRate = oldV.autoRate; v.autoRateUnit = oldV.autoRateUnit; }
           if (!v.autoDownPcts && oldV.autoDownPcts) v.autoDownPcts = oldV.autoDownPcts;
+          if (!v.autoRate2 && oldV.autoRate2) { v.autoRate2 = oldV.autoRate2; v.autoRate2MinDown = oldV.autoRate2MinDown; }
         }
       }
       variants.push(v);
@@ -1212,7 +1200,7 @@ function saveModel() {
   const model = {
     name,
     price: variants[0].price,
-    badge: document.getElementById('m_badge').value.trim(),
+    badge: editModelIdx ? (data.categories[editModelIdx.ci]?.models[editModelIdx.mi]?.badge || '') : '',
     icon: document.getElementById('m_icon').value.trim() || '🛵',
     logo: document.getElementById('m_logo').value.trim(),
     downText: document.getElementById('m_downtext').value.trim(),
@@ -1592,20 +1580,25 @@ function _parsePriceXlsx(file, fileType, onDone) {
 
       const map = new Map();
       rows.forEach(function(row) {
-        // บิ๊กไบค์: Col B (index 1) = รหัส+Type (ชื่อรุ่น), Col C (index 2) = ราคา
-        // ขนาดเล็ก: Col A (index 0) = model, Col B (index 1) = variant, Col C (index 2) = ราคา
+        // โครงสร้าง Excel ราคาขาย ป.เปา (Sheet1, ตรวจสอบจากไฟล์จริง 28/05/2569):
+        //   Col A (idx 0) = รหัสรุ่น (model_code)
+        //   Col B (idx 1) = variant (เช่น TH)
+        //   Col C (idx 2) = ราคาทุน  ← ไม่ใช้
+        //   Col F (idx 5) = ราคาเงินสด ป.เปา  ← ใช้เป็น price
+        //   Col K (idx 10) = ราคาขายไฟแนนซ์ ป.เปา  ← ใช้เป็น finance_price
+        // บิ๊กไบค์: Col B (index 1) = รหัส+Type, Col C (index 2) = ราคา (ยังไม่มีไฟล์ตัวอย่าง)
         const model   = fileType === 'big'
           ? String(row[1] || '').trim()
           : String(row[0] || '').trim();
         const variant = fileType === 'big'
           ? ''
           : String(row[1] || '').trim();
-        const priceRaw = row[2];
+        const priceRaw = fileType === 'small' ? row[5] : row[2];
         const price = typeof priceRaw === 'number'
           ? Math.round(priceRaw)
           : parseInt(String(priceRaw || '').replace(/[^0-9]/g, '')) || 0;
-        // รถเล็ก: Col M (index 12) = ราคาขายไฟแนนส์, รถใหญ่: ยอดจัด = ราคาขาย (เหมือนกัน)
-        const financeRaw = fileType === 'small' ? row[12] : priceRaw;
+        // รถเล็ก: Col K (idx 10) = ราคาขายไฟแนนซ์ ป.เปา, รถใหญ่: ใช้ราคาเดียวกัน
+        const financeRaw = fileType === 'small' ? row[10] : priceRaw;
         const financePrice = typeof financeRaw === 'number'
           ? Math.round(financeRaw)
           : parseInt(String(financeRaw || '').replace(/[^0-9]/g, '')) || 0;
@@ -2027,9 +2020,6 @@ async function openAddCatalog() {
   document.getElementById('c_badge').value = '';
   document.getElementById('c_note').value = '';
   document.getElementById('c_active').value = '1';
-  document.getElementById('c_auto_rate').value = '';
-  document.getElementById('c_auto_rate_unit').value = 'month';
-  document.getElementById('c_auto_down_pcts').value = '';
   document.getElementById('c_submodel').value = '';
   populateCatalogColorCheckboxes(''); // reset color section
   csSetVal('c_type_w', '', '-- เลือกประเภท --');
@@ -2050,9 +2040,6 @@ async function openEditCatalog(idx) {
   document.getElementById('c_active').value = c.isActive !== false ? '1' : '0';
   document.getElementById('c_badge').value = c.badge || '';
   document.getElementById('c_note').value = c.note || '';
-  document.getElementById('c_auto_rate').value = c.autoRate || '';
-  document.getElementById('c_auto_rate_unit').value = c.autoRateUnit || 'month';
-  document.getElementById('c_auto_down_pcts').value = c.autoDownPcts || '';
   document.getElementById('c_submodel').value = c.submodelName || '';
   document.getElementById('catalogModal').classList.add('open');
 
@@ -2112,27 +2099,50 @@ function saveCatalogItem() {
   const model = document.getElementById('c_model').value.trim();
   if (!model) { showToast('กรุณาเลือกรุ่น', 'error'); return; }
 
-  // เก็บ full color objects (name, hex, hex2, img, variant) แทนแค่ชื่อ
-  const selectedColors = Array.from(document.querySelectorAll('.c_color_cb:checked')).map(function(cb) {
+  // ดึงสีจาก data.categories โดยอัตโนมัติตาม submodelName (single source of truth)
+  const submodelName = document.getElementById('c_submodel').value.trim();
+  const slashI = submodelName.indexOf(' / ');
+  const bName = slashI !== -1 ? submodelName.substring(0, slashI).trim() : submodelName.trim();
+  const vName = slashI !== -1 ? submodelName.substring(slashI + 3).trim() : '';
+  const autoColors = [];
+  let autoBadge = '';
+  (data.categories || []).forEach(function(cat) {
+    (cat.models || []).forEach(function(bike) {
+      if (bike.name !== bName) return;
+      if (!autoBadge && bike.badge) autoBadge = bike.badge;
+      (bike.colors || []).forEach(function(c) {
+        if (!vName || !c.variant || c.variant === vName) {
+          if (!autoColors.find(function(f) { return f.name === c.name && f.hex === c.hex; }))
+            autoColors.push(c);
+        }
+      });
+    });
+  });
+  // fallback: ใช้ checkbox ที่เลือกไว้ (กรณียังไม่มีข้อมูลใน categories)
+  const fallbackColors = Array.from(document.querySelectorAll('.c_color_cb:checked')).map(function(cb) {
     try { return JSON.parse(cb.dataset.colorJson); } catch(e) { return { name: cb.value }; }
   });
+  const finalColors = autoColors.length > 0 ? autoColors : fallbackColors;
 
   const item = {
     bikeType: document.getElementById('c_type').value,
     model,
     variant: document.getElementById('c_variant').value.trim(),
-    submodelName: document.getElementById('c_submodel').value.trim(),
+    submodelName,
     marketingName: '',
-    badge: document.getElementById('c_badge').value.trim(),
-    colors: selectedColors,
+    badge: document.getElementById('c_badge').value.trim() || autoBadge,
+    colors: finalColors,
     cc: parseInt(document.getElementById('c_cc').value) || 0,
     transmission: 'Automatic',
     isActive: document.getElementById('c_active').value === '1',
     sortOrder: editCatalogIdx !== null ? (data.catalog[editCatalogIdx]?.sortOrder ?? editCatalogIdx) : data.catalog.length,
     note: document.getElementById('c_note').value.trim(),
-    autoRate: parseFloat(document.getElementById('c_auto_rate').value) || 0,
-    autoRateUnit: document.getElementById('c_auto_rate_unit').value,
-    autoDownPcts: document.getElementById('c_auto_down_pcts').value.trim()
+    // ดอกเบี้ยและดาวน์จัดการจาก "รุ่นรถ & ราคา" เท่านั้น — preserve ค่าเดิมจาก DB
+    autoRate: editCatalogIdx !== null ? (data.catalog[editCatalogIdx]?.autoRate || 0) : 0,
+    autoRateUnit: editCatalogIdx !== null ? (data.catalog[editCatalogIdx]?.autoRateUnit || 'month') : 'month',
+    autoDownPcts: editCatalogIdx !== null ? (data.catalog[editCatalogIdx]?.autoDownPcts || '') : '',
+    autoRate2: editCatalogIdx !== null ? (data.catalog[editCatalogIdx]?.autoRate2 || 0) : 0,
+    autoRate2MinDown: editCatalogIdx !== null ? (data.catalog[editCatalogIdx]?.autoRate2MinDown || 0) : 0
   };
 
   if (editCatalogIdx !== null) {
@@ -2197,7 +2207,9 @@ async function syncCatalog(silent=false) {
         })(r.colors),
         autoRate: parseFloat(r.auto_rate) || 0,
         autoRateUnit: r.auto_rate_unit || 'month',
-        autoDownPcts: r.auto_down_pcts || ''
+        autoDownPcts: r.auto_down_pcts || '',
+        autoRate2: parseFloat(r.auto_rate2) || 0,
+        autoRate2MinDown: parseInt(r.auto_rate2_min_down) || 0
       }));
       localStorage.setItem('papao_data', JSON.stringify(data));
       renderCatalogTable();
@@ -2230,7 +2242,9 @@ async function saveCatalogToServer() {
       colors: JSON.stringify(c.colors || []),
       auto_rate: c.autoRate || 0,
       auto_rate_unit: c.autoRateUnit || 'month',
-      auto_down_pcts: c.autoDownPcts || ''
+      auto_down_pcts: c.autoDownPcts || '',
+      auto_rate2: c.autoRate2 || 0,
+      auto_rate2_min_down: c.autoRate2MinDown || 0
     }));
     const res = await fetch('https://n8n-wt11.onrender.com/webhook/save-bike-catalog', {
       method: 'POST',
@@ -2243,6 +2257,7 @@ async function saveCatalogToServer() {
       ตาราง bike_catalog ใน PostgreSQL อัปเดตแล้ว
     </div>`;
     showToast('บันทึกแคตตาล็อกสำเร็จ ✅', 'success');
+    syncRatesToDB(); // ซิงค์อัตราดอกเบี้ยและดาวน์หลังบันทึกแคตตาล็อก (ป้องกัน DELETE+INSERT ล้างค่า)
   } catch(e) {
     resultDiv.innerHTML = `<div style="background:#ffebee;border:1.5px solid #e53935;border-radius:8px;padding:1rem;color:#c62828;">
       <strong>❌ เกิดข้อผิดพลาด</strong><br>${e.message}
@@ -2251,53 +2266,6 @@ async function saveCatalogToServer() {
   }
 }
 
-// ========== MIGRATE CATALOG COLORS FROM CATEGORIES (ทำครั้งเดียว) ==========
-function migrateCatalogColorsFromCategories() {
-  let updated = 0;
-  let badgeUpdated = 0;
-  (data.catalog || []).forEach(function(item) {
-    const submodelName = item.submodelName || '';
-    const slashIdx = submodelName.indexOf(' / ');
-    const bikeName    = slashIdx !== -1 ? submodelName.substring(0, slashIdx).trim() : submodelName.trim();
-    const variantName = slashIdx !== -1 ? submodelName.substring(slashIdx + 3).trim() : '';
-
-    const foundColors = [];
-    let foundBadge = '';
-    (data.categories || []).forEach(function(cat) {
-      (cat.models || []).forEach(function(bike) {
-        if (bike.name !== bikeName) return;
-        if (!foundBadge && bike.badge) foundBadge = bike.badge;
-        (bike.colors || []).forEach(function(c) {
-          if (!variantName || !c.variant || c.variant === variantName) {
-            if (!foundColors.find(function(f) { return f.name === c.name && f.hex === c.hex; }))
-              foundColors.push(c);
-          }
-        });
-      });
-    });
-
-    if (foundColors.length > 0) {
-      item.colors = foundColors;
-      updated++;
-    }
-    if (foundBadge && !item.badge) {
-      item.badge = foundBadge;
-      badgeUpdated++;
-    }
-  });
-
-  if (updated > 0 || badgeUpdated > 0) {
-    localStorage.setItem('papao_data', JSON.stringify(data));
-    renderCatalogTable();
-    const msg = '✅ อัปเดตสี ' + updated + ' รุ่น, ป้าย ' + badgeUpdated + ' รุ่น — กด "บันทึกทั้งหมดไปยัง Server" เพื่อซิงค์';
-    document.getElementById('migrateCatalogResult').textContent = msg;
-    showToast(msg, 'success');
-  } else {
-    const msg = '⚠️ ไม่พบข้อมูลสี — ตรวจสอบว่า "รุ่นรถ & ราคา" มีข้อมูลหรือโหลดจาก Server แล้ว';
-    document.getElementById('migrateCatalogResult').textContent = msg;
-    showToast(msg, 'error');
-  }
-}
 
 // ========== EXPORT HTML ==========
 function exportHTML() {

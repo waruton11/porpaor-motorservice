@@ -184,7 +184,10 @@ footer .footer-brand{font-family:'Kanit',sans-serif;font-size:1.2rem;font-weight
     <div id="mPricePlaceholder" style="background:#f5f5f5;border:1.5px dashed #ccc;border-radius:8px;padding:1.2rem;text-align:center;margin-bottom:1.25rem;color:#888;font-size:.92rem;">
       💬 สอบถามราคาและตารางผ่อนได้ที่ร้าน หรือกด <strong>Line / โทร</strong> ด้านล่าง
     </div>
-    <table class="installment-table" id="mInstTable" style="display:none;"><thead><tr><th>ดาวน์ (บาท)</th><th>ยอดจัด (฿)</th><th>48 เดือน</th><th>42 เดือน</th><th>36 เดือน</th><th>30 เดือน</th><th>24 เดือน</th></tr></thead><tbody id="mTableBody"></tbody></table>
+    <div id="mInstTableWrap" style="display:none;position:relative;">
+      <div id="mRateNote" style="position:absolute;top:0;right:0;z-index:2;background:rgba(255,210,60,0.93);color:#1a1a1a;font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:0 4px 0 6px;letter-spacing:.02em;pointer-events:none;white-space:nowrap;"></div>
+      <table class="installment-table" id="mInstTable"><thead><tr><th>ดาวน์ (บาท)</th><th>ยอดจัด (฿)</th><th>48 เดือน</th><th>42 เดือน</th><th>36 เดือน</th><th>30 เดือน</th><th>24 เดือน</th></tr></thead><tbody id="mTableBody"></tbody></table>
+    </div>
     <div id="mFinanceNote" style="display:none;background:#e8f0fe;border-radius:6px;padding:.5rem .9rem;margin-bottom:1.25rem;font-size:.82rem;color:#1a3a5c;">ℹ️ เงื่อนไขเป็นไปตามบริษัทไฟแนนซ์กำหนด</div>
     <div id="mContactInst" style="display:none;background:#fff8e1;border:1.5px solid #f9a825;border-radius:8px;padding:1.1rem 1.25rem;margin-bottom:1.25rem;text-align:center;">
       <div style="font-size:.95rem;color:#5d4037;margin-bottom:.75rem;">📋 สอบถามตารางผ่อนสำหรับรุ่นนี้ได้โดยตรงกับเจ้าหน้าที่</div>
@@ -288,7 +291,7 @@ function switchCat(ci){
 }
 function oM(ci,mi){modalModel=categories[ci].models[mi];modalVariantIdx=0;modalColorIdx=0;document.getElementById('mName').textContent=modalModel.name;rV();rC();uT();document.getElementById('calcResult').style.display='none';document.getElementById('modalOverlay').classList.add('open');document.body.style.overflow='hidden';}
 function rV(){const w=document.getElementById('mVariants');const b=document.getElementById('mVariantBtns');if(!modalModel.variants||modalModel.variants.length<=1){w.style.display='none';return;}w.style.display='block';b.innerHTML=modalModel.variants.map((v,i)=>'<button class="variant-btn'+(i===0?' active':'')+'" onclick="sV('+i+')">'+v.name+'</button>').join('');}
-function sV(i){modalVariantIdx=i;document.querySelectorAll('.variant-btn').forEach((b,j)=>b.classList.toggle('active',j===i));uT();rC();}
+function sV(i){modalVariantIdx=i;modalColorIdx=0;document.querySelectorAll('.variant-btn').forEach((b,j)=>b.classList.toggle('active',j===i));rC();uT();}
 function rC(){const w=document.getElementById('mColors');const s=document.getElementById('mColorSwatches');const n=document.getElementById('mColorName');if(!modalModel.colors||!modalModel.colors.length){w.style.display='none';document.getElementById('mCarImg').innerHTML='<span style="font-size:4rem">'+modalModel.icon+'</span>';return;}w.style.display='block';const curVariant=modalModel.variants[modalVariantIdx]?modalModel.variants[modalVariantIdx].name:'';const filtered=modalModel.colors.filter(c=>!c.variant||c.variant===curVariant||!curVariant);const display=filtered.length?filtered:modalModel.colors;s.innerHTML=display.map((c,i)=>{const bg=c.hex2?'conic-gradient('+c.hex+' 0deg 180deg,'+c.hex2+' 180deg 360deg)':c.hex;return'<div class="color-swatch'+(i===0?' active':'')+'" style="background:'+bg+';'+(c.border?'border:2px solid #bbb;':'')+'" title="'+c.name+'" onclick="sC('+i+','+JSON.stringify(display).replace(/"/g,'&quot;')+')"></div>';}).join('');window._curColors=display;n.textContent='สี: '+display[0].name;updCarImg2(display[0]);}
 function sC(i,colors){
   if(colors){window._curColors=typeof colors==='string'?JSON.parse(colors.replace(/&quot;/g,'"')):colors;}
@@ -303,10 +306,11 @@ function sC(i,colors){
   const usePrice = colorPrice > 0 ? colorPrice : (parseInt(d.price) || 0);
 
   if (usePrice > 0) {
-    const {rate, isAnnual, downPcts} = getAutoRate(d);
+    const {rate, rate2, rate2MinDown, isAnnual, downPcts} = getAutoRate(d);
     if (rate > 0) {
       const calcBase = colorFinancePrice > 0 ? colorFinancePrice : usePrice;
-      const ci = genAutoCI(calcBase, rate, isAnnual, downPcts);
+      const ci = genAutoCI(calcBase, rate, isAnnual, downPcts, rate2, rate2MinDown);
+      _updateRateNote(rate, isAnnual, rate2, rate2MinDown);
       _renderPriceAndTable(usePrice, null, colorFinancePrice, ci);
     }
   }
@@ -322,29 +326,42 @@ function calcInstFlatAnnual(financed, annualRatePct, months){
 // ดึง rate + downPcts จาก variant สำหรับ Option C (auto-down)
 function getAutoRate(d){
   const downPcts=d.autoDownPcts&&d.autoDownPcts.length?d.autoDownPcts:null;
-  if(d.autoRate&&d.autoRate>0) return{rate:d.autoRate,isAnnual:d.autoRateUnit==='year',downPcts};
-  if(d.ratesPerDown){const vals=Object.values(d.ratesPerDown);if(vals.length)return{rate:parseFloat(vals[0])||0,isAnnual:d.rateUnit==='year',downPcts};}
-  if(d.rates){const vals=Object.values(d.rates);if(vals.length)return{rate:parseFloat(vals[0])||0,isAnnual:d.rateUnit==='year',downPcts};}
-  return{rate:0,isAnnual:false,downPcts};
+  const rate2=d.autoRate2||0;
+  const rate2MinDown=d.autoRate2MinDown||0;
+  if(d.autoRate&&d.autoRate>0) return{rate:d.autoRate,rate2,rate2MinDown,isAnnual:d.autoRateUnit==='year',downPcts};
+  if(d.ratesPerDown){const vals=Object.values(d.ratesPerDown);if(vals.length)return{rate:parseFloat(vals[0])||0,rate2,rate2MinDown,isAnnual:d.rateUnit==='year',downPcts};}
+  if(d.rates){const vals=Object.values(d.rates);if(vals.length)return{rate:parseFloat(vals[0])||0,rate2,rate2MinDown,isAnnual:d.rateUnit==='year',downPcts};}
+  return{rate:0,rate2:0,rate2MinDown:0,isAnnual:false,downPcts};
 }
 // สร้าง customInstallments อัตโนมัติจาก price
 // downPcts = array ของ % เช่น [0,10,20] หรือ [10,15,20] (0 = ฟรีดาวน์)
-// ถ้าไม่ระบุ = [10,15,20] default
-function genAutoCI(price,rate,isAnnual,downPcts){
+// rate2 + rate2MinDown = อัตราขั้นบันได เช่น ดาวน์≥15% ใช้ 5%/ปี แทน 7%/ปี
+function genAutoCI(price,rate,isAnnual,downPcts,rate2=0,rate2MinDown=0){
   const months=[48,42,36,30,24];
   const pcts=downPcts&&downPcts.length?downPcts:[10,15,20];
   const ci={};
   pcts.forEach(pct=>{
     const dn=pct===0?0:Math.ceil(price*pct/100);
     const financed=price-dn;
+    // ใช้อัตราขั้นบันได: ถ้าดาวน์ถึง threshold ใช้ rate2 แทน
+    const effectiveRate=(rate2>0&&rate2MinDown>0&&pct>=rate2MinDown)?rate2:rate;
     ci[String(dn)]={};
     months.forEach(mo=>{
-      ci[String(dn)][String(mo)]=rate>0
-        ?(isAnnual?calcInstFlatAnnual(financed,rate,mo):calcInstFlat(financed,rate,mo))
+      ci[String(dn)][String(mo)]=effectiveRate>0
+        ?(isAnnual?calcInstFlatAnnual(financed,effectiveRate,mo):calcInstFlat(financed,effectiveRate,mo))
         :Math.ceil(financed/mo);
     });
   });
   return ci;
+}
+function _updateRateNote(rate,isAnnual,rate2,rate2MinDown){
+  const el=document.getElementById('mRateNote');
+  if(!el)return;
+  if(!rate||rate<=0){el.textContent='';return;}
+  const u=isAnnual?'%/ปี':'%/เดือน';
+  let t='ดอกเบี้ย '+rate+u;
+  if(rate2>0&&rate2MinDown>0)t+=' · ดาวน์≥'+rate2MinDown+'%→'+rate2+u;
+  el.textContent=t;
 }
 function _renderPriceAndTable(price, downs, financePrice, customInstallments) {
   if (price > 0) {
@@ -369,12 +386,12 @@ function _renderPriceAndTable(price, downs, financePrice, customInstallments) {
              + instCols + '</tr>';
       }).join('');
       document.getElementById('mTableBody').innerHTML = rows;
-      document.getElementById('mInstTable').style.display = '';
+      document.getElementById('mInstTableWrap').style.display = '';
       document.getElementById('mFinanceNote').style.display = '';
       document.getElementById('mContactInst').style.display = 'none';
     } else {
       // ⚠️ ยังไม่มีข้อมูลค่าผ่อนที่ถูกต้อง — ให้ติดต่อเจ้าหน้าที่
-      document.getElementById('mInstTable').style.display = 'none';
+      document.getElementById('mInstTableWrap').style.display = 'none';
       document.getElementById('mFinanceNote').style.display = 'none';
       document.getElementById('mTableBody').innerHTML = '';
       document.getElementById('mContactInst').style.display = 'block';
@@ -382,7 +399,7 @@ function _renderPriceAndTable(price, downs, financePrice, customInstallments) {
   } else {
     document.getElementById('mPrice').style.display = 'none';
     document.getElementById('mPricePlaceholder').style.display = 'block';
-    document.getElementById('mInstTable').style.display = 'none';
+    document.getElementById('mInstTableWrap').style.display = 'none';
     document.getElementById('mFinanceNote').style.display = 'none';
     document.getElementById('mContactInst').style.display = 'none';
     document.getElementById('mTableBody').innerHTML = '';
@@ -401,15 +418,14 @@ function uT(){
   }
 
   // ถ้ามีราคา + มี autoRate → คำนวณตารางผ่อน
-  if (price > 0) {
-    const {rate, isAnnual, downPcts} = getAutoRate(d);
-    if (rate > 0) {
-      // ยอดจัดไฟแนนส์: ใช้ราคาไฟแนนส์จาก localStorage Excel, ถ้าไม่มีใช้ราคาเงินสด
-      const calcBase = financePrice > 0 ? financePrice : price;
-      ci = genAutoCI(calcBase, rate, isAnnual, downPcts);
-    }
+  const {rate, rate2, rate2MinDown, isAnnual, downPcts} = getAutoRate(d);
+  if (price > 0 && rate > 0) {
+    // ยอดจัดไฟแนนส์: ใช้ราคาไฟแนนส์จาก localStorage Excel, ถ้าไม่มีใช้ราคาเงินสด
+    const calcBase = financePrice > 0 ? financePrice : price;
+    ci = genAutoCI(calcBase, rate, isAnnual, downPcts, rate2, rate2MinDown);
   }
   // ci = null (ไม่มี rate ตั้งไว้) → แสดงปุ่ม LINE
+  _updateRateNote(rate, isAnnual, rate2, rate2MinDown);
   _renderPriceAndTable(price, null, financePrice, ci);
 }
 function closeModal(e){if(!e||e.target===document.getElementById('modalOverlay')||!e.target){document.getElementById('modalOverlay').classList.remove('open');document.body.style.overflow='';}}
@@ -478,7 +494,9 @@ function buildCategoriesFromAPI(rows) {
         name: variantName, price: price, downs: downs, _sortOrder: row.sort_order || 0,
         autoRate: parseFloat(row.auto_rate) || 0,
         autoRateUnit: row.auto_rate_unit || 'month',
-        autoDownPcts: autoDownPcts.length ? autoDownPcts : null
+        autoDownPcts: autoDownPcts.length ? autoDownPcts : null,
+        autoRate2: parseFloat(row.auto_rate2) || 0,
+        autoRate2MinDown: parseInt(row.auto_rate2_min_down) || 0
       });
     }
     // Merge สีเข้าด้วยกัน — แนบราคาขายและราคาไฟแนนส์ของรหัสนี้ไปกับแต่ละสี
