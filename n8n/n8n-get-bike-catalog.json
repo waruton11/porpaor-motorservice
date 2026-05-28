@@ -23,7 +23,7 @@
       "position": [460, 300],
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT\n  id,\n  bike_type,\n  submodel_name,\n  model_name,\n  variant_name,\n  marketing_name,\n  engine_cc,\n  transmission,\n  is_active,\n  sort_order,\n  note,\n  colors,\n  auto_rate,\n  auto_rate_unit,\n  auto_down_pcts\nFROM bike_catalog\nORDER BY sort_order ASC, id ASC;",
+        "query": "SELECT\n  id,\n  bike_type,\n  submodel_name,\n  model_name,\n  variant_name,\n  marketing_name,\n  engine_cc,\n  transmission,\n  is_active,\n  sort_order,\n  note,\n  badge,\n  colors,\n  auto_rate,\n  auto_rate_unit,\n  auto_down_pcts\nFROM bike_catalog\nORDER BY sort_order ASC, id ASC;",
         "options": {}
       },
       "credentials": {

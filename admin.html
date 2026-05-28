@@ -411,6 +411,16 @@ tr:hover td { background: #fafafa; }
           </div>
         </div>
 
+        <div class="card" style="margin-top:1.25rem;background:#fff8e1;border:1.5px solid #ffd54f;">
+          <div class="card-title">🎨 อัปเดตสีและป้ายจาก "รุ่นรถ & ราคา" (ทำครั้งเดียว)</div>
+          <p style="color:var(--text2); font-size:.875rem; margin-bottom:1rem;">
+            คลิกปุ่มนี้เพื่อดึงข้อมูลสี (hex, รูปภาพ) และป้ายสถานะ (NEW, ขายดี ฯลฯ) จากหัวข้อ "รุ่นรถ & ราคา" มาใส่ในแคตตาล็อกอัตโนมัติ
+            แล้วกด "บันทึกทั้งหมดไปยัง Server" เพื่อซิงค์ขึ้น DB
+          </p>
+          <button class="btn btn-primary" onclick="migrateCatalogColorsFromCategories()" style="margin-right:0.75rem;">🔄 อัปเดตสีและป้ายอัตโนมัติ</button>
+          <span id="migrateCatalogResult" style="font-size:.875rem;color:var(--green);"></span>
+        </div>
+
         <div class="card" style="margin-top:1.25rem;">
           <div class="card-title">💾 บันทึกไปยังฐานข้อมูล</div>
           <p style="color:var(--text2); font-size:.875rem; margin-bottom:1rem;">กด "บันทึกทั้งหมดไปยัง Server" เพื่ออัปเดตตาราง <code style="background:#f5f5f5;padding:1px 6px;border-radius:4px;">bike_catalog</code> ใน PostgreSQL</p>
@@ -653,6 +663,13 @@ tr:hover td { background: #fafafa; }
       <div class="form-group" style="flex:1;margin-bottom:0;">
         <label>ดาวน์ % (คั่นด้วย ,)</label>
         <input id="c_auto_down_pcts" type="text" placeholder="เช่น 0,10,20" style="width:100%;">
+      </div>
+    </div>
+
+    <div style="display:flex;gap:0.75rem;margin-bottom:1rem;">
+      <div class="form-group" style="flex:1;margin-bottom:0;">
+        <label>ป้ายสถานะ (Badge)</label>
+        <input id="c_badge" type="text" placeholder="เช่น NEW, ขายดี, พรีเมียม, EV" style="width:100%;">
       </div>
     </div>
 
@@ -1877,15 +1894,23 @@ function populateCatalogColorCheckboxes(submodelName, preSelected) {
   if (foundColors.length === 0) return;
   wrap.style.display = 'block';
 
-  const preSet = new Set(Array.isArray(preSelected) ? preSelected : []);
+  // รองรับทั้ง preSelected เป็น array ของ string หรือ array ของ object
+  const preColorNames = new Set();
+  if (Array.isArray(preSelected)) {
+    preSelected.forEach(function(pc) {
+      if (typeof pc === 'string') preColorNames.add(pc);
+      else if (pc && pc.name) preColorNames.add(pc.name);
+    });
+  }
   foundColors.forEach(function(c) {
     const label = document.createElement('label');
     label.style.cssText = 'display:inline-flex;align-items:center;gap:5px;cursor:pointer;padding:5px 10px;border:1.5px solid #e0e0e0;border-radius:20px;background:#fff;user-select:none;transition:border-color .15s;';
     const cb = document.createElement('input');
     cb.type = 'checkbox';
     cb.value = c.name;
+    cb.dataset.colorJson = JSON.stringify(c); // เก็บ full color object (name, hex, hex2, img, variant)
     cb.className = 'c_color_cb';
-    if (preSet.has(c.name)) { cb.checked = true; label.style.borderColor = 'var(--red)'; label.style.background = '#fff5f5'; }
+    if (preColorNames.has(c.name)) { cb.checked = true; label.style.borderColor = 'var(--red)'; label.style.background = '#fff5f5'; }
     cb.addEventListener('change', function() {
       label.style.borderColor = cb.checked ? 'var(--red)' : '#e0e0e0';
       label.style.background  = cb.checked ? '#fff5f5' : '#fff';
@@ -1985,6 +2010,7 @@ async function openAddCatalog() {
   editCatalogIdx = null;
   document.getElementById('catalogModalTitle').textContent = '+ เพิ่มรุ่นรถใหม่';
   document.getElementById('c_cc').value = '';
+  document.getElementById('c_badge').value = '';
   document.getElementById('c_note').value = '';
   document.getElementById('c_active').value = '1';
   document.getElementById('c_auto_rate').value = '';
@@ -2008,6 +2034,7 @@ async function openEditCatalog(idx) {
   document.getElementById('catalogModalTitle').textContent = '✏️ แก้ไข — ' + (c.submodelName || c.model) + (c.variant ? ' ' + c.variant : '');
   document.getElementById('c_cc').value = c.cc || '';
   document.getElementById('c_active').value = c.isActive !== false ? '1' : '0';
+  document.getElementById('c_badge').value = c.badge || '';
   document.getElementById('c_note').value = c.note || '';
   document.getElementById('c_auto_rate').value = c.autoRate || '';
   document.getElementById('c_auto_rate_unit').value = c.autoRateUnit || 'month';
@@ -2071,7 +2098,10 @@ function saveCatalogItem() {
   const model = document.getElementById('c_model').value.trim();
   if (!model) { showToast('กรุณาเลือกรุ่น', 'error'); return; }
 
-  const selectedColors = Array.from(document.querySelectorAll('.c_color_cb:checked')).map(function(cb) { return cb.value; });
+  // เก็บ full color objects (name, hex, hex2, img, variant) แทนแค่ชื่อ
+  const selectedColors = Array.from(document.querySelectorAll('.c_color_cb:checked')).map(function(cb) {
+    try { return JSON.parse(cb.dataset.colorJson); } catch(e) { return { name: cb.value }; }
+  });
 
   const item = {
     bikeType: document.getElementById('c_type').value,
@@ -2079,6 +2109,7 @@ function saveCatalogItem() {
     variant: document.getElementById('c_variant').value.trim(),
     submodelName: document.getElementById('c_submodel').value.trim(),
     marketingName: '',
+    badge: document.getElementById('c_badge').value.trim(),
     colors: selectedColors,
     cc: parseInt(document.getElementById('c_cc').value) || 0,
     transmission: 'Automatic',
@@ -2139,6 +2170,7 @@ async function syncCatalog(silent=false) {
         variant: r.variant_name || '',
         submodelName: r.submodel_name || '',
         marketingName: r.marketing_name || '',
+        badge: r.badge || '',
         cc: parseInt(r.engine_cc) || 0,
         transmission: r.transmission || 'Automatic',
         isActive: r.is_active !== false && r.is_active !== 0,
@@ -2175,6 +2207,7 @@ async function saveCatalogToServer() {
       variant_name: c.variant || '',
       submodel_name: c.submodelName || '',
       marketing_name: c.marketingName || '',
+      badge: c.badge || '',
       engine_cc: c.cc || 0,
       transmission: c.transmission || 'Automatic',
       is_active: c.isActive !== false,
@@ -2201,6 +2234,54 @@ async function saveCatalogToServer() {
       <strong>❌ เกิดข้อผิดพลาด</strong><br>${e.message}
     </div>`;
     showToast('บันทึกไม่สำเร็จ ❌', 'error');
+  }
+}
+
+// ========== MIGRATE CATALOG COLORS FROM CATEGORIES (ทำครั้งเดียว) ==========
+function migrateCatalogColorsFromCategories() {
+  let updated = 0;
+  let badgeUpdated = 0;
+  (data.catalog || []).forEach(function(item) {
+    const submodelName = item.submodelName || '';
+    const slashIdx = submodelName.indexOf(' / ');
+    const bikeName    = slashIdx !== -1 ? submodelName.substring(0, slashIdx).trim() : submodelName.trim();
+    const variantName = slashIdx !== -1 ? submodelName.substring(slashIdx + 3).trim() : '';
+
+    const foundColors = [];
+    let foundBadge = '';
+    (data.categories || []).forEach(function(cat) {
+      (cat.models || []).forEach(function(bike) {
+        if (bike.name !== bikeName) return;
+        if (!foundBadge && bike.badge) foundBadge = bike.badge;
+        (bike.colors || []).forEach(function(c) {
+          if (!variantName || !c.variant || c.variant === variantName) {
+            if (!foundColors.find(function(f) { return f.name === c.name && f.hex === c.hex; }))
+              foundColors.push(c);
+          }
+        });
+      });
+    });
+
+    if (foundColors.length > 0) {
+      item.colors = foundColors;
+      updated++;
+    }
+    if (foundBadge && !item.badge) {
+      item.badge = foundBadge;
+      badgeUpdated++;
+    }
+  });
+
+  if (updated > 0 || badgeUpdated > 0) {
+    localStorage.setItem('papao_data', JSON.stringify(data));
+    renderCatalogTable();
+    const msg = '✅ อัปเดตสี ' + updated + ' รุ่น, ป้าย ' + badgeUpdated + ' รุ่น — กด "บันทึกทั้งหมดไปยัง Server" เพื่อซิงค์';
+    document.getElementById('migrateCatalogResult').textContent = msg;
+    showToast(msg, 'success');
+  } else {
+    const msg = '⚠️ ไม่พบข้อมูลสี — ตรวจสอบว่า "รุ่นรถ & ราคา" มีข้อมูลหรือโหลดจาก Server แล้ว';
+    document.getElementById('migrateCatalogResult').textContent = msg;
+    showToast(msg, 'error');
   }
 }
 

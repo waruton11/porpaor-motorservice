@@ -252,7 +252,7 @@ footer .footer-brand{font-family:'Kanit',sans-serif;font-size:1.2rem;font-weight
 </footer>
 <script>
 const RATE=0.065;
-const categories=[{"name":"ครอบครัว (Family)","icon":"🏘️","color":"#e8f5e9","models":[{"name":"Honda Wave110i","price":41900,"badge":"","icon":"🛵","logo":"","downText":"","variants":[{"name":"ล้อซี่ลวด (ดรัมเบรก)","price":41900,"downs":[0,5000,10000],"rates":{"48":1.09}},{"name":"ล้อซี่ลวด (ดิสก์เบรก)","price":49200,"downs":[0,5000,10000],"financeBase":54900,"rates":{"48":1.09}},{"name":"ล้อแม็ก","price":51200,"downs":[0,5000,10000],"financeBase":56900,"rates":{"48":1.09}},{"name":"ล้อแม็ก (สเปเชียล)","price":51700,"downs":[0,5000,10000],"financeBase":57400,"rates":{"48":1.09}}],"colors":[{"name":"ดำ","hex":"#000000","img":"/images/WAVE 110 2025/WAVE1102025spoke/Black.png","variant":"ล้อซี่ลวด (ดรัมเบรก)"},{"name":"ดำ","hex":"#000000","img":"/images/WAVE 110 2025/WAVE1102025dise/WheelBlack.png","variant":"ล้อซี่ลวด (ดิสก์เบรก)"},{"name":"น้ำเงิน-ดำ","hex":"#1220d2","img":"/images/WAVE 110 2025/WAVE1102025dise/WheelBlue.png","hex2":"#000000","variant":"ล้อซี่ลวด (ดิสก์เบรก)"},{"name":"เทา-ดำ","hex":"#b1b1b1","img":"/images/WAVE 110 2025/WAVE1102025dise/WheelGray.png","hex2":"#000000","variant":"ล้อซี่ลวด (ดิสก์เบรก)"},{"name":"น้ำเงิน","hex":"#1220d2","img":"/images/WAVE 110 2025/WAVE1102025alloy/MaxWheelBlue.png","variant":"ล้อแม็ก"},{"name":"เทา","hex":"#b1b1b1","img":"/images/WAVE 110 2025/WAVE1102025alloy/MaxWheelGray.png","variant":"ล้อแม็ก"},{"name":"แดง","hex":"#d20008","img":"/images/WAVE 110 2025/WAVE1102025alloy/MaxWheelRed.png","variant":"ล้อแม็ก"},{"name":"ดำ-น้ำตาล","hex":"#000000","img":"/images/WAVE 110 2025/WAVE1102025alloySpecial/SpecialBlackBBR.png","hex2":"#342e26","variant":"ล้อแม็ก (สเปเชียล)"},{"name":"ขาว-น้ำตาล","hex":"#ffffff","img":"/images/WAVE 110 2025/WAVE1102025alloySpecial/SpecialWhiteWBR.png","hex2":"#342e26","variant":"ล้อแม็ก (สเปเชียล)"}]},{"name":"Honda Wave125i","price":60100,"badge":"","icon":"🛵","logo":"","downText":"","variants":[{"name":"ล้อลวด","price":60100,"downs":[0,5000,10000],"financeBase":65800},{"name":"ล้อแม็ก","price":62300,"downs":[0,5000,10000],"financeBase":68000},{"name":"ล้อแม็ก (รีโมท)","price":63700,"downs":[0,5000,10000],"financeBase":69400}],"colors":[{"name":"ดำ","hex":"#000000","img":"/images/WAVE 125 2025/WAVE1252025dise/ThaiHondaWave1252025BLK.png","variant":"ล้อลวด"},{"name":"แดง-ดำ","hex":"#b70818","img":"/images/WAVE 125 2025/WAVE1252025dise/ThaiHondaWave1252025R-B.png","hex2":"#000000","variant":"ล้อลวด"},{"name":"ดำ","hex":"#000000","img":"/images/WAVE 125 2025/WAVE1252025alloy/ThaiHondaWave1252025BLK.png","variant":"ล้อแม็ก"},{"name":"น้ำตาล-ดำ","hex":"#6f605d","img":"/images/WAVE 125 2025/WAVE1252025alloy/ThaiHondaWave1252025BRB.png","hex2":"#000000","variant":"ล้อแม็ก"},{"name":"น้ำเงิน-ดำ","hex":"#25344f","img":"/images/WAVE 125 2025/WAVE1252025alloy/ThaiHondaWave1252025BUB.png","hex2":"#000000","variant":"ล้อแม็ก"},{"name":"ขาว-ดำ","hex":"#ffffff","img":"/images/WAVE 125 2025/WAVE1252025alloy/ThaiHondaWave1252025W-B.png","hex2":"#000000","variant":"ล้อแม็ก"},{"name":"ดำ","hex":"#000000","img":"/images/WAVE 125 2025/WAVE1252025alloySpecial/ThaiHondaWave1252025SmartKeyBLK.png","variant":"ล้อแม็ก (รีโมท)"},{"name":"น้ำตาล-ดำ","hex":"#6f605d","img":"/images/WAVE 125 2025/WAVE1252025alloySpecial/ThaiHondaWave1252025SmartKeyBRB.png","hex2":"#000000","variant":"ล้อแม็ก (รีโมท)"},{"name":"น้ำเงิน-ดำ","hex":"#25344f","img":"/images/WAVE 125 2025/WAVE1252025alloySpecial/ThaiHondaWave1252025SmartKeyBUB.png","hex2":"#000000","variant":"ล้อแม็ก (รีโมท)"},{"name":"ขาว-ดำ","hex":"#ffffff","img":"/images/WAVE 125 2025/WAVE1252025alloySpecial/ThaiHondaWave1252025SmartKeyW-B.png","hex2":"#000000","variant":"ล้อแม็ก (รีโมท)"}]},{"name":"Honda Super Cub","price":53500,"badge":"","icon":"🛵","logo":"","downText":"","variants":[{"name":"ล้อลวด","price":53500,"downs":[0,5000,10000]}],"colors":[{"name":"เขียว","hex":"#515f50","img":"/images/SUPERCUB 2025/ThaiHondaSupercub2025GRN.png","variant":"ล้อลวด"},{"name":"เทา-ขาว","hex":"#6a7c88","img":"/images/SUPERCUB 2025/ThaiHondaSupercub2025GW.png","hex2":"#ffffff","variant":"ล้อลวด"},{"name":"ฟ้า-ขาว","hex":"#b9c6d6","img":"/images/SUPERCUB 2025/ThaiHondaSupercub2025SBW.png","hex2":"#ffffff","variant":"ล้อลวด"},{"name":"เหลือง-ขาว","hex":"#f8a12e","img":"/images/SUPERCUB 2025/ThaiHondaSupercub2025YW.png","hex2":"#ffffff","variant":"ล้อลวด"}]}]},{"name":"สกู๊ตเตอร์ออโตเมติก","icon":"🛵","color":"#fff3e0","models":[{"name":"Honda Scoopy","price":53500,"badge":"NEW","icon":"🛵","logo":"","downText":"","variants":[{"name":"URBAN (ล้อลวด)","price":53500,"downs":[0,5000,10000],"rates":{"48":1.09}},{"name":"PRESTIGE (ล้อแม็ก)","price":56600,"downs":[0,5000,10000],"rates":{"48":1.08}},{"name":"CLUB12 (ล้อแม็ก รีโมท)","price":58000,"downs":[0,5000,10000],"financeBase":58000,"rates":{"48":1.08}},{"name":"CLUB12 Cinnamoroll Limited Edition","price":62700,"downs":[0,5000,10000],"financeBase":62700,"rates":{"48":1.09}}],"colors":[{"name":"ดำ","hex":"#000000","img":"/images/SCOOPY 2026/SCOOPY URBAN/ColorsectionSCOOPYB.png","variant":"URBAN (ล้อลวด)"},{"name":"ขาว-ฟ้า","hex":"#96aec9","img":"/images/SCOOPY 2026/SCOOPY URBAN/ColorsectionSCOOPYBL.png","variant":"URBAN (ล้อลวด)"},{"name":"ดำ","hex":"#000000","img":"/images/SCOOPY 2026/SCOOPY PRESTIGE/ColorsectionSCOOPY5v.png","variant":"PRESTIGE (ล้อแม็ก)"},{"name":"เขียว","hex":"#62705a","img":"/images/SCOOPY 2026/SCOOPY PRESTIGE/ColorsectionSCOOPY6v.png","variant":"PRESTIGE (ล้อแม็ก)"},{"name":"ขาว","hex":"#ffffff","img":"/images/SCOOPY 2026/SCOOPY PRESTIGE/ColorsectionSCOOPY7v.png","variant":"PRESTIGE (ล้อแม็ก)"},{"name":"ชมพู","hex":"#f67c6f","img":"/images/SCOOPY 2026/SCOOPY CLUB12/ColorsectionSCOOPY1v.png","variant":"CLUB12 (ล้อแม็ก รีโมท)"},{"name":"เทา-ขาว","hex":"#ffffff","img":"/images/SCOOPY 2026/SCOOPY CLUB12/ColorsectionSCOOPY2v.png","hex2":"#a4a4a2","variant":"CLUB12 (ล้อแม็ก รีโมท)"},{"name":"ดำ-แดง","hex":"#000000","img":"/images/SCOOPY 2026/SCOOPY CLUB12/ColorsectionSCOOPY3v.png","hex2":"#650000","variant":"CLUB12 (ล้อแม็ก รีโมท)"},{"name":"ขาว-น้ำเงิน","hex":"#cc0000","img":"/images/SCOOPY 2026/SCOOPY CLUB12/ColorsectionSCOOPY4v.png","variant":"CLUB12 (ล้อแม็ก รีโมท)"},{"name":"ขาว-ฟ้า","hex":"#ccced0","img":"/images/SCOOPY 2026/SCOOPY CLUB12/ColorSectior01.png","hex2":"#8eafd6","variant":"CLUB12 Cinnamoroll Limited Edition"}]},{"name":"Honda Giorno+","price":71600,"badge":"","icon":"🛵","logo":"","downText":"","variants":[{"name":"CBS","price":71600,"downs":[0,5000,10000],"financeBase":79300,"rates":{"48":1.09}},{"name":"ABS","price":76600,"downs":[0,5000,10000],"financeBase":84300,"rates":{"48":1.09}}],"colors":[{"name":"เทา-ดำ","hex":"#b5b7ba","img":"/images/GIORNO 2026/GIORNO CBS/G-B.png","hex2":"#000000","variant":"CBS"},{"name":"เขียว-ดำ","hex":"#707e6d","img":"/images/GIORNO 2026/GIORNO CBS/GNB.png","hex2":"#000000","variant":"CBS"},{"name":"ฟ้า-ดำ","hex":"#c6d9ec","img":"/images/GIORNO 2026/GIORNO CBS/SBB.png","hex2":"#000000","variant":"CBS"},{"name":"ดำ-น้ำตาล","hex":"#000000","img":"/images/GIORNO 2026/GIORNO ABS/BBR.png","hex2":"#685447","variant":"ABS"},{"name":"เทา-น้ำตาล","hex":"#a29d96","img":"/images/GIORNO 2026/GIORNO ABS/GBR.png","hex2":"#685447","variant":"ABS"},{"name":"ขาว-น้ำตาล","hex":"#dbdbdb","img":"/images/GIORNO 2026/GIORNO ABS/WBR.png","hex2":"#685447","variant":"ABS"},{"name":"เหลือง-น้ำตาล","hex":"#f7be2e","img":"/images/GIORNO 2026/GIORNO ABS/YBR.png","hex2":"#685447","variant":"ABS"}]},{"name":"Honda Lead125","price":64900,"badge":"","icon":"🛵","logo":"","downText":"","variants":[{"name":"CBS","price":64900,"downs":[0,5000,10000],"financeBase":70600,"rates":{"48":1.09}},{"name":"ABS","price":69900,"downs":[0,5000,10000],"financeBase":75600,"rates":{"48":1.09}}],"colors":[{"name":"ดำ","hex":"#1d2224","img":"/images/LEAD 2026/LEAD CBS/Colorsection01.png","variant":"CBS"},{"name":"ขาว","hex":"#ffffff","img":"/images/LEAD 2026/LEAD CBS/Colorsection02.png","variant":"CBS"},{"name":"ดำ","hex":"#252a2d","img":"/images/LEAD 2026/LEAD ABS/Colorsection03.png","variant":"ABS"},{"name":"เทา","hex":"#4d5a64","img":"/images/LEAD 2026/LEAD ABS/Colorsection4.png","variant":"ABS"}]},{"name":"Honda Click125","price":59800,"badge":"","icon":"🛵","logo":"","downText":"","variants":[{"name":"ล้อแม็ก","price":59800,"downs":[0,5000,10000],"financeBase":65500,"rates":{"48":1.09}}],"colors":[{"name":"ดำ-แดง","hex":"#000000","img":"/images/CLICK 125 2022/CLICK125alloy/Click125B-R.png","hex2":"#7b333d","variant":"ล้อแม็ก"},{"name":"เทา-แดง","hex":"#848e9b","img":"/images/CLICK 125 2022/CLICK125alloy/Click125G-R.png","hex2":"#813d44","variant":"ล้อแม็ก"},{"name":"แดง-ดำ","hex":"#cb2037","img":"/images/CLICK 125 2022/CLICK125alloy/Click125R-B.png","hex2":"#000000","variant":"ล้อแม็ก"}]},{"name":"Honda Click160","price":73300,"badge":"ยอดนิยม","icon":"🛵","logo":"","downText":"","variants":[{"name":"STANDARD","price":73300,"downs":[0,5000,10000],"financeBase":79000,"rates":{"48":1.09}},{"name":"SPECIAL","price":73800,"downs":[0,5000,10000],"financeBase":79500,"rates":{"48":1.09}}],"colors":[{"name":"แดง-ดำ","hex":"#ba001e","img":"/images/CLICK 160 2024/CLICK160/CLICK16020241.png","hex2":"#000000","variant":"STANDARD"},{"name":"เทา-ดำ","hex":"#babdbd","img":"/images/CLICK 160 2024/CLICK160/CLICK16020242.png","hex2":"#000000","variant":"STANDARD"},{"name":"ดำ","hex":"#000000","img":"/images/CLICK 160 2024/CLICK160/CLICK16020243.png","variant":"STANDARD"},{"name":"ดำ-น้ำตาล","hex":"#000000","img":"/images/CLICK 160 2024/CLICK160 SPECIAL/CLICK16020244.png","hex2":"#d6b76c","variant":"SPECIAL"}]},{"name":"Honda ADV160","price":104300,"badge":"","icon":"🛵","logo":"","downText":"","variants":[{"name":"STANDARD","price":104300,"downs":[0,5000,10000],"financeBase":107500,"rates":{"48":1.09}},{"name":"SPECIAL","price":104800,"downs":[0,5000,10000],"financeBase":108000,"rates":{"48":1.09}}],"colors":[{"name":"น้ำเงิน","hex":"#1c2e6c","img":"/images/ADV 160 2026/ADV160Blue.png","variant":"STANDARD"},{"name":"น้ำตาล","hex":"#bcb195","img":"/images/ADV 160 2026/ADV160Brown.png","variant":"STANDARD"},{"name":"เขียว","hex":"#435231","img":"/images/ADV 160 2026/ADV160Green.png","variant":"STANDARD"},{"name":"ดำ","hex":"#000000","img":"/images/ADV 160 2026/ADV160Black.png","variant":"SPECIAL"}]},{"name":"Honda PCX160","price":99900,"badge":"ขายดี","icon":"🛵","logo":"","downText":"","variants":[{"name":"STANDARD","price":99900,"downs":[0,5000,10000],"financeBase":107100,"rates":{"48":1.09}},{"name":"ROADSYNC","price":102100,"downs":[0,5000,10000],"financeBase":105500,"rates":{"48":1.09}}],"colors":[{"name":"ส้ม","hex":"#e77e00","img":"/images/PCX 2025/PCX160STANDARD/ColorChartAmberBlaze.png","variant":"STANDARD"},{"name":"ดำ","hex":"#000000","img":"/images/PCX 2025/PCX160STANDARD/ColorChartBLACK.png","variant":"STANDARD"},{"name":"น้ำเงิน","hex":"#0068b5","img":"/images/PCX 2025/PCX160STANDARD/ColorChartBLUE.png","variant":"STANDARD"},{"name":"เทา","hex":"#b2b2b2","img":"/images/PCX 2025/PCX160STANDARD/ColorChartSMOKYGRAY.png","variant":"STANDARD"},{"name":"น้ำเงิน","hex":"#4a5164","img":"/images/PCX 2025/PCX160ROADSYNZ/ColorChartBLUE.png","variant":"ROADSYNC"},{"name":"แดง","hex":"#841222","img":"/images/PCX 2025/PCX160ROADSYNZ/ColorChartRED.png","variant":"ROADSYNC"},{"name":"ขาว","hex":"#ffffff","img":"/images/PCX 2025/PCX160ROADSYNZ/ColorChartWhiteBlaze.png","variant":"ROADSYNC"}]},{"name":"Honda Forza350","price":187600,"badge":"พรีเมียม","icon":"🛵","logo":"","downText":"ดาวน์เริ่มต้น 10%","variants":[{"name":"ROADSYNC","price":187600,"downs":[20800,30100,39400],"financeBase":187600}],"colors":[{"name":"เทา-ดำ","hex":"#4a4a4c","img":"/images/FORZA 350 2026/01STORMYGREY.png","hex2":"#000000","variant":"ROADSYNC"},{"name":"ดำ","hex":"#000000","img":"/images/FORZA 350 2026/02ECLIPSEBLACK.png","variant":"ROADSYNC"},{"name":"แดง-ดำ","hex":"#c52d3a","img":"/images/FORZA 350 2026/03SOLARRED.png","hex2":"#000000","variant":"ROADSYNC"},{"name":"ดำ-แดง","hex":"#000000","img":"/images/FORZA 350 2026/Color.png","hex2":"#920011","variant":"ROADSYNC"}]},{"name":"Honda ADV350","price":194800,"badge":"","icon":"🛵","logo":"","downText":"ดาวน์เริ่มต้น 10%","variants":[{"name":"ROADSYNC","price":194800,"downs":[21800,30500,40000],"financeBase":194800}],"colors":[{"name":"ดำ","hex":"#000000","img":"/images/ADV 350 2025/ColorChartADV350BLACK.png","variant":"ROADSYNC"},{"name":"แดง","hex":"#c0000f","img":"/images/ADV 350 2025/ColorChartADV350CANYONRED.png","variant":"ROADSYNC"},{"name":"น้ำเงิน","hex":"#39559b","img":"/images/ADV 350 2025/ColorChartADV350OCEANBLUE.png","variant":"ROADSYNC"}]}]},{"name":"สปอร์ต (Sport)","icon":"🏍️","color":"#fce4ec","models":[{"name":"GROM","price":80800,"badge":"","icon":"🛵","logo":"","downText":"","variants":[{"name":"ABS","price":80800,"downs":[0,5000,10000],"financeBase":84500,"rates":{"48":1.09}}],"colors":[{"name":"ดำ-เทา","hex":"#000000","img":"/images/GROM 2024/05ThHondaGrom2023Black.png","hex2":"#5b5f69","variant":"ABS"},{"name":"น้ำเงิน-ดำ","hex":"#0077c9","img":"/images/GROM 2024/05ThHondaGrom2023Blue.png","hex2":"#000000","variant":"ABS"},{"name":"แดง-ดำ","hex":"#ec001f","img":"/images/GROM 2024/05ThHondaGrom2023Red.png","hex2":"#000000","variant":"ABS"}]},{"name":"Honda CBR150R","price":102900,"badge":"NEW","icon":"🏍️","logo":"","downText":"","variants":[{"name":"มาตรฐาน","price":102900,"downs":[0,5000,10000],"financeBase":103900,"rates":{"48":1.09}}],"colors":[{"name":"ดำ","hex":"#000000","img":"/images/CBR 150 2025/NewCBR150RColorChartBlackLowres.jpg","variant":"มาตรฐาน"},{"name":"แดง","hex":"#f51422","img":"/images/CBR 150 2025/NewCBR150RColorChartRedLowres.jpg","variant":"มาตรฐาน"}]}]},{"name":"ผจญภัย (Adventure)","icon":"🗺️","color":"#e3f2fd","models":[{"name":"Honda CRF300 L","price":158000,"badge":"NEW","icon":"🏍️","logo":"","downText":"ดาวน์เริ่มต้น 15%","variants":[{"name":"มาตรฐาน","price":158000,"downs":[25500,33300,43000],"financeBase":158000}],"colors":[{"name":"แดง-ขาว","hex":"#fa1c2d","img":"/images/CRF300L 2024/ThaiHondaCRF300L20241.jpg","hex2":"#ffffff","variant":"มาตรฐาน"},{"name":"เทา-ดำ","hex":"#979799","img":"/images/CRF300L 2024/ThaiHondaCRF300L20242.jpg","hex2":"#000000","variant":"มาตรฐาน"}]}]},{"name":"บ๊อบเบอร์ & นีโอสปอร์ตคาเฟ่","icon":"☕","color":"#f3e5f5","models":[{"name":"Honda CB150R","price":115500,"badge":"","icon":"🏍️","logo":"","downText":"","variants":[{"name":"มาตรฐาน","price":115500,"downs":[0,5000,10000],"financeBase":116500,"rates":{"48":1.09}}],"colors":[{"name":"ดำ","hex":"#212121","img":"/images/CB150R 2024/ThaiHondaCB150R2023black.png","variant":"มาตรฐาน"},{"name":"ขาว","hex":"#ffffff","img":"/images/CB150R 2024/ThaiHondaCB150R2023white.png","variant":"มาตรฐาน"}]},{"name":"Honda CB300R","price":157200,"badge":"","icon":"🏍️","logo":"","downText":"ดาวน์เริ่มต้น 15%","variants":[{"name":"มาตรฐาน","price":157200,"downs":[25300,33100,48600],"financeBase":157200}],"colors":[{"name":"ดำ","hex":"#212121","img":"/images/CB300R 2022/ThHondaWingCenterColorchartNEOSprotsCafeCB300R2022Black.png","variant":"มาตรฐาน"},{"name":"แดง-ดำ","hex":"#bb2230","img":"/images/CB300R 2022/ThHondaWingCenterColorchartNEOSprotsCafeCB300R2022Red.png","hex2":"#000000","variant":"มาตรฐาน"},{"name":"เหลือง-ดำ","hex":"#f3c700","img":"/images/CB300R 2022/ThHondaWingCenterColorchartNEOSprotsCafeCB300R2022Yellow.png","hex2":"#000000","variant":"มาตรฐาน"}]},{"name":"Honda CL300","price":167400,"badge":"New","icon":"🛵","logo":"","downText":"ดาวน์เริ่มต้น 10%","variants":[{"name":"E-CLUTCH","price":167400,"downs":[19000,27200,35500],"financeBase":167400}],"colors":[{"name":"ดำ","hex":"#000000","img":"/images/CL300 2025/ThaiHondaCL300Eclutch.png","variant":"E-CLUTCH"}]},{"name":"Honda Rebel300","price":164400,"badge":"New","icon":"🛵","logo":"","downText":"ดาวน์เริ่มต้น 15%","variants":[{"name":"E-CLUTCH","price":164400,"downs":[18700,26800,34900],"financeBase":164400}],"colors":[{"name":"ดำ","hex":"#000000","img":"/images/REBEL300 2025/ThaiHondaREBEL3002023.png","variant":"E-CLUTCH"}]}]},{"name":"รถไฟฟ้า (EV)","icon":"⚡","color":"#e0f7fa","models":[{"name":"Honda UC3","price":132600,"badge":"EV","icon":"⚡","logo":"","downText":"","variants":[{"name":"มาตรฐาน","price":132600,"downs":[0,13260,26520],"financeBase":132600}],"colors":[{"name":"ขาว","hex":"#ffffff","img":"/images/UC3 2026/K4HA1288S08.png","variant":"มาตรฐาน"},{"name":"ดำ","hex":"#212121","img":"/images/UC3 2026/K4HA1288S08Black.png","variant":"มาตรฐาน"}]}]}];
+let categories=[/* ข้อมูลโหลดจาก DB ผ่าน fetchCatalogDisplay() */];
 const newsData=[{"title":"ดาวน์พิเศษ 0% เดือนนี้เท่านั้น!","tag":"โปรโมชั่น","date":"พฤษภาคม 2569","icon":"🏍️","body":"Honda CLICK 160 และ PCX160"},{"title":"เช็กรถฟรี ต้อนรับเทศกาลสงกรานต์","tag":"บริการ","date":"เมษายน 2569","icon":"🔧","body":"ศูนย์บริการฮอนด้า วังน้อย"},{"title":"ส่งมอบรถ Honda ADV160","tag":"กิจกรรม","date":"มีนาคม 2569","icon":"🎉","body":"ร่วมแสดงความยินดีกับลูกค้า"}];
 let modalModel=null,modalVariantIdx=0,modalColorIdx=0;
 function fmt(n){return n.toLocaleString('th-TH');}
@@ -270,7 +270,7 @@ function renderAllRows(){
     '<div class="model-grid">'+
     cat.models.map((m,mi)=>
       '<div class="mcard" onclick="oM('+ci+','+mi+')">'+
-      '<div class="mcard-img">'+(m.badge?'<div class="mcard-badge">'+m.badge+'</div>':'')+
+      '<div class="mcard-img">'+((m.badge||'')?'<div class="mcard-badge">'+(m.badge||'')+'</div>':'')+
       (m.logo?'<img class="mcard-logo" src="'+m.logo+'" alt="">':'')+
       (m.colors&&m.colors[0]&&m.colors[0].img?'<img src="'+m.colors[0].img+'" style="width:100%;height:180px;object-fit:contain;">':'<span style="font-size:3.5rem">'+m.icon+'</span>')+
       '</div>'+
@@ -419,42 +419,6 @@ function renderContactModels(){const sel=document.getElementById('intModel');sel
 function submitForm(e){e.preventDefault();document.getElementById('leadForm').style.display='none';document.getElementById('successMsg').style.display='block';}
 function toggleMenu(){document.getElementById('mobileMenu').classList.toggle('open');}
 function closeMenu(){document.getElementById('mobileMenu').classList.remove('open');}
-const PRICE_MAPPING = {
-  'Honda Wave110i': {
-    'ล้อซี่ลวด (ดรัมเบรก)': 'Wave110i|AFS110KDBT|TH',
-    'ล้อซี่ลวด (ดิสก์เบรก)': 'Wave110i|AFS110MSBT|TH',
-    'ล้อแม็ก': 'Wave110i|AFS110MCBT|TH',
-    'ล้อแม็ก (สเปเชียล)': 'Wave110i|AFS110MCBT|3TH'
-  },
-  'Honda Wave125i': {
-    'ล้อลวด': 'Wave125|AFS125MSBT|TH',
-    'ล้อแม็ก': 'Wave125|AFS125CSBT|TH',
-    'ล้อแม็ก (รีโมท)': 'Wave125|AFS125CSBT|2TH'
-  },
-  'Honda Super Cub': { 'ล้อลวด': 'Super|NBC110MSBT|TH' },
-  'Honda Scoopy': {
-    'URBAN (ล้อลวด)': 'Scoopy|ACF110BTT|2TH',
-    'PRESTIGE (ล้อแม็ก)': 'Scoopy|ACF110CBTS|TH',
-    'CLUB12 (ล้อแม็ก รีโมท)': 'Scoopy|ACF110CBTT|TH',
-    'CLUB12 Cinnamoroll Limited Edition': 'Scoopy|ACF110CBTT|2TH'
-  },
-  'Honda Giorno+': { 'CBS': 'GIORNO+|ACF125CBT|TH', 'ABS': 'GIORNO+|ACF125CAT|TH' },
-  'Honda Lead125': { 'CBS': 'Lead125|NHX125T|TH', 'ABS': 'Lead125|NHX125AT|TH' },
-  'Honda Click125': { 'ล้อแม็ก': 'Click125|ACB125CBTP|TH' },
-  'Honda Click160': { 'STANDARD': 'Click160|ACB160CATR|TH', 'SPECIAL': 'Click160|ACB160CATR|2TH' },
-  'Honda ADV160': { 'STANDARD': 'ADV160|ADV160AT|3TH', 'SPECIAL': 'ADV160|ADV160AT|7TH' },
-  'Honda PCX160': { 'STANDARD': 'PCX160|WW160AS|TH', 'ROADSYNC': 'PCX160|WW160SS|TH' },
-  'Honda Forza350': { 'ROADSYNC': 'Forza350|NSS350AS|2TH' },
-  'Honda ADV350': { 'ROADSYNC': 'ADV350|ADV350AS|3TH' },
-  'GROM': { 'ABS': 'MSX|MSX125SF2|TH' },
-  'Honda CBR150R': { 'มาตรฐาน': 'CBR150R|CBR150RAS|TH' },
-  'Honda CB150R': { 'มาตรฐาน': 'CB150R|CBF150NAL|TH' },
-  'Honda CB300R': { 'มาตรฐาน': 'CB300R|CBF300NAP|TH' },
-  'Honda CL300': { 'E-CLUTCH': 'CL300|CL300A3S|TH' },
-  'Honda Rebel300': { 'E-CLUTCH': 'Rebel300|CMX300A3S|TH' },
-  'Honda CRF300 L': { 'มาตรฐาน': 'CRF300L|CRF300LDAS|TH' },
-  'Honda UC3': { 'มาตรฐาน': 'UC3|RSR9004T|4TH' }
-};
 async function fetchSiteData() {
   // ดึงเฉพาะ news (categories รถดึงจาก fetchCatalogDisplay แทน)
   try {
@@ -472,11 +436,12 @@ function buildCategoriesFromAPI(rows) {
   const catOrder = [];
   const catMap = {};
   const catIcons = {
-    'ครอบครัว': '🏠', 'ครอบครัว (Family)': '🏠',
+    'ครอบครัว': '🏘️', 'ครอบครัว (Family)': '🏘️',
     'สกู๊ตเตอร์ออโตเมติก': '🛵', 'สกู๊ตเตอร์': '🛵',
     'สปอร์ต': '🏍️', 'สปอร์ต (Sport)': '🏍️',
-    'ผจญภัย': '🌍', 'ผจญภัย (Adventure)': '🌍',
-    'บ้อมเนอร์': '⚡', 'บ้อมเนอร์ & นีโอสปอร์ตคาเฟ่': '⚡',
+    'ผจญภัย': '🗺️', 'ผจญภัย (Adventure)': '🗺️',
+    'บ๊อบเบอร์': '☕', 'บ๊อบเบอร์ & นีโอสปอร์ตคาเฟ่': '☕',
+    'บ้อมเนอร์': '☕', 'บ้อมเนอร์ & นีโอสปอร์ตคาเฟ่': '☕',
     'รถไฟฟ้า': '⚡', 'รถไฟฟ้า (EV)': '⚡'
   };
   rows.forEach(function(row) {
@@ -494,10 +459,11 @@ function buildCategoriesFromAPI(rows) {
     const catName = row.bike_type || 'อื่นๆ';
     if (!catMap[catName]) { catMap[catName] = {}; catOrder.push(catName); }
     if (!catMap[catName][bikeName]) {
-      catMap[catName][bikeName] = { colors: [], variants: [], sortOrder: row.sort_order || 0 };
+      catMap[catName][bikeName] = { colors: [], variants: [], sortOrder: row.sort_order || 0, badge: '' };
     }
     const bike = catMap[catName][bikeName];
     bike.sortOrder = Math.min(bike.sortOrder, row.sort_order !== undefined ? row.sort_order : 999);
+    if (!bike.badge && row.badge) bike.badge = row.badge;
     // เพิ่ม variant ถ้ายังไม่มี
     if (!bike.variants.find(function(v) { return v.name === variantName; })) {
       const price = parseInt(row.price) || 0;
@@ -521,8 +487,11 @@ function buildCategoriesFromAPI(rows) {
     const colors = Array.isArray(row.colors) ? row.colors
       : (typeof row.colors === 'string' ? (function(){ try{return JSON.parse(row.colors);}catch(e){return [];} })() : []);
     colors.forEach(function(c) {
-      if (!bike.colors.find(function(e) { return e.name === c.name; })) {
-        bike.colors.push(Object.assign({}, c, { _price: rowPrice, _finance_price: rowFinancePrice }));
+      // รองรับทั้ง format เก่า (string) และ format ใหม่ (object)
+      const colorObj = (typeof c === 'string') ? { name: c } : c;
+      if (!colorObj.name) return;
+      if (!bike.colors.find(function(e) { return e.name === colorObj.name && (!colorObj.variant || e.variant === colorObj.variant); })) {
+        bike.colors.push(Object.assign({}, colorObj, { _price: rowPrice, _finance_price: rowFinancePrice }));
       }
     });
   });
@@ -532,78 +501,31 @@ function buildCategoriesFromAPI(rows) {
       .map(function(entry) {
         const bike = entry[1];
         bike.variants.sort(function(a,b){ return a._sortOrder - b._sortOrder; });
-        return { name: entry[0], icon: '🏍️', colors: bike.colors, variants: bike.variants };
+        return { name: entry[0], icon: '🏍️', badge: bike.badge || '', colors: bike.colors, variants: bike.variants };
       });
     return { name: catName, icon: catIcons[catName] || '🏍️', models: models };
   });
 }
 
-// เสริมรูปภาพจาก hardcoded เข้า DB data (DB = primary, hardcoded = รูป fallback)
-function enrichFromHardcoded(built) {
-  const orig = window._origCategories || [];
-  const origModelMap = {};
-  orig.forEach(function(cat) {
-    (cat.models || []).forEach(function(m) { origModelMap[m.name] = m; });
-  });
-  built.forEach(function(cat) {
-    cat.models.forEach(function(model) {
-      const orig = origModelMap[model.name];
-      if (!orig) return;
-      if (!model.badge && orig.badge) model.badge = orig.badge;
-      if (!model.logo && orig.logo) model.logo = orig.logo;
-      if (!model.icon || model.icon === '🏍️') model.icon = orig.icon || '🏍️';
-      model.colors.forEach(function(color) {
-        if (!color.img) {
-          const match = (orig.colors || []).find(function(c) {
-            return c.name === color.name && (!c.variant || c.variant === color.variant);
-          }) || (orig.colors || []).find(function(c) { return c.name === color.name; });
-          if (match && match.img) { color.img = match.img; if (match.hex2) color.hex2 = match.hex2; }
-        }
-      });
-    });
-  });
-  return built;
-}
-
-// ดึง catalog+ราคาจาก DB ผ่าน n8n เสมอ — hardcoded ใช้เฉพาะ fallback รูปภาพ
+// ดึง catalog+ราคาจาก DB ผ่าน n8n — DB คือ single source of truth
 async function fetchCatalogDisplay() {
-  // เก็บ hardcoded ไว้ใช้เสริมรูปภาพ
-  if (!window._origCategories) {
-    window._origCategories = JSON.parse(JSON.stringify(categories));
-  }
   try {
     const res = await fetch('https://n8n-wt11.onrender.com/webhook/bike-catalog-display');
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const rows = await res.json();
     if (Array.isArray(rows) && rows.length > 0) {
-      const built = enrichFromHardcoded(buildCategoriesFromAPI(rows));
+      const built = buildCategoriesFromAPI(rows);
       if (built.length > 0) {
         categories.length = 0;
         built.forEach(function(c){ categories.push(c); });
-        console.log('[catalog] DB: ' + rows.length + ' entries loaded');
+        console.log('[catalog] DB: ' + rows.length + ' รุ่นโหลดสำเร็จ');
         return;
       }
     }
-    console.log('[catalog] DB returned empty — using hardcoded fallback');
+    console.log('[catalog] DB ตอบกลับแต่ไม่มีข้อมูล — ตรวจสอบ bike_catalog ใน DB');
   } catch(e) {
-    console.log('[catalog] DB unavailable — using hardcoded fallback:', e.message);
+    console.log('[catalog] DB ไม่พร้อมใช้งาน:', e.message);
   }
-}
-function lookupCustomInstallments(bikeName, variantName) {
-  const orig = window._origCategories || [];
-  for (var ci = 0; ci < orig.length; ci++) {
-    var models = orig[ci].models || [];
-    for (var mi = 0; mi < models.length; mi++) {
-      if (models[mi].name !== bikeName) continue;
-      var variants = models[mi].variants || [];
-      for (var vi = 0; vi < variants.length; vi++) {
-        if (variants[vi].name === variantName && variants[vi].customInstallments) {
-          return variants[vi].customInstallments;
-        }
-      }
-    }
-  }
-  return null;
 }
 fetchSiteData().then(fetchCatalogDisplay).then(function(){
   renderAllRows();renderNews();renderContactModels();
