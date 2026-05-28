@@ -538,25 +538,56 @@ function buildCategoriesFromAPI(rows) {
   });
 }
 
-// ดึง catalog+ราคาจาก n8n — ถ้าสำเร็จอัปเดต categories, ถ้าล้มเหลวใช้ hardcoded
+// เสริมรูปภาพจาก hardcoded เข้า DB data (DB = primary, hardcoded = รูป fallback)
+function enrichFromHardcoded(built) {
+  const orig = window._origCategories || [];
+  const origModelMap = {};
+  orig.forEach(function(cat) {
+    (cat.models || []).forEach(function(m) { origModelMap[m.name] = m; });
+  });
+  built.forEach(function(cat) {
+    cat.models.forEach(function(model) {
+      const orig = origModelMap[model.name];
+      if (!orig) return;
+      if (!model.badge && orig.badge) model.badge = orig.badge;
+      if (!model.logo && orig.logo) model.logo = orig.logo;
+      if (!model.icon || model.icon === '🏍️') model.icon = orig.icon || '🏍️';
+      model.colors.forEach(function(color) {
+        if (!color.img) {
+          const match = (orig.colors || []).find(function(c) {
+            return c.name === color.name && (!c.variant || c.variant === color.variant);
+          }) || (orig.colors || []).find(function(c) { return c.name === color.name; });
+          if (match && match.img) { color.img = match.img; if (match.hex2) color.hex2 = match.hex2; }
+        }
+      });
+    });
+  });
+  return built;
+}
+
+// ดึง catalog+ราคาจาก DB ผ่าน n8n เสมอ — hardcoded ใช้เฉพาะ fallback รูปภาพ
 async function fetchCatalogDisplay() {
+  // เก็บ hardcoded ไว้ใช้เสริมรูปภาพ
+  if (!window._origCategories) {
+    window._origCategories = JSON.parse(JSON.stringify(categories));
+  }
   try {
-    // บันทึก hardcoded categories (มี customInstallments) ไว้ก่อน override
-    if (!window._origCategories) {
-      window._origCategories = JSON.parse(JSON.stringify(categories));
-    }
     const res = await fetch('https://n8n-wt11.onrender.com/webhook/bike-catalog-display');
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const rows = await res.json();
     if (Array.isArray(rows) && rows.length > 0) {
-      const built = buildCategoriesFromAPI(rows);
+      const built = enrichFromHardcoded(buildCategoriesFromAPI(rows));
       if (built.length > 0) {
         categories.length = 0;
         built.forEach(function(c){ categories.push(c); });
-        console.log('[catalog] loaded ' + rows.length + ' entries from API');
+        console.log('[catalog] DB: ' + rows.length + ' entries loaded');
+        return;
       }
     }
-  } catch(e) { console.log('Using hardcoded categories — catalog API unavailable:', e.message); }
+    console.log('[catalog] DB returned empty — using hardcoded fallback');
+  } catch(e) {
+    console.log('[catalog] DB unavailable — using hardcoded fallback:', e.message);
+  }
 }
 function lookupCustomInstallments(bikeName, variantName) {
   const orig = window._origCategories || [];
