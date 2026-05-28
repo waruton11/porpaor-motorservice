@@ -1,0 +1,64 @@
+{
+  "name": "GET bike-models-list",
+  "nodes": [
+    {
+      "id": "wf5-node-001",
+      "name": "GET bike-models-list",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "bike-models-list",
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "bike-models-list",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "wf5-node-002",
+      "name": "Query bike_models",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [460, 300],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT category_name, model_name, variant_name\nFROM bike_models\nORDER BY category_name ASC, model_name ASC, variant_name ASC;",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "wf5-node-003",
+      "name": "Respond Models List",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [680, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($input.all().map(item => item.json)) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "GET bike-models-list": {
+      "main": [[{ "node": "Query bike_models", "type": "main", "index": 0 }]]
+    },
+    "Query bike_models": {
+      "main": [[{ "node": "Respond Models List", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": true,
+  "settings": { "executionOrder": "v1" }
+}

@@ -23,7 +23,7 @@
       "position": [460, 300],
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT\n  bc.id,\n  bc.bike_type,\n  bc.submodel_name,\n  bc.model_name,\n  bc.variant_name,\n  bc.colors,\n  bc.engine_cc,\n  bc.is_active,\n  bc.sort_order,\n  pl.price\nFROM bike_catalog bc\nLEFT JOIN price_list pl\n  ON bc.model_name = pl.model_code\n  AND bc.variant_name = pl.variant_code\nWHERE bc.is_active = true\nORDER BY bc.sort_order ASC, bc.id ASC;",
+        "query": "SELECT\n  bc.id,\n  bc.bike_type,\n  bc.submodel_name,\n  bc.model_name,\n  bc.variant_name,\n  bc.colors,\n  bc.engine_cc,\n  bc.is_active,\n  bc.sort_order,\n  bc.auto_rate,\n  bc.auto_rate_unit,\n  bc.auto_down_pcts,\n  pl.price,\n  pl.finance_price\nFROM bike_catalog bc\nLEFT JOIN price_list pl\n  ON bc.model_name = pl.model_code\n  AND bc.variant_name = pl.variant_code\nWHERE bc.is_active = true\nORDER BY bc.sort_order ASC, bc.id ASC;",
         "options": {}
       },
       "credentials": {
