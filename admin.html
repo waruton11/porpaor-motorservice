@@ -1745,7 +1745,21 @@ function populateSubmodelDatalist(cat) {
     dl.appendChild(opt);
   });
 
-  // === 2. จาก data.catalog — ชื่อทางการตลาดที่จับคู่ไว้แล้ว กรองตาม bikeType ===
+  // === 2. จาก data.categories — รุ่นย่อยที่เพิ่มใน "รุ่นรถ & ราคา" ===
+  (data.categories || []).forEach(function(category) {
+    (category.models || []).forEach(function(bike) {
+      (bike.variants || []).forEach(function(v) {
+        const val = bike.name + ' / ' + v.name;
+        if (seen.has(val)) return;
+        seen.add(val);
+        const opt = document.createElement('option');
+        opt.value = val;
+        dl.appendChild(opt);
+      });
+    });
+  });
+
+  // === 3. จาก data.catalog — ชื่อทางการตลาดที่จับคู่ไว้แล้ว ===
   (data.catalog || []).forEach(function(c) {
     if (cat && c.bikeType !== cat) return;
     const val = c.submodelName || '';
