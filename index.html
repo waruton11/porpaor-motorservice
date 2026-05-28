@@ -471,11 +471,26 @@ async function fetchSiteData() {
 function buildCategoriesFromAPI(rows) {
   const catOrder = [];
   const catMap = {};
+  const catIcons = {
+    'ครอบครัว': '🏠', 'ครอบครัว (Family)': '🏠',
+    'สกู๊ตเตอร์ออโตเมติก': '🛵', 'สกู๊ตเตอร์': '🛵',
+    'สปอร์ต': '🏍️', 'สปอร์ต (Sport)': '🏍️',
+    'ผจญภัย': '🌍', 'ผจญภัย (Adventure)': '🌍',
+    'บ้อมเนอร์': '⚡', 'บ้อมเนอร์ & นีโอสปอร์ตคาเฟ่': '⚡',
+    'รถไฟฟ้า': '⚡', 'รถไฟฟ้า (EV)': '⚡'
+  };
   rows.forEach(function(row) {
     const submodel = row.submodel_name || '';
-    const slashIdx = submodel.indexOf(' / ');
-    const bikeName    = slashIdx !== -1 ? submodel.substring(0, slashIdx).trim() : submodel.trim();
-    const variantName = slashIdx !== -1 ? submodel.substring(slashIdx + 3).trim() : 'มาตรฐาน';
+    let bikeName, variantName;
+    if (submodel) {
+      const slashIdx = submodel.indexOf(' / ');
+      bikeName    = slashIdx !== -1 ? submodel.substring(0, slashIdx).trim() : submodel.trim();
+      variantName = slashIdx !== -1 ? submodel.substring(slashIdx + 3).trim() : (row.variant_name || 'มาตรฐาน');
+    } else {
+      // fallback: ใช้ model_name และ variant_name จาก DB โดยตรง
+      bikeName    = row.model_name || '';
+      variantName = row.variant_name || 'มาตรฐาน';
+    }
     const catName = row.bike_type || 'อื่นๆ';
     if (!catMap[catName]) { catMap[catName] = {}; catOrder.push(catName); }
     if (!catMap[catName][bikeName]) {
@@ -519,7 +534,7 @@ function buildCategoriesFromAPI(rows) {
         bike.variants.sort(function(a,b){ return a._sortOrder - b._sortOrder; });
         return { name: entry[0], icon: '🏍️', colors: bike.colors, variants: bike.variants };
       });
-    return { name: catName, models: models };
+    return { name: catName, icon: catIcons[catName] || '🏍️', models: models };
   });
 }
 
