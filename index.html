@@ -2324,45 +2324,39 @@ async function sendToLine() {
     titleContents.push({ type: 'text', text: variantName, size: 'sm', color: '#666666' });
   }
 
-  // สร้าง Flex Message — ใช้ styles ของ bubble แทน backgroundColor บน box
-  const bubble = {
-    type: 'bubble',
-    styles: {
-      header: { backgroundColor: '#cc0000' }
-    },
-    header: {
-      type: 'box', layout: 'vertical',
-      contents: [
-        { type: 'text', text: 'รุ่นรถที่สนใจ', color: '#ffffff', size: 'sm', weight: 'bold' }
-      ]
-    },
-    body: {
-      type: 'box', layout: 'vertical', spacing: 'md',
-      contents: [
-        { type: 'box', layout: 'vertical', spacing: 'xs', contents: titleContents },
-        { type: 'separator' },
-        { type: 'box', layout: 'vertical', spacing: 'sm', contents: bodyRows }
-      ]
-    },
-    footer: {
-      type: 'box', layout: 'vertical',
-      contents: [{
-        type: 'button', style: 'primary', color: '#cc0000',
-        action: {
-          type: 'message',
-          label: 'สนใจรุ่นนี้ ขอข้อมูลเพิ่มเติม',
-          text: 'สนใจ ' + calcModel.name + (variantName ? ' ' + variantName : '') + '\nค่างวดประมาณ ' + fmt(inst) + ' บาท/เดือน x ' + calcPeriod + ' เดือน\nขอข้อมูลเพิ่มเติมครับ'
-        }
-      }]
+  // Minimal Flex test — ถ้านี่ผ่านแปลว่า Flex ใช้ได้ แล้วค่อยเพิ่ม property ทีละตัว
+  const flexMsg = {
+    type: 'flex',
+    altText: calcModel.name + ' ค่างวด ' + fmt(inst) + ' บาท/เดือน',
+    contents: {
+      type: 'bubble',
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        contents: [
+          { type: 'text', text: calcModel.name, weight: 'bold', size: 'lg', wrap: true },
+          { type: 'text', text: (variantName || '-'), size: 'sm', color: '#666666', wrap: true },
+          { type: 'separator', margin: 'md' },
+          { type: 'text', text: 'ค่างวด ' + fmt(inst) + ' บาท/เดือน', weight: 'bold', size: 'xl', color: '#cc0000', wrap: true },
+          { type: 'text', text: 'ผ่อน ' + calcPeriod + ' เดือน', size: 'sm', color: '#888888' }
+        ]
+      },
+      footer: {
+        type: 'box',
+        layout: 'vertical',
+        contents: [{
+          type: 'button',
+          style: 'primary',
+          color: '#cc0000',
+          action: {
+            type: 'message',
+            label: 'ขอข้อมูลเพิ่มเติม',
+            text: 'สนใจ ' + calcModel.name + (variantName ? ' ' + variantName : '') + '\nค่างวดประมาณ ' + fmt(inst) + ' บาท/เดือน x ' + calcPeriod + ' เดือน\nขอข้อมูลเพิ่มเติมครับ'
+          }
+        }]
+      }
     }
   };
-
-  // hero image: ปิดไว้ก่อน — ทดสอบว่า Flex ทำงานได้ไหมแบบไม่มีรูป
-  // if (imgUrl) {
-  //   bubble.hero = { type: 'image', url: imgUrl, size: 'full', aspectRatio: '20:11', aspectMode: 'fit' };
-  // }
-
-  const flexMsg = { type: 'flex', altText: calcModel.name + ' ค่างวด ' + fmt(inst) + ' บาท/เดือน', contents: bubble };
 
   // ลอง Flex ก่อน ถ้าไม่ผ่านให้ fallback เป็น text
   try {
