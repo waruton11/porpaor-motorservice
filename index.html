@@ -2272,10 +2272,10 @@ async function sendToLine() {
   const {rate, isAnnual} = getAutoRate(v);
   const variantName = (v && v.name) ? v.name : '';
 
-  // รูปภาพรถ — แปลง relative path เป็น absolute HTTPS URL เสมอ
+  // รูปภาพรถ — แปลง relative path เป็น absolute HTTPS URL และ encode space
   const rawImg = (calcModel.colors && calcModel.colors[0] && calcModel.colors[0].img) ? calcModel.colors[0].img : null;
   const imgUrl = rawImg
-    ? (rawImg.startsWith('http') ? rawImg : window.location.origin + (rawImg.startsWith('/') ? rawImg : '/' + rawImg))
+    ? encodeURI(rawImg.startsWith('http') ? rawImg : window.location.origin + (rawImg.startsWith('/') ? rawImg : '/' + rawImg))
     : null;
 
   // body rows
