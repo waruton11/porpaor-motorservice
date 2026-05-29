@@ -2357,13 +2357,10 @@ async function sendToLine() {
     }
   };
 
-  // เพิ่ม hero รูปเฉพาะเมื่อมี absolute URL
-  if (imgUrl) {
-    bubble.hero = {
-      type: 'image', url: imgUrl,
-      size: 'full', aspectRatio: '20:11', aspectMode: 'fit'
-    };
-  }
+  // hero image: ปิดไว้ก่อน — ทดสอบว่า Flex ทำงานได้ไหมแบบไม่มีรูป
+  // if (imgUrl) {
+  //   bubble.hero = { type: 'image', url: imgUrl, size: 'full', aspectRatio: '20:11', aspectMode: 'fit' };
+  // }
 
   const flexMsg = { type: 'flex', altText: calcModel.name + ' ค่างวด ' + fmt(inst) + ' บาท/เดือน', contents: bubble };
 
