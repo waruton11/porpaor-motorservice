@@ -1,0 +1,92 @@
+{
+  "name": "LINE OA Webhook Handler",
+  "nodes": [
+    {
+      "id": "line-node-0001-0001-0001-000000000001",
+      "name": "LINE Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "line-oa",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "line-oa",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "line-node-0001-0001-0001-000000000002",
+      "name": "Process LINE Events",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// ===== CONFIG =====\n// เปลี่ยน TOKEN ได้ที่นี่หรือย้ายไปใส่ใน n8n Variables\nconst TOKEN = 's6yXmBDu8IHtcIJA54MOVUqxVPNUSwht/oAxwGR+HyZ2H6cbrRS+i2BGQzfQRsCk8rUiVuGiYVSFVqsgW5SJXNIZHi736tS59Q/yJMP7TVfCA0Lot7p1NYu8ERe2tvh3ipTN12+bFfCTQ/8U0ShzYAdB04t89/1O/w1cDnyilFU=';\nconst LIFF_URL = 'https://liff.line.me/2010228940-rjXFOkmc';\n\n// ===== PARSE BODY =====\nconst body = $input.first().json.body || $input.first().json;\nconst events = body.events || [];\nif (events.length === 0) return [];\n\n// ===== BUSINESS HOURS CHECK (UTC+7, จ-ส 08:00-17:30) =====\nfunction isBusinessHours() {\n  const bkk = new Date(Date.now() + 7 * 3600 * 1000);\n  const day = bkk.getUTCDay(); // 0=อาทิตย์\n  const t = bkk.getUTCHours() * 60 + bkk.getUTCMinutes();\n  return day >= 1 && day <= 6 && t >= 480 && t < 1050;\n}\n\n// ===== FLEX: LIFF BUTTON BUBBLE =====\nfunction liffBubble(title, desc, btnLabel) {\n  return {\n    type: 'flex',\n    altText: title,\n    contents: {\n      type: 'bubble',\n      body: {\n        type: 'box', layout: 'vertical', spacing: 'md',\n        contents: [\n          { type: 'text', text: title, weight: 'bold', size: 'lg', wrap: true, color: '#cc0000' },\n          { type: 'text', text: desc, size: 'sm', color: '#555555', wrap: true }\n        ]\n      },\n      footer: {\n        type: 'box', layout: 'vertical',\n        contents: [{\n          type: 'button', style: 'primary', color: '#cc0000',\n          action: { type: 'uri', label: btnLabel, uri: LIFF_URL }\n        }]\n      }\n    }\n  };\n}\n\n// ===== PROCESS EACH EVENT =====\nconst results = [];\n\nfor (const event of events) {\n  if (!event.replyToken || event.replyToken === '00000000000000000000000000000000') continue;\n\n  let messages = null;\n\n  if (event.type === 'follow') {\n    // --- เพิ่มเพื่อน ---\n    messages = [\n      {\n        type: 'text',\n        text: 'ยินดีต้อนรับครับ 🏍️\\nป.เปา มอเตอร์เซอร์วิส ตัวแทนจำหน่าย Honda วังน้อย\\n\\nพิมพ์ถามได้เลยครับ หรือกดเมนูด้านล่างเพื่อเลือกรุ่นรถ'\n      },\n      liffBubble(\n        '🛵 ดูรุ่นรถ & คำนวณค่างวด',\n        'เลือกรุ่นรถ คำนวณค่างวด ดูราคา ได้ตลอด 24 ชม.',\n        'เลือกรุ่นรถเลย'\n      )\n    ];\n\n  } else if (event.type === 'message' && event.message && event.message.type === 'text') {\n    // --- ข้อความ ---\n    const raw = (event.message.text || '').trim();\n    const tl = raw.toLowerCase();\n\n    if (!isBusinessHours()) {\n      // นอกเวลา → ส่ง LIFF link\n      messages = [\n        liffBubble(\n          '⏰ นอกเวลาทำการครับ',\n          'เวลาทำการ จ-ส 08:00-17:30 น.\\nขณะนี้ยังไม่มีเจ้าหน้าที่ออนไลน์\\n\\nแต่เลือกรุ่นรถ คำนวณค่างวดได้ตลอด 24 ชม. ครับ',\n          '🏍️ เลือกรุ่นรถ / คำนวณค่างวด'\n        )\n      ];\n\n    } else if (tl.includes('สาขา') || tl === 'สาขาของเรา') {\n      messages = [{\n        type: 'text',\n        text: '📍 สาขาวังน้อย\\n☎️ 092-2499686\\n🗺️ https://maps.app.goo.gl/9HexF99DPcKtdtsj9\\n\\n📍 สาขานครหลวง\\n☎️ 092-2499685\\n🗺️ https://maps.app.goo.gl/z1qu63BnxFthPtdW9'\n      }];\n\n    } else if (tl.includes('เอกสาร') || tl.includes('ออกรถ')) {\n      messages = [{\n        type: 'image',\n        originalContentUrl: 'https://raw.githubusercontent.com/waruton11/porpaor-motorservice/main/images/doc-requirements.png',\n        previewImageUrl: 'https://raw.githubusercontent.com/waruton11/porpaor-motorservice/main/images/doc-requirements.png'\n      }];\n\n    } else if (tl.includes('myanmar') || tl.includes('myanmar support')) {\n      messages = [{\n        type: 'text',\n        text: 'ဆက်သွယ်ရန် ဖုန်းနံပါတ် ပေးပါ ခင်ဗျာ 📞\\nMyanmar staff ဆက်သွယ်ပေးပါမည်ခင်ဗျာ\\n\\nส่งเบอร์โทรมาได้เลยครับ เซลพม่าจะโทรหาโดยเร็วครับ 😊'\n      }];\n    }\n    // keyword ไม่ตรง + ในเวลาทำการ → ไม่ตอบ ให้พนักงานตอบเอง\n  }\n\n  if (messages) {\n    results.push({ json: { replyToken: event.replyToken, messages: messages, token: TOKEN } });\n  }\n}\n\nreturn results;"
+      }
+    },
+    {
+      "id": "line-node-0001-0001-0001-000000000003",
+      "name": "Send LINE Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $json.token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ replyToken: $json.replyToken, messages: $json.messages }) }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "LINE Webhook": {
+      "main": [
+        [
+          {
+            "node": "Process LINE Events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process LINE Events": {
+      "main": [
+        [
+          {
+            "node": "Send LINE Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
