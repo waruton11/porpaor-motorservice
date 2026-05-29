@@ -2331,11 +2331,6 @@ async function sendToLine() {
     altText: calcModel.name + ' ค่างวด ' + fmt(inst) + ' บาท/เดือน',
     contents: {
       type: 'bubble',
-      styles: { header: { backgroundColor: '#cc0000' } },
-      header: {
-        type: 'box', layout: 'vertical',
-        contents: [{ type: 'text', text: 'รุ่นรถที่สนใจ', color: '#ffffff', size: 'sm', weight: 'bold' }]
-      },
       body: {
         type: 'box', layout: 'vertical', spacing: 'md',
         contents: [
