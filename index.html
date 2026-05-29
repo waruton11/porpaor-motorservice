@@ -2371,6 +2371,7 @@ async function sendToLine() {
     await liff.sendMessages([flexMsg]);
     liff.closeWindow();
   } catch(e) {
+    alert('Flex error: ' + e.message + '\nver: 2025-05-29-v2');
     try {
       await liff.sendMessages([{
         type: 'text',
