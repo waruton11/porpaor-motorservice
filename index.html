@@ -2365,11 +2365,20 @@ async function sendToLine() {
 
   const flexMsg = { type: 'flex', altText: calcModel.name + ' ค่างวด ' + fmt(inst) + ' บาท/เดือน', contents: bubble };
 
+  // ลอง Flex ก่อน ถ้าไม่ผ่านให้ fallback เป็น text
   try {
     await liff.sendMessages([flexMsg]);
     liff.closeWindow();
   } catch(e) {
-    alert('ส่งไม่ได้: ' + e.message + '\nimg: ' + (imgUrl || 'none'));
+    try {
+      await liff.sendMessages([{
+        type: 'text',
+        text: 'สนใจ ' + calcModel.name + (variantName ? ' ' + variantName : '') + '\nค่างวดประมาณ ' + fmt(inst) + ' บาท/เดือน x ' + calcPeriod + ' เดือน\nขอข้อมูลเพิ่มเติมครับ'
+      }]);
+      liff.closeWindow();
+    } catch(e2) {
+      alert('ส่งไม่ได้ทั้ง Flex และ Text: ' + e2.message);
+    }
   }
 }
 </script>
