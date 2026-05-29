@@ -2324,16 +2324,50 @@ async function sendToLine() {
     titleContents.push({ type: 'text', text: variantName, size: 'sm', color: '#666666' });
   }
 
-  // Absolute minimal Flex test
+  // Flex Message — ไม่ใช้ \n ใน action text, ไม่ใช้ separator
+  const actionText = 'สนใจ ' + calcModel.name + (variantName ? ' ' + variantName : '') + ' ค่างวดประมาณ ' + fmt(inst) + ' บาท/เดือน x ' + calcPeriod + ' เดือน ขอข้อมูลเพิ่มเติมครับ';
   const flexMsg = {
     type: 'flex',
-    altText: 'flex test',
+    altText: calcModel.name + ' ค่างวด ' + fmt(inst) + ' บาท/เดือน',
     contents: {
       type: 'bubble',
+      styles: { header: { backgroundColor: '#cc0000' } },
+      header: {
+        type: 'box', layout: 'vertical',
+        contents: [{ type: 'text', text: 'รุ่นรถที่สนใจ', color: '#ffffff', size: 'sm', weight: 'bold' }]
+      },
       body: {
-        type: 'box',
-        layout: 'vertical',
-        contents: [{ type: 'text', text: 'hello flex' }]
+        type: 'box', layout: 'vertical', spacing: 'md',
+        contents: [
+          { type: 'text', text: calcModel.name, weight: 'bold', size: 'xl', color: '#cc0000', wrap: true },
+          { type: 'text', text: variantName || '-', size: 'sm', color: '#666666' },
+          { type: 'box', layout: 'horizontal', margin: 'md',
+            contents: [
+              { type: 'text', text: 'ราคาเงินสด', size: 'sm', color: '#888888', flex: 3 },
+              { type: 'text', text: '฿' + fmt(cashPrice), size: 'sm', align: 'end', flex: 2 }
+            ]
+          },
+          { type: 'box', layout: 'horizontal',
+            contents: [
+              { type: 'text', text: 'เงินดาวน์ (' + downPct + '%)', size: 'sm', color: '#888888', flex: 3 },
+              { type: 'text', text: dn > 0 ? '฿' + fmt(dn) : 'ฟรีดาวน์', size: 'sm', align: 'end', flex: 2 }
+            ]
+          },
+          { type: 'box', layout: 'horizontal',
+            contents: [
+              { type: 'text', text: 'ค่างวด/เดือน', size: 'sm', weight: 'bold', flex: 3 },
+              { type: 'text', text: '฿' + fmt(inst), size: 'sm', weight: 'bold', color: '#cc0000', align: 'end', flex: 2 }
+            ]
+          },
+          { type: 'text', text: 'ผ่อน ' + calcPeriod + ' เดือน', size: 'xs', color: '#aaaaaa', align: 'end' }
+        ]
+      },
+      footer: {
+        type: 'box', layout: 'vertical',
+        contents: [{
+          type: 'button', style: 'primary', color: '#cc0000',
+          action: { type: 'message', label: 'ขอข้อมูลเพิ่มเติม', text: actionText }
+        }]
       }
     }
   };
