@@ -2324,12 +2324,14 @@ async function sendToLine() {
     titleContents.push({ type: 'text', text: variantName, size: 'sm', color: '#666666' });
   }
 
-  // สร้าง Flex Message
+  // สร้าง Flex Message — ใช้ styles ของ bubble แทน backgroundColor บน box
   const bubble = {
     type: 'bubble',
+    styles: {
+      header: { backgroundColor: '#cc0000' }
+    },
     header: {
-      type: 'box', layout: 'vertical', paddingAll: '16px',
-      backgroundColor: '#cc0000',
+      type: 'box', layout: 'vertical',
       contents: [
         { type: 'text', text: 'รุ่นรถที่สนใจ', color: '#ffffff', size: 'sm', weight: 'bold' }
       ]
