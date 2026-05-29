@@ -2264,110 +2264,112 @@ async function sendToLine() {
   if (!calcModel || !isInLiff) return;
   const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
   const cashPrice = v ? (parseInt(v.price) || 0) : 0;
-  const calcBase = (v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
+  const calcBase = (v && v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
   const downPct = parseInt(document.getElementById('sliderDown').value);
   const dn = downPct === 0 ? 0 : Math.ceil(calcBase * downPct / 100);
   const financed = calcBase - dn;
   const inst = getCalcInstallment();
   const {rate, isAnnual} = getAutoRate(v);
+  const variantName = (v && v.name) ? v.name : '';
 
-  // หารูปภาพรถ (สีแรก)
-  const imgUrl = (calcModel.colors && calcModel.colors[0] && calcModel.colors[0].img) ? calcModel.colors[0].img : null;
+  // รูปภาพรถ — แปลง relative path เป็น absolute HTTPS URL เสมอ
+  const rawImg = (calcModel.colors && calcModel.colors[0] && calcModel.colors[0].img) ? calcModel.colors[0].img : null;
+  const imgUrl = rawImg
+    ? (rawImg.startsWith('http') ? rawImg : window.location.origin + (rawImg.startsWith('/') ? rawImg : '/' + rawImg))
+    : null;
+
+  // body rows
+  const bodyRows = [
+    {
+      type: 'box', layout: 'horizontal',
+      contents: [
+        { type: 'text', text: 'ราคาเงินสด', size: 'sm', color: '#888888', flex: 3 },
+        { type: 'text', text: '฿' + fmt(cashPrice), size: 'sm', align: 'end', flex: 2 }
+      ]
+    },
+    {
+      type: 'box', layout: 'horizontal',
+      contents: [
+        { type: 'text', text: 'เงินดาวน์ (' + downPct + '%)', size: 'sm', color: '#888888', flex: 3 },
+        { type: 'text', text: dn > 0 ? '฿' + fmt(dn) : 'ฟรีดาวน์', size: 'sm', align: 'end', flex: 2 }
+      ]
+    },
+    {
+      type: 'box', layout: 'horizontal',
+      contents: [
+        { type: 'text', text: 'ยอดจัดไฟแนนซ์', size: 'sm', color: '#888888', flex: 3 },
+        { type: 'text', text: '฿' + fmt(financed), size: 'sm', align: 'end', flex: 2 }
+      ]
+    },
+    { type: 'separator' },
+    {
+      type: 'box', layout: 'horizontal',
+      contents: [
+        { type: 'text', text: 'ค่างวด/เดือน', size: 'md', weight: 'bold', flex: 3 },
+        { type: 'text', text: '฿' + fmt(inst), size: 'xl', weight: 'bold', color: '#cc0000', align: 'end', flex: 2 }
+      ]
+    },
+    {
+      type: 'text',
+      text: 'ผ่อน ' + calcPeriod + ' เดือน' + (rate > 0 ? ' ดอกเบี้ย ' + rate + (isAnnual ? '%/ปี' : '%/เดือน') : ''),
+      size: 'xs', color: '#aaaaaa', align: 'end'
+    }
+  ];
+
+  // title rows (ชื่อรุ่น + variant)
+  const titleContents = [
+    { type: 'text', text: calcModel.name, weight: 'bold', size: 'xl', color: '#cc0000' }
+  ];
+  if (variantName) {
+    titleContents.push({ type: 'text', text: variantName, size: 'sm', color: '#666666' });
+  }
 
   // สร้าง Flex Message
-  const flexMsg = {
-    type: 'flex',
-    altText: '🏍️ ' + calcModel.name + ' · ค่างวด ฿' + fmt(inst) + '/เดือน',
-    contents: {
-      type: 'bubble',
-      size: 'mega',
-      header: {
-        type: 'box', layout: 'vertical',
-        backgroundColor: '#cc0000', paddingAll: '16px',
-        contents: [
-          { type: 'text', text: '🏍️ รุ่นรถที่สนใจ', color: '#ffffff', size: 'sm', weight: 'bold' }
-        ]
-      },
-      hero: imgUrl ? {
-        type: 'image', url: imgUrl,
-        size: 'full', aspectRatio: '20:11', aspectMode: 'fit',
-        backgroundColor: '#f5f5f5'
-      } : undefined,
-      body: {
-        type: 'box', layout: 'vertical', spacing: 'md',
-        contents: [
-          {
-            type: 'box', layout: 'vertical', spacing: 'xs',
-            contents: [
-              { type: 'text', text: calcModel.name, weight: 'bold', size: 'xl', color: '#cc0000' },
-              { type: 'text', text: v ? v.name : '', size: 'sm', color: '#666666' }
-            ]
-          },
-          { type: 'separator' },
-          {
-            type: 'box', layout: 'vertical', spacing: 'sm',
-            contents: [
-              {
-                type: 'box', layout: 'horizontal',
-                contents: [
-                  { type: 'text', text: 'ราคาเงินสด', size: 'sm', color: '#888888', flex: 3 },
-                  { type: 'text', text: '฿' + fmt(cashPrice), size: 'sm', align: 'end', flex: 2 }
-                ]
-              },
-              {
-                type: 'box', layout: 'horizontal',
-                contents: [
-                  { type: 'text', text: 'เงินดาวน์ (' + downPct + '%)', size: 'sm', color: '#888888', flex: 3 },
-                  { type: 'text', text: dn > 0 ? '฿' + fmt(dn) : 'ฟรีดาวน์', size: 'sm', align: 'end', flex: 2 }
-                ]
-              },
-              {
-                type: 'box', layout: 'horizontal',
-                contents: [
-                  { type: 'text', text: 'ยอดจัดไฟแนนซ์', size: 'sm', color: '#888888', flex: 3 },
-                  { type: 'text', text: '฿' + fmt(financed), size: 'sm', align: 'end', flex: 2 }
-                ]
-              },
-              { type: 'separator' },
-              {
-                type: 'box', layout: 'horizontal',
-                contents: [
-                  { type: 'text', text: 'ค่างวด/เดือน', size: 'md', weight: 'bold', flex: 3 },
-                  { type: 'text', text: '฿' + fmt(inst), size: 'xl', weight: 'bold', color: '#cc0000', align: 'end', flex: 2 }
-                ]
-              },
-              {
-                type: 'text',
-                text: 'ผ่อน ' + calcPeriod + ' เดือน' + (rate > 0 ? ' · ดอกเบี้ย ' + rate + (isAnnual ? '%/ปี' : '%/เดือน') : ''),
-                size: 'xs', color: '#aaaaaa', align: 'end'
-              }
-            ]
-          }
-        ]
-      },
-      footer: {
-        type: 'box', layout: 'vertical', spacing: 'sm',
-        contents: [
-          {
-            type: 'button', style: 'primary', color: '#cc0000',
-            action: {
-              type: 'message',
-              label: 'สนใจรุ่นนี้ ขอข้อมูลเพิ่มเติม',
-              text: 'สนใจ ' + calcModel.name + ' ' + (v ? v.name : '') + '\nค่างวดประมาณ ฿' + fmt(inst) + '/เดือน × ' + calcPeriod + ' เดือน\nขอข้อมูลเพิ่มเติมครับ'
-            }
-          }
-        ]
-      }
+  const bubble = {
+    type: 'bubble',
+    header: {
+      type: 'box', layout: 'vertical', paddingAll: '16px',
+      backgroundColor: '#cc0000',
+      contents: [
+        { type: 'text', text: 'รุ่นรถที่สนใจ', color: '#ffffff', size: 'sm', weight: 'bold' }
+      ]
+    },
+    body: {
+      type: 'box', layout: 'vertical', spacing: 'md',
+      contents: [
+        { type: 'box', layout: 'vertical', spacing: 'xs', contents: titleContents },
+        { type: 'separator' },
+        { type: 'box', layout: 'vertical', spacing: 'sm', contents: bodyRows }
+      ]
+    },
+    footer: {
+      type: 'box', layout: 'vertical',
+      contents: [{
+        type: 'button', style: 'primary', color: '#cc0000',
+        action: {
+          type: 'message',
+          label: 'สนใจรุ่นนี้ ขอข้อมูลเพิ่มเติม',
+          text: 'สนใจ ' + calcModel.name + (variantName ? ' ' + variantName : '') + '\nค่างวดประมาณ ' + fmt(inst) + ' บาท/เดือน x ' + calcPeriod + ' เดือน\nขอข้อมูลเพิ่มเติมครับ'
+        }
+      }]
     }
   };
-  // ลบ hero ถ้าไม่มีรูป
-  if (!imgUrl) delete flexMsg.contents.hero;
+
+  // เพิ่ม hero รูปเฉพาะเมื่อมี absolute URL
+  if (imgUrl) {
+    bubble.hero = {
+      type: 'image', url: imgUrl,
+      size: 'full', aspectRatio: '20:11', aspectMode: 'fit'
+    };
+  }
+
+  const flexMsg = { type: 'flex', altText: calcModel.name + ' ค่างวด ' + fmt(inst) + ' บาท/เดือน', contents: bubble };
 
   try {
     await liff.sendMessages([flexMsg]);
     liff.closeWindow();
   } catch(e) {
-    alert('ไม่สามารถส่งข้อมูลได้: ' + e.message);
+    alert('ส่งไม่ได้: ' + e.message + '\nimg: ' + (imgUrl || 'none'));
   }
 }
 </script>
