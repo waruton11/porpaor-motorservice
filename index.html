@@ -3,233 +3,1595 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ป.เปา มอเตอร์เซอร์วิส | Honda</title>
+<title>ป.เปา มอเตอร์เซอร์วิส | Honda วังน้อย</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
-:root{--red:#cc0000;--red-dark:#990000;--black:#1a1a1a;--gray:#f5f5f5;--gray2:#e0e0e0;--white:#fff;--text:#222;--text2:#555;}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Sarabun',sans-serif;color:var(--text);background:var(--white);font-size:16px;}
-nav{background:var(--white);border-bottom:3px solid var(--red);position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
-.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:64px;}
-.nav-brand{font-family:'Kanit',sans-serif;font-size:1.1rem;font-weight:700;color:var(--red);text-decoration:none;line-height:1.2;}
-.nav-brand span{display:block;font-size:0.75rem;font-weight:400;color:var(--text2);}
-.nav-links{display:flex;gap:0;list-style:none;}
-.nav-links a{display:block;padding:0.5rem 1rem;text-decoration:none;color:var(--text);font-size:0.9rem;font-weight:500;border-bottom:3px solid transparent;transition:color .2s,border-color .2s;}
-.nav-links a:hover{color:var(--red);border-bottom-color:var(--red);}
-.hamburger{display:none;cursor:pointer;flex-direction:column;gap:5px;}
-.hamburger span{width:24px;height:2px;background:var(--text);}
-.mobile-menu{display:none;background:var(--white);border-top:1px solid var(--gray2);padding:1rem 1.5rem;}
-.mobile-menu.open{display:block;}
-.mobile-menu a{display:block;padding:.75rem 0;border-bottom:1px solid var(--gray2);text-decoration:none;color:var(--text);font-weight:500;}
-.hero{background:linear-gradient(135deg,#1a1a1a 60%,#cc0000);color:white;text-align:center;padding:5rem 1.5rem 4rem;}
-.hero h1{font-family:'Kanit',sans-serif;font-size:clamp(2rem,5vw,3.5rem);font-weight:700;line-height:1.2;margin-bottom:1rem;}
-.hero h1 span{color:var(--red);}
-.hero p{font-size:1.1rem;opacity:.85;margin-bottom:2rem;}
-.hero-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;}
-.btn{padding:.75rem 2rem;border-radius:4px;font-family:'Sarabun',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block;transition:transform .15s,opacity .15s;border:none;}
-.btn:hover{transform:translateY(-2px);opacity:.9;}
-.btn-red{background:var(--red);color:white;}
-.btn-outline{background:transparent;color:white;border:2px solid white;}
-section{padding:4rem 1.5rem;}
-.section-inner{max-width:1200px;margin:0 auto;}
-.section-title{font-family:'Kanit',sans-serif;font-size:1.8rem;font-weight:700;margin-bottom:.5rem;}
-.section-title::after{content:'';display:block;width:48px;height:4px;background:var(--red);margin-top:8px;}
-.section-sub{color:var(--text2);margin-bottom:2.5rem;margin-top:.5rem;}
-#models{background:#fafafa;padding:3rem 0 4rem;}
-.cat-tabs-wrap{position:relative;}
-.cat-tabs-wrap::after{content:'';position:absolute;right:0;top:0;bottom:0;width:56px;background:linear-gradient(to right,transparent,#fafafa);pointer-events:none;z-index:1;}
-.cat-tabs{display:flex;gap:0;border-bottom:2px solid var(--gray2);margin-bottom:2.5rem;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:0;}
-.cat-tabs::-webkit-scrollbar{display:none;}
-.cat-tab{display:flex;align-items:center;gap:.6rem;padding:.85rem 1.4rem;border:none;background:none;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:.95rem;font-weight:500;color:var(--text2);border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:color .2s,border-color .2s,background .2s;}
-.cat-tab:hover{color:var(--text);}
-.cat-tab.active{color:var(--red);border-bottom-color:var(--red);font-weight:700;}
-.cat-tab-icon{font-size:1.3rem;}
-.cat-tab-info{display:flex;flex-direction:column;align-items:flex-start;}
-.cat-tab-name{font-family:'Kanit',sans-serif;font-size:.9rem;font-weight:700;line-height:1.2;}
-.cat-tab-count{font-size:.72rem;color:var(--text2);font-weight:400;}
-.cat-tab.active .cat-tab-count{color:var(--red);}
-@media(max-width:768px){
-.cat-tabs-wrap::after{background:linear-gradient(to right,transparent,rgba(250,250,250,.97));width:52px;}
-.cat-tabs{gap:.5rem;border-bottom:none;padding:.5rem 1rem 1rem;margin-bottom:1.25rem;}
-.cat-tab{flex-direction:column;align-items:center;text-align:center;gap:.25rem;min-width:78px;flex-shrink:0;padding:.65rem .4rem .6rem;border-radius:14px;border:1.5px solid var(--gray2);border-bottom:1.5px solid var(--gray2);margin-bottom:0;background:white;}
-.cat-tab.active{border-color:var(--red);background:#fff5f5;color:var(--red);}
-.cat-tab-icon{font-size:1.55rem;line-height:1.1;}
-.cat-tab-info{align-items:center;}
-.cat-tab-name{font-size:.7rem;white-space:normal;word-break:keep-all;line-height:1.3;}
-.cat-tab-count{font-size:.62rem;}
+/* ===== CSS VARIABLES ===== */
+:root {
+  --red: #cc0000;
+  --red-dark: #990000;
+  --black: #1a1a1a;
+  --gray: #f5f5f5;
+  --gray2: #e0e0e0;
+  --white: #fff;
+  --text: #222;
+  --text2: #555;
+  --nav-h: 56px;
 }
-.cat-panel{display:none;}
-.cat-panel.active{display:block;}
-.model-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.25rem;}
-@media(max-width:600px){.model-grid{grid-template-columns:1fr;}}
-.mcard{background:white;border-radius:12px;border:1.5px solid var(--gray2);padding:1.25rem 1.25rem 1.5rem;cursor:pointer;position:relative;transition:box-shadow .2s,border-color .2s,transform .2s;}
-.mcard:hover{box-shadow:0 8px 28px rgba(0,0,0,.1);border-color:#ccc;transform:translateY(-3px);}
-.mcard-img{height:190px;display:flex;align-items:center;justify-content:center;font-size:4rem;margin-bottom:1rem;position:relative;}
-.mcard-logo{position:absolute;top:0;right:0;height:26px;max-width:72px;object-fit:contain;opacity:.85;}
-@media(max-width:600px){.mcard-img{height:170px;}}
-.mcard-badge{position:absolute;top:0;right:0;background:var(--red);color:white;font-size:.65rem;font-weight:800;padding:3px 8px;border-radius:4px;letter-spacing:1px;}
-.mcard-name{font-family:'Kanit',sans-serif;font-size:1rem;font-weight:700;margin-bottom:.25rem;}
-.mcard-price{color:var(--red);font-size:.95rem;font-weight:700;}
-.mcard-down{color:var(--text2);font-size:.78rem;margin-top:.15rem;}
-.mcard-btn{display:block;margin-top:1rem;width:100%;background:var(--red);color:white;border:none;border-radius:6px;padding:.6rem;font-family:'Sarabun',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:opacity .15s;}
-.mcard-btn:hover{opacity:.88;}
-.mcard-btn-outline{display:block;margin-top:.5rem;width:100%;background:white;color:var(--text);border:1.5px solid var(--gray2);border-radius:6px;padding:.55rem;font-family:'Sarabun',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;transition:border-color .15s;}
-.mcard-btn-outline:hover{border-color:#999;}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center;padding:1rem;}
-.modal-overlay.open{display:flex;}
-.modal{background:white;border-radius:12px;width:100%;max-width:700px;max-height:90vh;overflow-y:auto;padding:2rem;position:relative;}
-.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text2);}
-.modal h2{font-family:'Kanit',sans-serif;font-size:1.5rem;margin-bottom:.25rem;}
-.modal-price{color:var(--red);font-size:1.3rem;font-weight:700;margin-bottom:1.5rem;}
-.color-swatch{width:32px;height:32px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s;flex-shrink:0;outline:1.5px solid rgba(0,0,0,.12);outline-offset:0;}
-.color-swatch:hover{transform:scale(1.15);}
-.color-swatch.active{border-color:var(--red);transform:scale(1.15);box-shadow:0 0 0 2px white,0 0 0 4px var(--red);}
-.variant-btn{padding:.4rem 1rem;border-radius:4px;border:1.5px solid var(--gray2);background:white;font-family:'Sarabun',sans-serif;font-size:.88rem;cursor:pointer;color:var(--text);transition:all .2s;}
-.variant-btn.active{background:var(--red);color:white;border-color:var(--red);}
-.installment-table{width:100%;border-collapse:collapse;font-size:.9rem;margin-bottom:1.5rem;}
-.installment-table th{background:var(--black);color:white;padding:.6rem .75rem;text-align:center;}
-.installment-table td{padding:.6rem .75rem;text-align:center;border-bottom:1px solid var(--gray2);}
-.installment-table tr:nth-child(even) td{background:var(--gray);}
-.installment-table td:first-child{font-weight:600;}
-.calc-box{background:var(--gray);border-radius:8px;padding:1.5rem;}
-.calc-box h3{font-family:'Kanit',sans-serif;font-size:1.1rem;margin-bottom:1rem;}
-.calc-row{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;}
-.calc-field{flex:1;min-width:140px;}
-.calc-field label{display:block;font-size:.85rem;color:var(--text2);margin-bottom:.3rem;}
-.calc-field input,.calc-field select{width:100%;padding:.6rem .75rem;border:1px solid var(--gray2);border-radius:4px;font-family:'Sarabun',sans-serif;font-size:1rem;}
-.calc-result{background:white;border-radius:6px;padding:1rem;display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;}
-.calc-result span{color:var(--text2);font-size:.9rem;}
-.calc-result strong{color:var(--red);font-size:1.3rem;font-family:'Kanit',sans-serif;}
-.news-section{background:var(--gray);}
-.news-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;}
-.news-card{background:white;border-radius:8px;overflow:hidden;border:1px solid var(--gray2);transition:box-shadow .2s;}
-.news-card:hover{box-shadow:0 6px 20px rgba(0,0,0,.1);}
-.news-img{height:160px;background:var(--gray2);display:flex;align-items:center;justify-content:center;font-size:3rem;}
-.news-body{padding:1rem 1.25rem;}
-.news-date{font-size:.8rem;color:var(--text2);margin-bottom:.3rem;}
-.news-title{font-weight:600;font-size:1rem;line-height:1.4;}
-.news-tag{display:inline-block;background:#fff0f0;color:var(--red);font-size:.75rem;padding:2px 8px;border-radius:2px;margin-bottom:.5rem;}
-.social-section{text-align:center;}
-.social-links{display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap;margin-top:2rem;}
-.social-btn{display:flex;align-items:center;gap:.75rem;padding:1rem 2rem;border-radius:8px;text-decoration:none;font-weight:600;font-size:1rem;transition:transform .2s,opacity .2s;color:white;}
-.social-btn:hover{transform:translateY(-3px);opacity:.9;}
-.social-btn.facebook{background:#1877f2;}
-.social-btn.tiktok{background:#010101;}
-.social-btn.line{background:#00b900;}
-.social-btn svg{width:24px;height:24px;fill:white;}
-.form-section{background:var(--black);color:white;}
-.form-section .section-title{color:white;}
-.form-section .section-sub{color:#aaa;}
-.lead-form{background:white;color:var(--text);border-radius:12px;padding:2rem;max-width:700px;}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
-.form-group{margin-bottom:1rem;}
-.form-group.full{grid-column:1/-1;}
-.form-group label{display:block;font-size:.9rem;font-weight:600;margin-bottom:.35rem;}
-.form-group input,.form-group select,.form-group textarea{width:100%;padding:.7rem .9rem;border:1.5px solid var(--gray2);border-radius:6px;font-family:'Sarabun',sans-serif;font-size:1rem;}
-.form-group textarea{resize:vertical;min-height:80px;}
-.form-submit{width:100%;padding:1rem;background:var(--red);color:white;border:none;border-radius:6px;font-family:'Kanit',sans-serif;font-size:1.1rem;font-weight:600;cursor:pointer;}
-.form-submit:hover{background:var(--red-dark);}
-.form-note{font-size:.8rem;color:var(--text2);margin-top:.75rem;text-align:center;}
-.success-msg{display:none;background:#e6f9ee;color:#1a7a3c;border:1.5px solid #1a7a3c;border-radius:8px;padding:1.5rem;text-align:center;margin-top:1rem;font-weight:600;}
-footer{background:#111;color:#aaa;padding:2.5rem 1.5rem;text-align:center;}
-footer .footer-brand{font-family:'Kanit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--red);margin-bottom:.5rem;}
-@media(max-width:768px){.nav-links{display:none;}.hamburger{display:flex;}.form-grid{grid-template-columns:1fr;}.mcard{flex:0 0 180px;}.slot-track{padding:0 calc(50% - 90px);}.slot-arrows{display:none;}}
+
+/* ===== RESET ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Sarabun', sans-serif;
+  color: var(--text);
+  background: var(--white);
+  font-size: 16px;
+  padding-bottom: var(--nav-h);
+}
+a { text-decoration: none; color: inherit; }
+button { font-family: inherit; cursor: pointer; }
+img { display: block; max-width: 100%; }
+
+/* ===== TOP BAR ===== */
+.top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--white);
+  border-bottom: 3px solid var(--red);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  height: 56px;
+}
+.top-bar-brand {
+  font-family: 'Kanit', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--red);
+  line-height: 1.2;
+}
+.top-bar-brand small {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--text2);
+}
+.top-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--gray);
+  font-size: 1.1rem;
+  border: none;
+  transition: background 0.15s;
+  text-decoration: none;
+}
+.top-icon-btn:hover { background: var(--gray2); }
+
+/* Desktop nav (≥768px) */
+.desktop-nav {
+  display: none;
+}
+@media (min-width: 768px) {
+  .top-bar { padding: 0 2rem; }
+  .top-bar-brand { font-size: 1.1rem; }
+  .desktop-nav {
+    display: flex;
+    gap: 0;
+    list-style: none;
+  }
+  .desktop-nav a {
+    display: block;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text);
+    border-bottom: 3px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .desktop-nav a:hover { color: var(--red); border-bottom-color: var(--red); }
+  .top-icon-btn-wrap { display: flex; gap: 8px; }
+}
+
+/* Mobile menu (hidden element, kept for JS compat) */
+#mobileMenu { display: none; }
+
+/* ===== HERO ===== */
+.hero {
+  background: linear-gradient(135deg, #1a1a1a 55%, #330000);
+  color: white;
+  padding: 2.5rem 1.25rem 2rem;
+}
+.hero-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.hero-text { flex: 1; }
+.hero-text h1 {
+  font-family: 'Kanit', sans-serif;
+  font-size: clamp(1.4rem, 5vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 0.75rem;
+}
+.hero-text p {
+  font-size: 0.95rem;
+  opacity: 0.85;
+  line-height: 1.5;
+}
+.hero-emoji {
+  font-size: clamp(3rem, 10vw, 5rem);
+  flex-shrink: 0;
+  line-height: 1;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+}
+.hero-btns {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.hero-btn {
+  flex: 1;
+  min-width: 140px;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: none;
+  transition: transform 0.15s, opacity 0.15s;
+  white-space: nowrap;
+  text-align: center;
+}
+.hero-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+.hero-btn-red { background: var(--red); color: white; }
+.hero-btn-outline { background: transparent; color: white; border: 2px solid rgba(255,255,255,0.7); }
+@media (min-width: 768px) {
+  .hero { padding: 4rem 2rem 3.5rem; }
+  .hero-btns { flex-wrap: nowrap; }
+  .hero-btn { flex: 0 0 auto; }
+}
+
+/* ===== TRUST STRIP ===== */
+.trust-strip {
+  display: flex;
+  gap: 0;
+  background: white;
+  border-bottom: 1px solid var(--gray2);
+}
+.trust-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.85rem 0.5rem;
+  border-right: 1px solid var(--gray2);
+  text-align: center;
+}
+.trust-item:last-child { border-right: none; }
+.trust-icon { font-size: 1.4rem; }
+.trust-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+@media (min-width: 768px) {
+  .trust-item { flex-direction: row; gap: 0.5rem; padding: 1rem 1.5rem; justify-content: center; }
+  .trust-label { font-size: 0.85rem; }
+}
+
+/* ===== CATEGORY ICONS (mobile only) ===== */
+.cat-icons-wrap {
+  background: white;
+  border-bottom: 1px solid var(--gray2);
+  padding: 0.75rem 0 0;
+}
+.cat-icons-header {
+  padding: 0 1rem 0.5rem;
+}
+.section-title-sm {
+  font-family: 'Kanit', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.cat-icons-scroll {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 0 0.75rem 0.75rem;
+  gap: 0.25rem;
+}
+.cat-icons-scroll::-webkit-scrollbar { display: none; }
+.cat-icon-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+  min-width: 68px;
+  cursor: pointer;
+  padding: 0.25rem 0.2rem;
+}
+.cat-icon-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--gray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  border: 2px solid transparent;
+  transition: border-color 0.2s, background 0.2s;
+}
+.cat-icon-circle.active {
+  border-color: var(--red);
+  background: #fff0f0;
+}
+.cat-icon-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--text2);
+  text-align: center;
+  line-height: 1.3;
+  max-width: 64px;
+  word-break: keep-all;
+}
+.cat-icon-label.active {
+  color: var(--red);
+  font-weight: 700;
+}
+@media (min-width: 768px) {
+  .cat-icons-wrap { display: none; }
+}
+
+/* ===== MODELS SECTION ===== */
+#models {
+  background: #fafafa;
+  padding: 1.5rem 0 3rem;
+}
+.models-header {
+  padding: 0 1rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.models-header .section-title {
+  font-family: 'Kanit', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+.models-header .section-title::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 4px;
+  background: var(--red);
+  margin-top: 6px;
+}
+.models-header .section-sub {
+  color: var(--text2);
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+@media (min-width: 768px) {
+  #models { padding: 2.5rem 0 4rem; }
+  .models-header { padding: 0 1.5rem 1.5rem; }
+  .models-header .section-title { font-size: 1.8rem; }
+  .models-header .section-sub { font-size: 0.95rem; }
+}
+
+/* ===== CATEGORY TABS (desktop shows horizontal tabs, mobile hidden by default) ===== */
+.cat-tabs-wrap {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 0 0 1rem;
+}
+.cat-tabs-wrap::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 52px;
+  background: linear-gradient(to right, transparent, #fafafa);
+  pointer-events: none;
+  z-index: 1;
+}
+.cat-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--gray2);
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 0;
+}
+.cat-tabs::-webkit-scrollbar { display: none; }
+.cat-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.2rem;
+  border: none;
+  background: none;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text2);
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  white-space: nowrap;
+  transition: color 0.2s, border-color 0.2s;
+  cursor: pointer;
+}
+.cat-tab:hover { color: var(--text); }
+.cat-tab.active { color: var(--red); border-bottom-color: var(--red); font-weight: 700; }
+.cat-tab-icon { font-size: 1.2rem; }
+.cat-tab-info { display: flex; flex-direction: column; align-items: flex-start; }
+.cat-tab-name {
+  font-family: 'Kanit', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.cat-tab-count { font-size: 0.68rem; color: var(--text2); }
+.cat-tab.active .cat-tab-count { color: var(--red); }
+
+/* On mobile, hide desktop tabs (cat icons row replaces them) */
+@media (max-width: 767px) {
+  .cat-tabs-wrap { padding: 0; }
+  .cat-tabs-wrap::after { display: none; }
+  .cat-tabs { display: none; }
+}
+
+.cat-panel { display: none; }
+.cat-panel.active { display: block; }
+
+/* ===== MODEL GRID & CARDS ===== */
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  padding: 0 0.75rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+@media (min-width: 768px) {
+  .model-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.25rem;
+    padding: 0 1.5rem;
+  }
+}
+.mcard {
+  background: white;
+  border-radius: 12px;
+  border: 1.5px solid var(--gray2);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+.mcard:hover {
+  box-shadow: 0 8px 28px rgba(0,0,0,.1);
+  border-color: #ccc;
+  transform: translateY(-3px);
+}
+.mcard-img-wrap {
+  height: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f9f9f9;
+  position: relative;
+  overflow: hidden;
+  padding: 0.5rem;
+}
+.mcard-img-wrap img {
+  max-height: 110px;
+  max-width: 100%;
+  object-fit: contain;
+  margin: 0 auto;
+}
+.mcard-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--red);
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  z-index: 1;
+}
+.mcard-body {
+  padding: 0.6rem 0.75rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+}
+.mcard-name {
+  font-family: 'Kanit', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text);
+}
+.mcard-sub {
+  font-size: 0.7rem;
+  color: var(--text2);
+  line-height: 1.3;
+}
+.mcard-price {
+  color: var(--red);
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-top: 0.1rem;
+}
+.mcard-cta {
+  display: block;
+  margin-top: 0.5rem;
+  width: 100%;
+  background: var(--red);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 0.5rem;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  text-align: center;
+}
+.mcard-cta:hover { opacity: 0.88; }
+@media (min-width: 768px) {
+  .mcard-img-wrap { height: 180px; }
+  .mcard-img-wrap img { max-height: 155px; }
+  .mcard-name { font-size: 1rem; }
+  .mcard-sub { font-size: 0.78rem; }
+  .mcard-price { font-size: 0.9rem; }
+  .mcard-cta { font-size: 0.88rem; padding: 0.6rem; }
+}
+
+/* ===== MODAL OVERLAY ===== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 200;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: white;
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.modal-handle {
+  width: 40px;
+  height: 4px;
+  background: var(--gray2);
+  border-radius: 2px;
+  margin: 10px auto 0;
+  flex-shrink: 0;
+}
+.modal-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem 0.5rem;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--gray2);
+}
+.modal-topbar h2 {
+  font-family: 'Kanit', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  flex: 1;
+  text-align: center;
+  margin: 0;
+}
+.modal-close {
+  width: 32px;
+  height: 32px;
+  background: var(--gray);
+  border: none;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.modal-close-placeholder { width: 32px; }
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1rem 0;
+}
+.modal-img-card {
+  background: #f9f9f9;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+}
+.modal-price {
+  color: var(--red);
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+.color-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+  outline: 1.5px solid rgba(0,0,0,.12);
+  outline-offset: 0;
+}
+.color-swatch:hover { transform: scale(1.15); }
+.color-swatch.active {
+  border-color: var(--red);
+  transform: scale(1.15);
+  box-shadow: 0 0 0 2px white, 0 0 0 4px var(--red);
+}
+.variant-btn {
+  padding: 0.4rem 1rem;
+  border-radius: 4px;
+  border: 1.5px solid var(--gray2);
+  background: white;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.88rem;
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.2s;
+}
+.variant-btn.active { background: var(--red); color: white; border-color: var(--red); }
+.installment-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  margin-bottom: 1rem;
+}
+.installment-table th {
+  background: var(--black);
+  color: white;
+  padding: 0.5rem 0.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+}
+.installment-table td {
+  padding: 0.5rem 0.5rem;
+  text-align: center;
+  border-bottom: 1px solid var(--gray2);
+  font-size: 0.78rem;
+}
+.installment-table tr:nth-child(even) td { background: var(--gray); }
+.installment-table td:first-child { font-weight: 600; }
+.calc-box {
+  background: var(--gray);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+.calc-box h3 {
+  font-family: 'Kanit', sans-serif;
+  font-size: 1rem;
+  margin-bottom: 0.85rem;
+}
+.calc-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+}
+.calc-field { flex: 1; min-width: 120px; }
+.calc-field label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text2);
+  margin-bottom: 0.25rem;
+}
+.calc-field input, .calc-field select {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--gray2);
+  border-radius: 4px;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.95rem;
+}
+.calc-result {
+  background: white;
+  border-radius: 6px;
+  padding: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+.calc-result span { color: var(--text2); font-size: 0.88rem; }
+.calc-result strong {
+  color: var(--red);
+  font-size: 1.2rem;
+  font-family: 'Kanit', sans-serif;
+}
+/* Modal sticky bottom */
+.modal-sticky {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  border-top: 1px solid var(--gray2);
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+}
+#mStickyPriceWrap { line-height: 1.3; }
+.slabel { font-size: 0.72rem; color: var(--text2); }
+.sval {
+  font-family: 'Kanit', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--red);
+}
+.modal-cta-btn {
+  background: var(--red);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.65rem 1.1rem;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.modal-cta-btn:hover { opacity: 0.88; }
+
+@media (min-width: 768px) {
+  .modal-overlay { align-items: center; padding: 1rem; }
+  .modal {
+    border-radius: 12px;
+    max-width: 700px;
+    max-height: 90vh;
+  }
+  .modal-handle { display: none; }
+}
+
+/* ===== CALCULATOR OVERLAY ===== */
+.calc-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+}
+.calc-overlay.open { display: flex; }
+.calc-overlay-bg {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+}
+.calc-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 20px 20px 0 0;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+}
+.calc-handle {
+  width: 40px;
+  height: 4px;
+  background: var(--gray2);
+  border-radius: 2px;
+  margin: 10px auto 0;
+  flex-shrink: 0;
+}
+.calc-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem 0.75rem;
+  border-bottom: 1px solid var(--gray2);
+  flex-shrink: 0;
+}
+.calc-topbar h3 {
+  font-family: 'Kanit', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.calc-close-btn {
+  width: 32px;
+  height: 32px;
+  background: var(--gray);
+  border: none;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.calc-inner {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+/* Step indicators */
+.steps-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 1.25rem;
+}
+.step-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+.step-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.step-circle.active { background: var(--red); color: white; }
+.step-circle.idle { background: var(--gray2); color: var(--text2); }
+.step-circle.done { background: #22aa55; color: white; }
+.step-label {
+  font-size: 0.7rem;
+  color: var(--text2);
+  margin-left: 0.3rem;
+}
+.step-line {
+  width: 28px;
+  height: 2px;
+  background: var(--gray2);
+  margin: 0 0.4rem;
+}
+/* Calc car strip */
+.calc-car-strip {
+  background: var(--gray);
+  border-radius: 10px;
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.calc-car-thumb {
+  width: 60px;
+  height: 50px;
+  border-radius: 8px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.calc-car-info { flex: 1; min-width: 0; }
+.cname {
+  font-family: 'Kanit', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.csub { font-size: 0.7rem; color: var(--text2); margin-top: 1px; }
+.cprice { font-size: 0.8rem; color: var(--red); font-weight: 700; }
+.calc-change-link {
+  font-size: 0.75rem;
+  color: var(--red);
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  text-decoration: underline;
+}
+/* Model select */
+.calc-model-select {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: 1.5px solid var(--gray2);
+  border-radius: 8px;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  background: white;
+  appearance: auto;
+}
+.calc-primary-btn {
+  width: 100%;
+  padding: 0.85rem;
+  background: var(--red);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Kanit', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.calc-primary-btn:hover { opacity: 0.88; }
+.calc-secondary-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: white;
+  color: var(--text);
+  border: 1.5px solid var(--gray2);
+  border-radius: 10px;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.calc-secondary-btn:hover { border-color: #999; }
+/* LIFF send button */
+.liff-send-btn {
+  background: #06c755;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.liff-send-btn:hover { background: #05a847; }
+/* Slider section */
+.slider-section {
+  margin-bottom: 1.25rem;
+}
+.slider-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.5rem;
+}
+.slbl { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+.samt { font-size: 0.78rem; color: var(--text2); }
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--gray2);
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--red);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--red);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.slider-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.68rem;
+  color: var(--text2);
+  margin-top: 4px;
+}
+/* Period pills */
+.period-pill {
+  padding: 0.45rem 0.85rem;
+  border-radius: 20px;
+  border: 1.5px solid var(--gray2);
+  background: white;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.15s;
+}
+.period-pill.active {
+  background: var(--red);
+  color: white;
+  border-color: var(--red);
+}
+/* Live preview */
+.live-preview {
+  display: flex;
+  gap: 0;
+  background: #fff5f5;
+  border: 1.5px solid #ffcccc;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+.lp-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.lp-col + .lp-col {
+  border-left: 1px solid #ffcccc;
+  padding-left: 0.85rem;
+  margin-left: 0.85rem;
+}
+.lp-col:last-child { text-align: right; }
+.lp-label { font-size: 0.72rem; color: var(--text2); }
+.lp-val { font-family: 'Kanit', sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--text); }
+.lp-note { font-size: 0.68rem; color: var(--text2); }
+.live-amt {
+  font-family: 'Kanit', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--red);
+}
+/* Result box */
+.result-box {
+  background: var(--red);
+  color: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.rlabel { font-size: 0.82rem; opacity: 0.85; margin-bottom: 0.25rem; }
+.ramt {
+  font-family: 'Kanit', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.rperiod { font-size: 0.78rem; opacity: 0.85; margin-top: 0.25rem; }
+.breakdown-table {
+  background: var(--gray);
+  border-radius: 10px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.bdr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.45rem 0;
+  font-size: 0.88rem;
+  border-bottom: 1px solid var(--gray2);
+}
+.bdr:last-child { border-bottom: none; }
+.bdr.total span:first-child { font-weight: 700; }
+.bdr.total span:last-child { font-weight: 700; color: var(--red); }
+.bd-note { font-size: 0.72rem; color: var(--text2); margin-bottom: 1rem; text-align: center; }
+
+@media (min-width: 768px) {
+  .calc-sheet {
+    position: relative;
+    border-radius: 12px;
+    max-width: 480px;
+    max-height: 85vh;
+    margin: auto;
+    bottom: auto;
+    left: auto;
+    right: auto;
+  }
+  .calc-overlay {
+    align-items: center;
+    justify-content: center;
+  }
+  .calc-handle { display: none; }
+}
+
+/* ===== NEWS SECTION ===== */
+#news {
+  background: var(--gray);
+  padding: 2rem 0;
+}
+.news-header {
+  padding: 0 1rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.news-header .section-title {
+  font-family: 'Kanit', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+.news-header .section-title::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 4px;
+  background: var(--red);
+  margin-top: 6px;
+}
+.news-header .section-sub { color: var(--text2); font-size: 0.85rem; margin-top: 0.5rem; }
+.news-scroll-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 0 1rem 0.5rem;
+}
+.news-scroll-wrap::-webkit-scrollbar { display: none; }
+#newsGrid {
+  display: flex;
+  gap: 0.75rem;
+  width: max-content;
+}
+.news-card {
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--gray2);
+  width: 220px;
+  flex-shrink: 0;
+  transition: box-shadow 0.2s;
+}
+.news-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,.1); }
+.news-img {
+  height: 120px;
+  background: var(--gray2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+}
+.news-body { padding: 0.75rem; }
+.news-tag {
+  display: inline-block;
+  background: #fff0f0;
+  color: var(--red);
+  font-size: 0.68rem;
+  padding: 2px 7px;
+  border-radius: 2px;
+  margin-bottom: 0.3rem;
+}
+.news-date { font-size: 0.72rem; color: var(--text2); margin-bottom: 0.25rem; }
+.news-title { font-weight: 600; font-size: 0.88rem; line-height: 1.4; }
+
+@media (min-width: 768px) {
+  #news { padding: 3rem 0; }
+  .news-header { padding: 0 1.5rem 1.5rem; }
+  .news-header .section-title { font-size: 1.8rem; }
+  .news-scroll-wrap { padding: 0 1.5rem 0.5rem; }
+  #newsGrid { width: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; }
+  .news-card { width: auto; }
+}
+
+/* ===== SOCIAL SECTION ===== */
+#social {
+  padding: 2rem 1rem 2.5rem;
+  text-align: center;
+}
+.social-section-title {
+  font-family: 'Kanit', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+.social-section-title::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 4px;
+  background: var(--red);
+  margin: 6px auto 0;
+}
+.social-sub { color: var(--text2); font-size: 0.85rem; margin: 0.5rem 0 1.5rem; }
+.social-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 320px;
+  margin: 0 auto;
+}
+.social-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1.5rem;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1rem;
+  transition: transform 0.2s, opacity 0.2s;
+  color: white;
+}
+.social-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+.social-btn.facebook { background: #1877f2; }
+.social-btn.tiktok { background: #010101; }
+.social-btn.line { background: #00b900; }
+.social-btn svg { width: 22px; height: 22px; fill: white; flex-shrink: 0; }
+@media (min-width: 768px) {
+  #social { padding: 3rem 1.5rem; }
+  .social-section-title { font-size: 1.8rem; }
+  .social-links { flex-direction: row; flex-wrap: wrap; justify-content: center; max-width: none; }
+  .social-btn { flex: 0 0 auto; }
+}
+
+/* ===== CONTACT SECTION ===== */
+#contact {
+  background: var(--black);
+  color: white;
+  padding: 2rem 1rem 2.5rem;
+}
+.contact-title {
+  font-family: 'Kanit', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: white;
+}
+.contact-title::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 4px;
+  background: var(--red);
+  margin-top: 6px;
+  margin-bottom: 0.5rem;
+}
+.contact-sub { color: #aaa; font-size: 0.85rem; margin-bottom: 1.25rem; }
+.lead-form {
+  background: white;
+  color: var(--text);
+  border-radius: 12px;
+  padding: 1.25rem;
+  max-width: 700px;
+}
+.form-group { margin-bottom: 0.85rem; }
+.form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; }
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1.5px solid var(--gray2);
+  border-radius: 6px;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.95rem;
+}
+.form-group textarea { resize: vertical; min-height: 72px; }
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 0.75rem;
+}
+.form-grid .form-group { margin-bottom: 0.75rem; }
+.form-group.full { grid-column: 1 / -1; }
+.form-submit {
+  width: 100%;
+  padding: 0.9rem;
+  background: var(--red);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Kanit', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.form-submit:hover { background: var(--red-dark); }
+.form-note { font-size: 0.76rem; color: var(--text2); margin-top: 0.6rem; text-align: center; }
+.success-msg {
+  display: none;
+  background: #e6f9ee;
+  color: #1a7a3c;
+  border: 1.5px solid #1a7a3c;
+  border-radius: 8px;
+  padding: 1.25rem;
+  text-align: center;
+  margin-top: 0.85rem;
+  font-weight: 600;
+}
+@media (min-width: 768px) {
+  #contact { padding: 3rem 1.5rem; }
+  .contact-title { font-size: 1.6rem; }
+}
+
+/* ===== FOOTER ===== */
+footer {
+  background: #111;
+  color: #aaa;
+  padding: 2rem 1.25rem;
+  text-align: center;
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+footer .footer-brand {
+  font-family: 'Kanit', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--red);
+  margin-bottom: 0.4rem;
+}
+
+/* ===== BOTTOM NAV (fixed, mobile) ===== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--nav-h);
+  background: white;
+  border-top: 1px solid var(--gray2);
+  display: flex;
+  z-index: 150;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+}
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0.3rem 0;
+  color: var(--text2);
+  transition: color 0.15s;
+  font-family: 'Sarabun', sans-serif;
+}
+.bottom-nav-item.active { color: var(--red); }
+.nav-ico { font-size: 1.15rem; line-height: 1; }
+.nav-lbl { font-size: 0.6rem; font-weight: 600; line-height: 1; }
+@media (min-width: 768px) {
+  .bottom-nav { display: none; }
+  body { padding-bottom: 0; }
+}
+
+/* ===== UTILITIES ===== */
+.btn {
+  padding: 0.7rem 1.75rem;
+  border-radius: 6px;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: transform 0.15s, opacity 0.15s;
+  border: none;
+}
+.btn:hover { transform: translateY(-2px); opacity: 0.9; }
+.btn-red { background: var(--red); color: white; }
+.btn-outline { background: transparent; color: white; border: 2px solid white; }
 </style>
 </head>
 <body>
-<nav>
-  <div class="nav-inner">
-    <a class="nav-brand" href="#">ป.เปา มอเตอร์เซอร์วิส<span>ตัวแทนจำหน่าย Honda</span></a>
-    <ul class="nav-links">
-      <li><a href="#models">รุ่นรถ & ราคา</a></li>
-      <li><a href="#news">ข่าวกิจกรรม</a></li>
-      <li><a href="#social">โซเชียล</a></li>
-      <li><a href="#contact">สอบถาม/ซื้อ</a></li>
-    </ul>
-    <div class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+
+<!-- ===== TOP BAR ===== -->
+<header class="top-bar">
+  <div class="top-bar-brand">ป.เปา มอเตอร์เซอร์วิส<small>ตัวแทนจำหน่าย Honda · วังน้อย</small></div>
+  <ul class="desktop-nav">
+    <li><a href="#models">รุ่นรถ &amp; ราคา</a></li>
+    <li><a href="#news">ข่าวกิจกรรม</a></li>
+    <li><a href="#social">โซเชียล</a></li>
+    <li><a href="#contact">สอบถาม/ซื้อ</a></li>
+  </ul>
+  <div style="display:flex;gap:8px;">
+    <a href="tel:0922499686" class="top-icon-btn">📞</a>
+    <a href="https://lin.ee/wX63SBB" target="_blank" class="top-icon-btn">💬</a>
   </div>
-  <div class="mobile-menu" id="mobileMenu">
-    <a href="#models" onclick="closeMenu()">รุ่นรถ & ราคา</a>
-    <a href="#news" onclick="closeMenu()">ข่าวกิจกรรม</a>
-    <a href="#social" onclick="closeMenu()">โซเชียล</a>
-    <a href="#contact" onclick="closeMenu()">สอบถาม/ซื้อ</a>
-  </div>
-</nav>
+</header>
+
+<!-- Hidden mobile menu element (kept for JS compatibility) -->
+<div id="mobileMenu"></div>
+
+<!-- ===== HERO ===== -->
 <div class="hero">
-  <h1>ยินดีต้อนรับสู่<br><span>ป.เปา มอเตอร์เซอร์วิส</span></h1>
-  <p>ศูนย์บริการรถจักยานยนต์ ฮอนด้า ครบวงจร จังหวะพระนครศรีอยุธยา</p>
+  <div class="hero-content">
+    <div class="hero-text">
+      <h1>เลือกรถมอเตอร์ไซค์<br><span style="color:#ff8080;">ที่ใช่ในสไตล์คุณ</span></h1>
+      <p>Honda คุณภาพ ดาวน์ต่ำ ผ่อนสบาย พร้อมช่วยเหลือทุกขั้นตอน</p>
+    </div>
+    <div class="hero-emoji">🏍️</div>
+  </div>
   <div class="hero-btns">
-    <a href="#models" class="btn btn-red">ดูรุ่นรถและราคา</a>
-    <a href="#contact" class="btn btn-outline">สอบถาม / จองรถ</a>
+    <button class="hero-btn hero-btn-red" onclick="scrollToModels()">ดูรุ่นรถทั้งหมด</button>
+    <button class="hero-btn hero-btn-outline" onclick="openCalc()">คำนวณค่างวด</button>
   </div>
 </div>
+
+<!-- ===== TRUST STRIP ===== -->
+<div class="trust-strip">
+  <div class="trust-item">
+    <div class="trust-icon">🏅</div>
+    <div class="trust-label">รับประกัน Honda</div>
+  </div>
+  <div class="trust-item">
+    <div class="trust-icon">💳</div>
+    <div class="trust-label">ดาวน์ 0%</div>
+  </div>
+  <div class="trust-item">
+    <div class="trust-icon">📞</div>
+    <div class="trust-label">ช่วยเหลือ 24ชม</div>
+  </div>
+</div>
+
+<!-- ===== CATEGORY ICONS (mobile only) ===== -->
+<div class="cat-icons-wrap" id="catIconsWrap">
+  <div class="cat-icons-header"><span class="section-title-sm">เลือกตามประเภท</span></div>
+  <div class="cat-icons-scroll" id="catIconsRow"><!-- JS renders --></div>
+</div>
+
+<!-- ===== MODELS SECTION ===== -->
 <section id="models">
-  <div class="section-inner">
+  <div class="models-header">
     <h2 class="section-title">รุ่นรถฮอนด้า</h2>
     <p class="section-sub">กดรถที่สนใจเพื่อดูสีและรุ่นย่อย · สอบถามราคาและตารางผ่อนได้ที่ร้าน</p>
-    <div id="catRows"></div>
   </div>
+  <div id="catRows"></div>
 </section>
+
+<!-- ===== MODAL OVERLAY ===== -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal()">✕</button>
-    <h2 id="mName"></h2>
-    <div id="mCarImg" style="text-align:center;margin-bottom:1rem;min-height:80px;display:flex;align-items:center;justify-content:center;background:#f9f9f9;border-radius:8px;"></div>
-    <div id="mVariants" style="display:none;margin-bottom:1rem;"><div style="font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:.5rem;">เลือกรุ่นย่อย</div><div id="mVariantBtns" style="display:flex;gap:.5rem;flex-wrap:wrap;"></div></div>
-    <div id="mColors" style="display:none;margin-bottom:1.25rem;"><div style="font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:.6rem;">เลือกสี</div><div id="mColorSwatches" style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;"></div><div id="mColorName" style="margin-top:.5rem;font-size:.85rem;color:var(--text2);"></div></div>
-    <div class="modal-price" id="mPrice" style="display:none;"></div>
-    <div style="display:none;">
-      <div id="mRateBadge"><span id="mRateVal"></span></div>
+    <div class="modal-handle"></div>
+    <div class="modal-topbar">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <h2 id="mName"></h2>
+      <div class="modal-close-placeholder"></div>
     </div>
-    <div id="mPricePlaceholder" style="background:#f5f5f5;border:1.5px dashed #ccc;border-radius:8px;padding:1.2rem;text-align:center;margin-bottom:1.25rem;color:#888;font-size:.92rem;">
-      💬 สอบถามราคาและตารางผ่อนได้ที่ร้าน หรือกด <strong>Line / โทร</strong> ด้านล่าง
-    </div>
-    <div id="mInstTableWrap" style="display:none;position:relative;">
-      <div id="mRateNote" style="position:absolute;top:0;right:0;z-index:2;background:rgba(255,210,60,0.93);color:#1a1a1a;font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:0 4px 0 6px;letter-spacing:.02em;pointer-events:none;white-space:nowrap;"></div>
-      <table class="installment-table" id="mInstTable"><thead><tr><th>ดาวน์ (บาท)</th><th>ยอดจัด (฿)</th><th>48 เดือน</th><th>42 เดือน</th><th>36 เดือน</th><th>30 เดือน</th><th>24 เดือน</th></tr></thead><tbody id="mTableBody"></tbody></table>
-    </div>
-    <div id="mFinanceNote" style="display:none;background:#e8f0fe;border-radius:6px;padding:.5rem .9rem;margin-bottom:1.25rem;font-size:.82rem;color:#1a3a5c;">ℹ️ เงื่อนไขเป็นไปตามบริษัทไฟแนนซ์กำหนด</div>
-    <div id="mContactInst" style="display:none;background:#fff8e1;border:1.5px solid #f9a825;border-radius:8px;padding:1.1rem 1.25rem;margin-bottom:1.25rem;text-align:center;">
-      <div style="font-size:.95rem;color:#5d4037;margin-bottom:.75rem;">📋 สอบถามตารางผ่อนสำหรับรุ่นนี้ได้โดยตรงกับเจ้าหน้าที่</div>
-      <a href="https://lin.ee/wX63SBB" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;background:#06C755;color:white;padding:.6rem 1.4rem;border-radius:6px;font-weight:700;font-size:.95rem;text-decoration:none;">
-        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:white;"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
-        สอบถามผ่าน LINE
-      </a>
-    </div>
-    <div class="calc-box">
-      <h3>🧮 คำนวณค่างวดเอง</h3>
-      <div class="calc-row">
-        <div class="calc-field"><label>ราคารถ (บาท)</label><input type="number" id="calcPrice"></div>
-        <div class="calc-field"><label>เงินดาวน์ (บาท)</label><input type="number" id="calcDown" placeholder="เช่น 5000"></div>
-        <div class="calc-field"><label>ระยะเวลา</label><select id="calcMonth"><option value="48" selected>48 เดือน</option><option value="42">42 เดือน</option><option value="36">36 เดือน</option><option value="30">30 เดือน</option><option value="24">24 เดือน</option></select></div>
+    <div class="modal-body">
+      <!-- Car image -->
+      <div class="modal-img-card" id="mCarImg"></div>
+
+      <!-- Variants -->
+      <div id="mVariants" style="display:none;margin-bottom:1rem;">
+        <div style="font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:.5rem;">เลือกรุ่นย่อย</div>
+        <div id="mVariantBtns" style="display:flex;gap:.5rem;flex-wrap:wrap;"></div>
       </div>
-      <button class="btn btn-red" onclick="calculate()" style="width:100%">คำนวณ</button>
-      <div class="calc-result" id="calcResult" style="display:none;margin-top:1rem;"><span>ผ่อนเดือนละประมาณ</span><strong id="calcOutput"></strong></div>
+
+      <!-- Colors -->
+      <div id="mColors" style="display:none;margin-bottom:1.1rem;">
+        <div style="font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:.5rem;">เลือกสี</div>
+        <div id="mColorSwatches" style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;"></div>
+        <div id="mColorName" style="margin-top:.45rem;font-size:.82rem;color:var(--text2);"></div>
+      </div>
+
+      <!-- Price -->
+      <div class="modal-price" id="mPrice" style="display:none;"></div>
+
+      <!-- Price placeholder -->
+      <div id="mPricePlaceholder" style="background:#f5f5f5;border:1.5px dashed #ccc;border-radius:8px;padding:1.1rem;text-align:center;margin-bottom:1.1rem;color:#888;font-size:.88rem;">
+        💬 กดปุ่ม <strong>คำนวณค่างวด</strong> ด้านล่าง เพื่อดูตารางผ่อนและสอบถามราคา
+      </div>
+    </div><!-- end .modal-body -->
+
+    <!-- Sticky bottom bar -->
+    <div class="modal-sticky">
+      <div id="mStickyPriceWrap">
+        <div class="slabel">ราคาเงินสด</div>
+        <div class="sval" id="mStickyPrice">—</div>
+      </div>
+      <button class="modal-cta-btn" onclick="openCalcFromModal()">คำนวณค่างวด →</button>
     </div>
   </div>
 </div>
-<section id="news" class="news-section">
-  <div class="section-inner">
+
+<!-- ===== CALCULATOR OVERLAY ===== -->
+<div class="calc-overlay" id="calcOverlay">
+  <div class="calc-overlay-bg" onclick="closeCalc()"></div>
+  <div class="calc-sheet">
+    <div class="calc-handle"></div>
+    <div class="calc-topbar">
+      <button class="calc-close-btn" onclick="closeCalc()">✕</button>
+      <h3>คำนวณค่างวด</h3>
+      <div style="width:32px;"></div>
+    </div>
+    <div class="calc-inner">
+
+      <!-- Step indicators -->
+      <div class="steps-row" id="calcStepsRow">
+        <div class="step-wrap">
+          <div class="step-circle active" id="stepC1">1</div>
+          <div class="step-label">เลือกรุ่น</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-wrap">
+          <div class="step-circle idle" id="stepC2">2</div>
+          <div class="step-label">ตั้งค่า</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-wrap">
+          <div class="step-circle idle" id="stepC3">3</div>
+          <div class="step-label">ผลลัพธ์</div>
+        </div>
+      </div>
+
+      <!-- Car strip (always visible once model chosen) -->
+      <div class="calc-car-strip" id="calcCarStrip">
+        <div class="calc-car-thumb" id="calcCarThumb">🏍️</div>
+        <div class="calc-car-info">
+          <div class="cname" id="calcCarName">เลือกรุ่นรถ</div>
+          <div class="csub" id="calcCarSub"></div>
+          <div class="cprice" id="calcCarPrice"></div>
+        </div>
+        <div class="calc-change-link" onclick="openCalcModelPicker()">เปลี่ยนรุ่น</div>
+      </div>
+
+      <!-- Step 1: model picker -->
+      <div id="calcStep1">
+        <select class="calc-model-select" id="calcModelSelect" onchange="onCalcModelChange()">
+          <option value="">-- เลือกรุ่น --</option>
+        </select>
+        <button class="calc-primary-btn" onclick="goCalcStep2()">ถัดไป →</button>
+      </div>
+
+      <!-- Step 2: sliders -->
+      <div id="calcStep2" style="display:none;">
+        <!-- Down % slider -->
+        <div class="slider-section">
+          <div class="slider-top">
+            <span class="slbl">เงินดาวน์</span>
+            <span><b id="sDownPct">15</b>% &nbsp;<span class="samt" id="sDownAmt"></span></span>
+          </div>
+          <input type="range" id="sliderDown" min="0" max="50" step="5" value="15" oninput="onSliderChange()">
+          <div class="slider-ticks"><span>0% ฟรีดาวน์</span><span>25%</span><span>50%</span></div>
+        </div>
+
+        <!-- Period pills -->
+        <div class="slider-section">
+          <div class="slbl" style="margin-bottom:8px;">ระยะเวลาผ่อน</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="period-pill" data-mo="24" onclick="selectPeriod(24)">24 เดือน</button>
+            <button class="period-pill" data-mo="30" onclick="selectPeriod(30)">30 เดือน</button>
+            <button class="period-pill active" data-mo="36" onclick="selectPeriod(36)">36 เดือน</button>
+            <button class="period-pill" data-mo="42" onclick="selectPeriod(42)">42 เดือน</button>
+            <button class="period-pill" data-mo="48" onclick="selectPeriod(48)">48 เดือน</button>
+          </div>
+        </div>
+
+        <!-- Live preview -->
+        <div class="live-preview">
+          <div class="lp-col">
+            <div class="lp-label">ยอดจัดไฟแนนซ์</div>
+            <div class="lp-val" id="lpFinanced">—</div>
+            <div class="lp-note" id="lpRate">—</div>
+          </div>
+          <div class="lp-col">
+            <div class="lp-label">ค่างวดโดยประมาณ</div>
+            <div class="live-amt" id="calcLiveResult">—</div>
+          </div>
+        </div>
+
+        <button class="calc-primary-btn" onclick="goCalcStep3()">ดูผลลัพธ์ →</button>
+      </div>
+
+      <!-- Step 3: result -->
+      <div id="calcStep3" style="display:none;">
+        <div class="result-box">
+          <div class="rlabel">ค่างวดต่อเดือน (ประมาณ)</div>
+          <div class="ramt" id="resultAmt">—</div>
+          <div class="rperiod" id="resultPeriod"></div>
+        </div>
+        <div class="breakdown-table">
+          <div class="bdr"><span>ราคารถ</span><span id="bdPrice">—</span></div>
+          <div class="bdr"><span id="bdDownLabel">เงินดาวน์</span><span id="bdDown" style="color:#22aa55;">—</span></div>
+          <div class="bdr"><span>ยอดจัดไฟแนนซ์</span><span id="bdFinanced">—</span></div>
+          <div class="bdr total"><span>รวมยอดผ่อนทั้งหมด</span><span id="bdTotal">—</span></div>
+        </div>
+        <div class="bd-note">* ตัวเลขเป็นการประมาณการเบื้องต้น เงื่อนไขตามบริษัทไฟแนนซ์กำหนด</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <!-- ปุ่ม LIFF: แสดงเฉพาะเมื่อเปิดในแอป LINE -->
+          <button id="liffSendBtn" class="calc-primary-btn liff-send-btn" style="display:none;" onclick="sendToLine()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+            ส่งข้อมูลนี้ให้ร้าน
+          </button>
+          <!-- ปุ่มปกติ: ซ่อนเมื่ออยู่ใน LINE -->
+          <button id="calcContactBtn" class="calc-primary-btn" onclick="openContactFromCalc()">ยื่นสอบถาม / จองรถ</button>
+          <button class="calc-secondary-btn" onclick="goBackToStep2()">← ปรับค่าใหม่</button>
+        </div>
+      </div>
+
+    </div><!-- end .calc-inner -->
+  </div><!-- end .calc-sheet -->
+</div><!-- end .calc-overlay -->
+
+<!-- ===== NEWS SECTION ===== -->
+<section id="news">
+  <div class="news-header">
     <h2 class="section-title">ข่าวกิจกรรมทางร้าน</h2>
     <p class="section-sub">อัปเดตโปรโมชั่น กิจกรรม และข่าวสารจากร้านเรา</p>
-    <div class="news-grid" id="newsGrid"></div>
+  </div>
+  <div class="news-scroll-wrap">
+    <div id="newsGrid"></div>
   </div>
 </section>
-<section id="social" class="social-section">
-  <div class="section-inner">
-    <h2 class="section-title" style="text-align:center">ติดตามเราบนโซเชียล</h2>
-    <p class="section-sub" style="text-align:center">อัปเดตข่าวสาร โปรโมชั่น และรีวิวรถล่าสุดได้ที่</p>
-    <div class="social-links">
-      <a href="https://www.facebook.com/profile.php?id=100064036530646" target="_blank" class="social-btn facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>Facebook</a>
-      <a href="https://www.tiktok.com/@porpaor.wangnoi" target="_blank" class="social-btn tiktok"><svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>TikTok</a>
-      <a href="https://lin.ee/wX63SBB" target="_blank" class="social-btn line"><svg viewBox="0 0 24 24"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>LINE</a>
-    </div>
+
+<!-- ===== SOCIAL SECTION ===== -->
+<section id="social">
+  <h2 class="social-section-title">ติดตามเราบนโซเชียล</h2>
+  <p class="social-sub">อัปเดตข่าวสาร โปรโมชั่น และรีวิวรถล่าสุดได้ที่</p>
+  <div class="social-links">
+    <a href="https://www.facebook.com/profile.php?id=100064036530646" target="_blank" class="social-btn facebook">
+      <svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+      Facebook
+    </a>
+    <a href="https://www.tiktok.com/@porpaor.wangnoi" target="_blank" class="social-btn tiktok">
+      <svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+      TikTok
+    </a>
+    <a href="https://lin.ee/wX63SBB" target="_blank" class="social-btn line">
+      <svg viewBox="0 0 24 24"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+      LINE
+    </a>
   </div>
 </section>
-<section id="contact" class="form-section">
-  <div class="section-inner">
-    <h2 class="section-title">สอบถาม / จองรถ / ส่งต่อข้อมูลลูกค้า</h2>
-    <p class="section-sub">กรอกข้อมูลด้านล่าง เจ้าหน้าที่จะติดต่อกลับโดยเร็ว</p>
+
+<!-- ===== CONTACT SECTION ===== -->
+<section id="contact" style="background:var(--black);color:white;padding:2rem 1rem 2.5rem;">
+  <div style="max-width:700px;">
+    <h2 class="contact-title">สอบถาม / จองรถ / ส่งต่อข้อมูลลูกค้า</h2>
+    <p class="contact-sub">กรอกข้อมูลด้านล่าง เจ้าหน้าที่จะติดต่อกลับโดยเร็ว</p>
     <div class="lead-form">
       <form id="leadForm" onsubmit="submitForm(event)">
         <div class="form-grid">
@@ -248,56 +1610,182 @@ footer .footer-brand{font-family:'Kanit',sans-serif;font-size:1.2rem;font-weight
     </div>
   </div>
 </section>
+
+<!-- ===== FOOTER ===== -->
 <footer>
   <div class="footer-brand">ป.เปา มอเตอร์เซอร์วิส</div>
   <p>ตัวแทนจำหน่ายและศูนย์บริการ Honda · 189-191 ม.7 ต.ลำไทร อ.วังน้อย จ.พระนครศรีอยุธยา<br>เปิดทุกวัน 08:00 – 17:30 น. · โทร. 092-249968-6</p>
   <p style="margin-top:1rem;font-size:.8rem;color:#666;">© 2569 ป.เปา มอเตอร์เซอร์วิส. All rights reserved.</p>
 </footer>
+
+<!-- ===== BOTTOM NAV ===== -->
+<nav class="bottom-nav">
+  <button class="bottom-nav-item active" id="bnHome" onclick="bottomNav('Home')"><div class="nav-ico">🏠</div><div class="nav-lbl">หน้าหลัก</div></button>
+  <button class="bottom-nav-item" id="bnModels" onclick="bottomNav('Models')"><div class="nav-ico">🏍️</div><div class="nav-lbl">รุ่นรถ</div></button>
+  <button class="bottom-nav-item" id="bnCalc" onclick="bottomNav('Calc')"><div class="nav-ico">🧮</div><div class="nav-lbl">ค่างวด</div></button>
+  <button class="bottom-nav-item" id="bnContact" onclick="bottomNav('Contact')"><div class="nav-ico">💬</div><div class="nav-lbl">สอบถาม</div></button>
+  <button class="bottom-nav-item" id="bnSocial" onclick="bottomNav('Social')"><div class="nav-ico">📱</div><div class="nav-lbl">โซเชียล</div></button>
+</nav>
+
 <script>
-const RATE=0.065;
-let categories=[/* ข้อมูลโหลดจาก DB ผ่าน fetchCatalogDisplay() */];
-const newsData=[{"title":"ดาวน์พิเศษ 0% เดือนนี้เท่านั้น!","tag":"โปรโมชั่น","date":"พฤษภาคม 2569","icon":"🏍️","body":"Honda CLICK 160 และ PCX160"},{"title":"เช็กรถฟรี ต้อนรับเทศกาลสงกรานต์","tag":"บริการ","date":"เมษายน 2569","icon":"🔧","body":"ศูนย์บริการฮอนด้า วังน้อย"},{"title":"ส่งมอบรถ Honda ADV160","tag":"กิจกรรม","date":"มีนาคม 2569","icon":"🎉","body":"ร่วมแสดงความยินดีกับลูกค้า"}];
-let modalModel=null,modalVariantIdx=0,modalColorIdx=0;
-function fmt(n){return n.toLocaleString('th-TH');}
-function calcInst(price,down,months){const loan=price-down;const r=RATE/12;return Math.ceil((loan*r*Math.pow(1+r,months))/(Math.pow(1+r,months)-1));}
-function renderAllRows(){
-  const c=document.getElementById('catRows');
-  const tabs=categories.map((cat,ci)=>
-    '<button class="cat-tab'+(ci===0?' active':'')+'" onclick="switchCat('+ci+')">'+
-    '<span class="cat-tab-icon">'+cat.icon+'</span>'+
-    '<span class="cat-tab-info"><span class="cat-tab-name">'+cat.name+'</span><span class="cat-tab-count">'+cat.models.length+' รุ่น</span></span>'+
+// ===== CONSTANTS =====
+const RATE = 0.065;
+let categories = [/* ข้อมูลโหลดจาก DB ผ่าน fetchCatalogDisplay() */];
+const newsData = [
+  {"title":"ดาวน์พิเศษ 0% เดือนนี้เท่านั้น!","tag":"โปรโมชั่น","date":"พฤษภาคม 2569","icon":"🏍️","body":"Honda CLICK 160 และ PCX160"},
+  {"title":"เช็กรถฟรี ต้อนรับเทศกาลสงกรานต์","tag":"บริการ","date":"เมษายน 2569","icon":"🔧","body":"ศูนย์บริการฮอนด้า วังน้อย"},
+  {"title":"ส่งมอบรถ Honda ADV160","tag":"กิจกรรม","date":"มีนาคม 2569","icon":"🎉","body":"ร่วมแสดงความยินดีกับลูกค้า"}
+];
+let modalModel = null, modalVariantIdx = 0, modalColorIdx = 0;
+
+// ===== UTILITIES =====
+function fmt(n) { return n.toLocaleString('th-TH'); }
+function calcInst(price, down, months) {
+  const loan = price - down;
+  const r = RATE / 12;
+  return Math.ceil((loan * r * Math.pow(1 + r, months)) / (Math.pow(1 + r, months) - 1));
+}
+
+// ===== BOTTOM NAV =====
+function bottomNav(tab) {
+  document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById('bn' + tab);
+  if (el) el.classList.add('active');
+  if (tab === 'Home') window.scrollTo({top: 0, behavior: 'smooth'});
+  else if (tab === 'Models') { document.getElementById('models').scrollIntoView({behavior: 'smooth'}); }
+  else if (tab === 'Calc') openCalc();
+  else if (tab === 'Contact') document.getElementById('contact').scrollIntoView({behavior: 'smooth'});
+  else if (tab === 'Social') document.getElementById('social').scrollIntoView({behavior: 'smooth'});
+}
+
+function scrollToModels() {
+  document.getElementById('models').scrollIntoView({behavior: 'smooth'});
+  bottomNav('Models');
+}
+
+// ===== RENDER ALL ROWS =====
+function renderAllRows() {
+  const c = document.getElementById('catRows');
+  // Desktop tabs (hidden on mobile via CSS)
+  const tabs = categories.map((cat, ci) =>
+    '<button class="cat-tab' + (ci === 0 ? ' active' : '') + '" onclick="switchCat(' + ci + ')">' +
+    '<span class="cat-tab-icon">' + cat.icon + '</span>' +
+    '<span class="cat-tab-info"><span class="cat-tab-name">' + cat.name + '</span><span class="cat-tab-count">' + cat.models.length + ' รุ่น</span></span>' +
     '</button>'
   ).join('');
-  const panels=categories.map((cat,ci)=>
-    '<div class="cat-panel'+(ci===0?' active':'')+'" id="catPanel-'+ci+'">'+
-    '<div class="model-grid">'+
-    cat.models.map((m,mi)=>
-      '<div class="mcard" onclick="oM('+ci+','+mi+')">'+
-      '<div class="mcard-img">'+((m.badge||'')?'<div class="mcard-badge">'+(m.badge||'')+'</div>':'')+
-      (m.logo?'<img class="mcard-logo" src="'+m.logo+'" alt="">':'')+
-      (m.colors&&m.colors[0]&&m.colors[0].img?'<img src="'+m.colors[0].img+'" style="width:100%;height:180px;object-fit:contain;">':'<span style="font-size:3.5rem">'+m.icon+'</span>')+
-      '</div>'+
-      '<div class="mcard-name">'+m.name+'</div>'+
-      '<button class="mcard-btn" onclick="event.stopPropagation();oM('+ci+','+mi+')">ดูรายละเอียด →</button>'+
-      '</div>'
-    ).join('')+
+  const panels = categories.map((cat, ci) =>
+    '<div class="cat-panel' + (ci === 0 ? ' active' : '') + '" id="catPanel-' + ci + '">' +
+    '<div class="model-grid">' +
+    cat.models.map((m, mi) => {
+      const firstColor = m.colors && m.colors[0];
+      const imgHtml = firstColor && firstColor.img
+        ? '<img src="' + firstColor.img + '" alt="' + m.name + '" loading="lazy">'
+        : '<span style="font-size:3rem;">' + m.icon + '</span>';
+      const price = m.variants && m.variants[0] && m.variants[0].price
+        ? '฿' + fmt(m.variants[0].price)
+        : '';
+      const typeCC = m.variants && m.variants[0] ? m.variants.map(v => v.name).join(' / ') : '';
+      return '<div class="mcard" onclick="oM(' + ci + ',' + mi + ')">' +
+        '<div class="mcard-img-wrap">' +
+        (m.badge ? '<div class="mcard-badge">' + m.badge + '</div>' : '') +
+        imgHtml +
+        '</div>' +
+        '<div class="mcard-body">' +
+        '<div class="mcard-name">' + m.name + '</div>' +
+        (typeCC ? '<div class="mcard-sub">' + typeCC + '</div>' : '') +
+        (price ? '<div class="mcard-price">เริ่มต้น ' + price + '</div>' : '<div class="mcard-price" style="color:#888;font-size:.72rem;">สอบถามราคา</div>') +
+        '<button class="mcard-cta" onclick="event.stopPropagation();oM(' + ci + ',' + mi + ')">ดูรายละเอียด →</button>' +
+        '</div>' +
+        '</div>';
+    }).join('') +
     '</div></div>'
   ).join('');
-  c.innerHTML='<div class="cat-tabs-wrap"><div class="cat-tabs">'+tabs+'</div></div>'+panels;
+  c.innerHTML = '<div class="cat-tabs-wrap"><div class="cat-tabs">' + tabs + '</div></div>' + panels;
+  renderCatIcons();
 }
-function switchCat(ci){
-  document.querySelectorAll('.cat-tab').forEach((t,i)=>t.classList.toggle('active',i===ci));
-  document.querySelectorAll('.cat-panel').forEach((p,i)=>p.classList.toggle('active',i===ci));
+
+// ===== SWITCH CATEGORY (DESKTOP TABS) =====
+function switchCat(ci) {
+  document.querySelectorAll('.cat-tab').forEach((t, i) => t.classList.toggle('active', i === ci));
+  document.querySelectorAll('.cat-panel').forEach((p, i) => p.classList.toggle('active', i === ci));
 }
-function oM(ci,mi){modalModel=categories[ci].models[mi];modalVariantIdx=0;modalColorIdx=0;document.getElementById('mName').textContent=modalModel.name;rV();rC();uT();document.getElementById('calcResult').style.display='none';document.getElementById('modalOverlay').classList.add('open');document.body.style.overflow='hidden';}
-function rV(){const w=document.getElementById('mVariants');const b=document.getElementById('mVariantBtns');if(!modalModel.variants||modalModel.variants.length<=1){w.style.display='none';return;}w.style.display='block';b.innerHTML=modalModel.variants.map((v,i)=>'<button class="variant-btn'+(i===0?' active':'')+'" onclick="sV('+i+')">'+v.name+'</button>').join('');}
-function sV(i){modalVariantIdx=i;modalColorIdx=0;document.querySelectorAll('.variant-btn').forEach((b,j)=>b.classList.toggle('active',j===i));rC();uT();}
-function rC(){const w=document.getElementById('mColors');const s=document.getElementById('mColorSwatches');const n=document.getElementById('mColorName');if(!modalModel.colors||!modalModel.colors.length){w.style.display='none';document.getElementById('mCarImg').innerHTML='<span style="font-size:4rem">'+modalModel.icon+'</span>';return;}w.style.display='block';const curVariant=modalModel.variants[modalVariantIdx]?modalModel.variants[modalVariantIdx].name:'';const filtered=modalModel.colors.filter(c=>!c.variant||c.variant===curVariant||!curVariant);const display=filtered.length?filtered:modalModel.colors;s.innerHTML=display.map((c,i)=>{const bg=c.hex2?'conic-gradient('+c.hex+' 0deg 180deg,'+c.hex2+' 180deg 360deg)':c.hex;return'<div class="color-swatch'+(i===0?' active':'')+'" style="background:'+bg+';'+(c.border?'border:2px solid #bbb;':'')+'" title="'+c.name+'" onclick="sC('+i+','+JSON.stringify(display).replace(/"/g,'&quot;')+')"></div>';}).join('');window._curColors=display;n.textContent='สี: '+display[0].name;updCarImg2(display[0]);}
-function sC(i,colors){
-  if(colors){window._curColors=typeof colors==='string'?JSON.parse(colors.replace(/&quot;/g,'"')):colors;}
-  modalColorIdx=i;
-  document.querySelectorAll('.color-swatch').forEach((s,j)=>s.classList.toggle('active',j===i));
-  document.getElementById('mColorName').textContent='สี: '+window._curColors[i].name;
+
+// ===== CATEGORY ICONS (MOBILE) =====
+function renderCatIcons() {
+  const row = document.getElementById('catIconsRow');
+  if (!row) return;
+  row.innerHTML = categories.map((cat, ci) =>
+    '<div class="cat-icon-item" onclick="switchCatMobile(' + ci + ')">' +
+    '<div class="cat-icon-circle' + (ci === 0 ? ' active' : '') + '" id="catIconCircle' + ci + '">' + cat.icon + '</div>' +
+    '<div class="cat-icon-label' + (ci === 0 ? ' active' : '') + '" id="catIconLabel' + ci + '">' + cat.name + '</div>' +
+    '</div>'
+  ).join('');
+}
+
+function switchCatMobile(ci) {
+  switchCat(ci);
+  document.querySelectorAll('.cat-icon-circle').forEach((el, i) => el.classList.toggle('active', i === ci));
+  document.querySelectorAll('.cat-icon-label').forEach((el, i) => el.classList.toggle('active', i === ci));
+  document.getElementById('models').scrollIntoView({behavior: 'smooth'});
+}
+
+// ===== MODAL =====
+function oM(ci, mi) {
+  modalModel = categories[ci].models[mi];
+  modalVariantIdx = 0;
+  modalColorIdx = 0;
+  document.getElementById('mName').textContent = modalModel.name;
+  rV(); rC(); uT();
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function rV() {
+  const w = document.getElementById('mVariants');
+  const b = document.getElementById('mVariantBtns');
+  if (!modalModel.variants || modalModel.variants.length <= 1) { w.style.display = 'none'; return; }
+  w.style.display = 'block';
+  b.innerHTML = modalModel.variants.map((v, i) =>
+    '<button class="variant-btn' + (i === 0 ? ' active' : '') + '" onclick="sV(' + i + ')">' + v.name + '</button>'
+  ).join('');
+}
+
+function sV(i) {
+  modalVariantIdx = i;
+  modalColorIdx = 0;
+  document.querySelectorAll('.variant-btn').forEach((b, j) => b.classList.toggle('active', j === i));
+  rC(); uT();
+}
+
+function rC() {
+  const w = document.getElementById('mColors');
+  const s = document.getElementById('mColorSwatches');
+  const n = document.getElementById('mColorName');
+  if (!modalModel.colors || !modalModel.colors.length) {
+    w.style.display = 'none';
+    document.getElementById('mCarImg').innerHTML = '<span style="font-size:4rem">' + modalModel.icon + '</span>';
+    return;
+  }
+  w.style.display = 'block';
+  const curVariant = modalModel.variants[modalVariantIdx] ? modalModel.variants[modalVariantIdx].name : '';
+  const filtered = modalModel.colors.filter(c => !c.variant || c.variant === curVariant || !curVariant);
+  const display = filtered.length ? filtered : modalModel.colors;
+  s.innerHTML = display.map((c, i) => {
+    const bg = c.hex2
+      ? 'conic-gradient(' + c.hex + ' 0deg 180deg,' + c.hex2 + ' 180deg 360deg)'
+      : c.hex;
+    return '<div class="color-swatch' + (i === 0 ? ' active' : '') + '" style="background:' + bg + ';' + (c.border ? 'border:2px solid #bbb;' : '') + '" title="' + c.name + '" onclick="sC(' + i + ',' + JSON.stringify(display).replace(/"/g, '&quot;') + ')"></div>';
+  }).join('');
+  window._curColors = display;
+  n.textContent = 'สี: ' + display[0].name;
+  updCarImg2(display[0]);
+}
+
+function sC(i, colors) {
+  if (colors) { window._curColors = typeof colors === 'string' ? JSON.parse(colors.replace(/&quot;/g, '"')) : colors; }
+  modalColorIdx = i;
+  document.querySelectorAll('.color-swatch').forEach((s, j) => s.classList.toggle('active', j === i));
+  document.getElementById('mColorName').textContent = 'สี: ' + window._curColors[i].name;
   updCarImg2(window._curColors[i]);
   // อัปเดตราคาและตารางผ่อนตามสีที่เลือก
   const colorPrice = (window._curColors[i]._price) || 0;
@@ -315,126 +1803,328 @@ function sC(i,colors){
     }
   }
 }
-function updCarImg2(c){const area=document.getElementById('mCarImg');if(c&&c.img){area.innerHTML='<img src="'+c.img+'" style="max-height:160px;max-width:100%;object-fit:contain;">';}else{area.innerHTML='<span style="font-size:4rem">'+modalModel.icon+'</span>';}}
-function calcInstFlat(financed, ratePct, months){
-  return Math.ceil(financed*(1+ratePct/100*months)/months);
+
+function updCarImg2(c) {
+  const area = document.getElementById('mCarImg');
+  if (c && c.img) {
+    area.innerHTML = '<img src="' + c.img + '" style="max-height:180px;max-width:100%;object-fit:contain;">';
+  } else {
+    area.innerHTML = '<span style="font-size:4rem">' + modalModel.icon + '</span>';
+  }
 }
-function calcInstFlatAnnual(financed, annualRatePct, months){
-  return Math.ceil(financed*(1+annualRatePct/100*months/12)/months);
+
+function calcInstFlat(financed, ratePct, months) {
+  return Math.ceil(financed * (1 + ratePct / 100 * months) / months);
+}
+
+function calcInstFlatAnnual(financed, annualRatePct, months) {
+  return Math.ceil(financed * (1 + annualRatePct / 100 * months / 12) / months);
 }
 
 // ดึง rate + downPcts จาก variant สำหรับ Option C (auto-down)
-function getAutoRate(d){
-  const downPcts=d.autoDownPcts&&d.autoDownPcts.length?d.autoDownPcts:null;
-  const rate2=d.autoRate2||0;
-  const rate2MinDown=d.autoRate2MinDown||0;
-  if(d.autoRate&&d.autoRate>0) return{rate:d.autoRate,rate2,rate2MinDown,isAnnual:d.autoRateUnit==='year',downPcts};
-  if(d.ratesPerDown){const vals=Object.values(d.ratesPerDown);if(vals.length)return{rate:parseFloat(vals[0])||0,rate2,rate2MinDown,isAnnual:d.rateUnit==='year',downPcts};}
-  if(d.rates){const vals=Object.values(d.rates);if(vals.length)return{rate:parseFloat(vals[0])||0,rate2,rate2MinDown,isAnnual:d.rateUnit==='year',downPcts};}
-  return{rate:0,rate2:0,rate2MinDown:0,isAnnual:false,downPcts};
+function getAutoRate(d) {
+  const downPcts = d.autoDownPcts && d.autoDownPcts.length ? d.autoDownPcts : null;
+  const rate2 = d.autoRate2 || 0;
+  const rate2MinDown = d.autoRate2MinDown || 0;
+  if (d.autoRate && d.autoRate > 0) return {rate: d.autoRate, rate2, rate2MinDown, isAnnual: d.autoRateUnit === 'year', downPcts};
+  if (d.ratesPerDown) { const vals = Object.values(d.ratesPerDown); if (vals.length) return {rate: parseFloat(vals[0]) || 0, rate2, rate2MinDown, isAnnual: d.rateUnit === 'year', downPcts}; }
+  if (d.rates) { const vals = Object.values(d.rates); if (vals.length) return {rate: parseFloat(vals[0]) || 0, rate2, rate2MinDown, isAnnual: d.rateUnit === 'year', downPcts}; }
+  return {rate: 0, rate2: 0, rate2MinDown: 0, isAnnual: false, downPcts};
 }
+
 // สร้าง customInstallments อัตโนมัติจาก price
-// downPcts = array ของ % เช่น [0,10,20] หรือ [10,15,20] (0 = ฟรีดาวน์)
-// rate2 + rate2MinDown = อัตราขั้นบันได เช่น ดาวน์≥15% ใช้ 5%/ปี แทน 7%/ปี
-function genAutoCI(price,rate,isAnnual,downPcts,rate2=0,rate2MinDown=0){
-  const months=[48,42,36,30,24];
-  const pcts=downPcts&&downPcts.length?downPcts:[10,15,20];
-  const ci={};
-  pcts.forEach(pct=>{
-    const dn=pct===0?0:Math.ceil(price*pct/100);
-    const financed=price-dn;
-    // ใช้อัตราขั้นบันได: ถ้าดาวน์ถึง threshold ใช้ rate2 แทน
-    const effectiveRate=(rate2>0&&rate2MinDown>0&&pct>=rate2MinDown)?rate2:rate;
-    ci[String(dn)]={};
-    months.forEach(mo=>{
-      ci[String(dn)][String(mo)]=effectiveRate>0
-        ?(isAnnual?calcInstFlatAnnual(financed,effectiveRate,mo):calcInstFlat(financed,effectiveRate,mo))
-        :Math.ceil(financed/mo);
+function genAutoCI(price, rate, isAnnual, downPcts, rate2, rate2MinDown) {
+  rate2 = rate2 || 0;
+  rate2MinDown = rate2MinDown || 0;
+  const months = [48, 42, 36, 30, 24];
+  const pcts = downPcts && downPcts.length ? downPcts : [10, 15, 20];
+  const ci = {};
+  pcts.forEach(pct => {
+    const dn = pct === 0 ? 0 : Math.ceil(price * pct / 100);
+    const financed = price - dn;
+    const effectiveRate = (rate2 > 0 && rate2MinDown > 0 && pct >= rate2MinDown) ? rate2 : rate;
+    ci[String(dn)] = {};
+    months.forEach(mo => {
+      ci[String(dn)][String(mo)] = effectiveRate > 0
+        ? (isAnnual ? calcInstFlatAnnual(financed, effectiveRate, mo) : calcInstFlat(financed, effectiveRate, mo))
+        : Math.ceil(financed / mo);
     });
   });
   return ci;
 }
-function _updateRateNote(rate,isAnnual,rate2,rate2MinDown){
-  const el=document.getElementById('mRateNote');
-  if(!el)return;
-  if(!rate||rate<=0){el.textContent='';return;}
-  const u=isAnnual?'%/ปี':'%/เดือน';
-  let t='ดอกเบี้ย '+rate+u;
-  if(rate2>0&&rate2MinDown>0)t+=' · ดาวน์≥'+rate2MinDown+'%→'+rate2+u;
-  el.textContent=t;
-}
+
+function _updateRateNote() { /* ตารางถูกลบออกแล้ว — no-op */ }
+
 function _renderPriceAndTable(price, downs, financePrice, customInstallments) {
+  const sp = document.getElementById('mStickyPrice');
   if (price > 0) {
-    const fp = (financePrice && financePrice > 0) ? financePrice : price;
     document.getElementById('mPrice').textContent = '฿' + fmt(price);
     document.getElementById('mPrice').style.display = '';
     document.getElementById('mPricePlaceholder').style.display = 'none';
-    document.getElementById('calcPrice').value = price;
-
-    if (customInstallments) {
-      // ✅ มีข้อมูลค่าผ่อนจริง — ใช้ key ของ customInstallments เป็น dList
-      const months = [48, 42, 36, 30, 24];
-      const dList = Object.keys(customInstallments).map(Number).sort(function(a,b){return a-b;});
-      const rows = dList.map(function(dn) {
-        const financed = fp - dn;
-        const ci = customInstallments[String(dn)];
-        const instCols = months.map(function(mo) {
-          return '<td>' + fmt(ci[String(mo)] || 0) + ' บ./เดือน</td>';
-        }).join('');
-        return '<tr><td>' + (dn === 0 ? 'ฟรีดาวน์' : fmt(dn)) + '</td>'
-             + '<td style="font-weight:600;">฿' + fmt(financed) + '</td>'
-             + instCols + '</tr>';
-      }).join('');
-      document.getElementById('mTableBody').innerHTML = rows;
-      document.getElementById('mInstTableWrap').style.display = '';
-      document.getElementById('mFinanceNote').style.display = '';
-      document.getElementById('mContactInst').style.display = 'none';
-    } else {
-      // ⚠️ ยังไม่มีข้อมูลค่าผ่อนที่ถูกต้อง — ให้ติดต่อเจ้าหน้าที่
-      document.getElementById('mInstTableWrap').style.display = 'none';
-      document.getElementById('mFinanceNote').style.display = 'none';
-      document.getElementById('mTableBody').innerHTML = '';
-      document.getElementById('mContactInst').style.display = 'block';
-    }
+    if (sp) sp.textContent = '฿' + fmt(price);
   } else {
     document.getElementById('mPrice').style.display = 'none';
     document.getElementById('mPricePlaceholder').style.display = 'block';
-    document.getElementById('mInstTableWrap').style.display = 'none';
-    document.getElementById('mFinanceNote').style.display = 'none';
-    document.getElementById('mContactInst').style.display = 'none';
-    document.getElementById('mTableBody').innerHTML = '';
-    document.getElementById('calcPrice').value = '';
+    if (sp) sp.textContent = '—';
   }
 }
-function uT(){
+
+function uT() {
   const d = modalModel.variants[modalVariantIdx];
   let price = parseInt(d.price) || 0;
   let financePrice = 0;
   let ci = null;
-  // ราคาจาก Excel/DB มีความสำคัญสูงสุด — ถ้าไม่มีให้ใช้ราคา hardcode เป็น fallback
   if (window._curColors && window._curColors[modalColorIdx] && window._curColors[modalColorIdx]._price > 0) {
     price = window._curColors[modalColorIdx]._price;
     financePrice = window._curColors[modalColorIdx]._finance_price || 0;
   }
 
-  // ถ้ามีราคา + มี autoRate → คำนวณตารางผ่อน
   const {rate, rate2, rate2MinDown, isAnnual, downPcts} = getAutoRate(d);
   if (price > 0 && rate > 0) {
-    // ยอดจัดไฟแนนส์: ใช้ราคาไฟแนนส์จาก localStorage Excel, ถ้าไม่มีใช้ราคาเงินสด
     const calcBase = financePrice > 0 ? financePrice : price;
     ci = genAutoCI(calcBase, rate, isAnnual, downPcts, rate2, rate2MinDown);
   }
-  // ci = null (ไม่มี rate ตั้งไว้) → แสดงปุ่ม LINE
   _updateRateNote(rate, isAnnual, rate2, rate2MinDown);
   _renderPriceAndTable(price, null, financePrice, ci);
 }
-function closeModal(e){if(!e||e.target===document.getElementById('modalOverlay')||!e.target){document.getElementById('modalOverlay').classList.remove('open');document.body.style.overflow='';}}
-function calculate(){const price=parseFloat(document.getElementById('calcPrice').value)||0;const down=parseFloat(document.getElementById('calcDown').value)||0;const months=parseInt(document.getElementById('calcMonth').value);if(price<=0){alert('กรุณากรอกราคารถ');return;}if(down>=price){alert('เงินดาวน์ต้องน้อยกว่าราคารถ');return;}document.getElementById('calcOutput').textContent='฿'+fmt(calcInst(price,down,months))+' / เดือน';document.getElementById('calcResult').style.display='flex';}
-function renderNews(){document.getElementById('newsGrid').innerHTML=newsData.map(n=>'<div class="news-card"><div class="news-img">'+n.icon+'</div><div class="news-body"><div class="news-tag">'+n.tag+'</div><div class="news-date">'+n.date+'</div><div class="news-title">'+n.title+'</div></div></div>').join('');}
-function renderContactModels(){const sel=document.getElementById('intModel');sel.innerHTML='<option value="">-- เลือกรุ่น --</option>'+categories.flatMap(c=>c.models.map(m=>'<option>'+m.name+'</option>')).join('');}
-function submitForm(e){e.preventDefault();document.getElementById('leadForm').style.display='none';document.getElementById('successMsg').style.display='block';}
-function toggleMenu(){document.getElementById('mobileMenu').classList.toggle('open');}
-function closeMenu(){document.getElementById('mobileMenu').classList.remove('open');}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modalOverlay') || !e.target) {
+    document.getElementById('modalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+}
+
+// ===== CALCULATOR OVERLAY =====
+let calcModel = null, calcPeriod = 36, calcVariantIdx = 0;
+
+function openCalc() {
+  document.getElementById('calcOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  populateCalcModels();
+  if (!calcModel) {
+    document.getElementById('calcStep1').style.display = 'block';
+    document.getElementById('calcStep2').style.display = 'none';
+    document.getElementById('calcStep3').style.display = 'none';
+  }
+}
+
+function closeCalc() {
+  document.getElementById('calcOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function openCalcFromModal() {
+  const prevModel = modalModel;
+  const prevVariantIdx = modalVariantIdx; // จำ variant ที่เลือกไว้ในโมดอล
+  closeModal();
+  openCalc();
+  if (prevModel) {
+    const sel = document.getElementById('calcModelSelect');
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].text === prevModel.name) {
+        sel.value = sel.options[i].value;
+        onCalcModelChange();            // sets calcVariantIdx = 0 internally
+        calcVariantIdx = prevVariantIdx; // override หลัง onCalcModelChange
+        updateCalcCarStrip();           // re-render strip ด้วย variant ที่ถูกต้อง
+        updateCalcLive();               // re-calc ด้วย variant ที่ถูกต้อง
+        goCalcStep2();
+        break;
+      }
+    }
+  }
+}
+
+function populateCalcModels() {
+  const sel = document.getElementById('calcModelSelect');
+  sel.innerHTML = '<option value="">-- เลือกรุ่น --</option>';
+  categories.forEach((cat, ci) => {
+    cat.models.forEach((m, mi) => {
+      const opt = document.createElement('option');
+      opt.value = ci + '-' + mi;
+      opt.textContent = m.name;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+function onCalcModelChange() {
+  const val = document.getElementById('calcModelSelect').value;
+  if (!val) { calcModel = null; return; }
+  const [ci, mi] = val.split('-').map(Number);
+  calcModel = categories[ci].models[mi];
+  calcVariantIdx = 0; // reset เมื่อเปลี่ยนรุ่น
+  updateCalcCarStrip();
+  updateCalcLive();
+}
+
+function openCalcModelPicker() {
+  document.getElementById('calcStep1').style.display = 'block';
+  document.getElementById('calcStep2').style.display = 'none';
+  document.getElementById('calcStep3').style.display = 'none';
+}
+
+function updateCalcCarStrip() {
+  if (!calcModel) return;
+  const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
+  const price = v ? (parseInt(v.price) || 0) : 0;
+  document.getElementById('calcCarName').textContent = calcModel.name;
+  document.getElementById('calcCarSub').textContent = v ? v.name : '';
+  document.getElementById('calcCarPrice').textContent = price > 0 ? '฿' + fmt(price) : 'ติดต่อสอบถามราคา';
+  const thumb = document.getElementById('calcCarThumb');
+  const img = calcModel.colors && calcModel.colors[0] && calcModel.colors[0].img;
+  thumb.innerHTML = img ? '<img src="' + img + '" style="width:100%;height:100%;object-fit:contain;">' : '🏍️';
+}
+
+function getCalcInstallment() {
+  if (!calcModel) return 0;
+  const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
+  const cashPrice = v ? (parseInt(v.price) || 0) : 0;
+  if (!cashPrice) return 0;
+  // ใช้ finance_price เป็น base คำนวณทั้งดาวน์และยอดจัด (ตรงกับตาราง genAutoCI เดิม)
+  const calcBase = (v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
+  const downPct = parseInt(document.getElementById('sliderDown').value);
+  const dn = downPct === 0 ? 0 : Math.ceil(calcBase * downPct / 100);
+  const financed = calcBase - dn;
+  const {rate, rate2, rate2MinDown, isAnnual} = getAutoRate(v);
+  if (rate > 0) {
+    const er = (rate2 > 0 && rate2MinDown > 0 && downPct >= rate2MinDown) ? rate2 : rate;
+    return isAnnual ? calcInstFlatAnnual(financed, er, calcPeriod) : calcInstFlat(financed, er, calcPeriod);
+  }
+  return Math.ceil(financed / calcPeriod);
+}
+
+function updateCalcLive() {
+  const downPct = parseInt(document.getElementById('sliderDown').value);
+  document.getElementById('sDownPct').textContent = downPct;
+  if (calcModel) {
+    const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
+    const cashPrice = v ? (parseInt(v.price) || 0) : 0;
+    const base = (v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
+    const dn = downPct === 0 ? 0 : Math.ceil(base * downPct / 100);
+    document.getElementById('sDownAmt').textContent = dn > 0 ? '฿' + fmt(dn) : 'ฟรีดาวน์';
+    const financed = base - dn;
+    const inst = getCalcInstallment();
+    document.getElementById('calcLiveResult').textContent = inst > 0 ? '฿' + fmt(inst) + ' / เดือน' : '—';
+    // ยอดจัด + ดอกเบี้ย
+    const lpF = document.getElementById('lpFinanced');
+    const lpR = document.getElementById('lpRate');
+    if (lpF) lpF.textContent = financed > 0 ? '฿' + fmt(financed) : '—';
+    if (lpR && v) {
+      const {rate, isAnnual} = getAutoRate(v);
+      lpR.textContent = rate > 0 ? 'ดอกเบี้ย ' + rate + (isAnnual ? '%/ปี' : '%/เดือน') : 'ไม่มีข้อมูลดอกเบี้ย';
+    }
+  } else {
+    document.getElementById('sDownAmt').textContent = '';
+    document.getElementById('calcLiveResult').textContent = '—';
+    const lpF = document.getElementById('lpFinanced');
+    const lpR = document.getElementById('lpRate');
+    if (lpF) lpF.textContent = '—';
+    if (lpR) lpR.textContent = '—';
+  }
+}
+
+function onSliderChange() { updateCalcLive(); }
+
+function selectPeriod(mo) {
+  calcPeriod = mo;
+  document.querySelectorAll('.period-pill').forEach(p => p.classList.toggle('active', parseInt(p.dataset.mo) === mo));
+  updateCalcLive();
+}
+
+function goCalcStep2() {
+  if (!calcModel) { alert('กรุณาเลือกรุ่นรถก่อน'); return; }
+  document.getElementById('calcStep1').style.display = 'none';
+  document.getElementById('calcStep2').style.display = 'block';
+  document.getElementById('calcStep3').style.display = 'none';
+  updateStepIndicators(2);
+  updateCalcLive();
+}
+
+function goCalcStep3() {
+  if (!calcModel) return;
+  const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
+  const cashPrice = v ? (parseInt(v.price) || 0) : 0;
+  const calcBase = (v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
+  const downPct = parseInt(document.getElementById('sliderDown').value);
+  const dn = downPct === 0 ? 0 : Math.ceil(calcBase * downPct / 100);
+  const financed = calcBase - dn;
+  const inst = getCalcInstallment();
+  const {rate, isAnnual} = getAutoRate(v);
+
+  document.getElementById('resultAmt').textContent = '฿' + fmt(inst);
+  document.getElementById('resultPeriod').textContent = calcPeriod + ' เดือน · ดาวน์ ' + downPct + '%' + (rate > 0 ? ' · ดอกเบี้ย ' + rate + (isAnnual ? '%/ปี' : '%/เดือน') : '');
+  document.getElementById('bdPrice').textContent = '฿' + fmt(cashPrice);
+  document.getElementById('bdDownLabel').textContent = 'เงินดาวน์ (' + downPct + '%)';
+  document.getElementById('bdDown').textContent = dn > 0 ? '-฿' + fmt(dn) : 'ฟรีดาวน์';
+  document.getElementById('bdFinanced').textContent = '฿' + fmt(financed);
+  document.getElementById('bdTotal').textContent = '฿' + fmt(inst * calcPeriod);
+
+  document.getElementById('calcStep1').style.display = 'none';
+  document.getElementById('calcStep2').style.display = 'none';
+  document.getElementById('calcStep3').style.display = 'block';
+  updateStepIndicators(3);
+}
+
+function goBackToStep2() {
+  document.getElementById('calcStep2').style.display = 'block';
+  document.getElementById('calcStep3').style.display = 'none';
+  updateStepIndicators(2);
+}
+
+function updateStepIndicators(active) {
+  [1, 2, 3].forEach(n => {
+    const el = document.getElementById('stepC' + n);
+    if (!el) return;
+    if (n < active) { el.className = 'step-circle done'; el.textContent = '✓'; }
+    else if (n === active) { el.className = 'step-circle active'; el.textContent = n; }
+    else { el.className = 'step-circle idle'; el.textContent = n; }
+  });
+}
+
+function openContactFromCalc() {
+  closeCalc();
+  if (calcModel) {
+    const sel = document.getElementById('intModel');
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].text === calcModel.name) { sel.value = sel.options[i].value; break; }
+    }
+  }
+  document.getElementById('contact').scrollIntoView({behavior: 'smooth'});
+}
+
+// ===== NEWS =====
+function renderNews() {
+  document.getElementById('newsGrid').innerHTML = newsData.map(n =>
+    '<div class="news-card">' +
+    '<div class="news-img">' + n.icon + '</div>' +
+    '<div class="news-body">' +
+    '<div class="news-tag">' + n.tag + '</div>' +
+    '<div class="news-date">' + n.date + '</div>' +
+    '<div class="news-title">' + n.title + '</div>' +
+    '</div></div>'
+  ).join('');
+}
+
+// ===== CONTACT MODELS =====
+function renderContactModels() {
+  const sel = document.getElementById('intModel');
+  sel.innerHTML = '<option value="">-- เลือกรุ่น --</option>' +
+    categories.flatMap(c => c.models.map(m => '<option>' + m.name + '</option>')).join('');
+}
+
+// ===== FORM =====
+function submitForm(e) {
+  e.preventDefault();
+  document.getElementById('leadForm').style.display = 'none';
+  document.getElementById('successMsg').style.display = 'block';
+}
+
+// Legacy mobile menu functions (kept for JS compatibility)
+function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
+function closeMenu() { document.getElementById('mobileMenu').classList.remove('open'); }
+
+// ===== FETCH SITE DATA =====
 async function fetchSiteData() {
   // ดึงเฉพาะ news (categories รถดึงจาก fetchCatalogDisplay แทน)
   try {
@@ -443,10 +2133,11 @@ async function fetchSiteData() {
     const d = await res.json();
     if (d && Array.isArray(d.news) && d.news.length > 0) {
       newsData.length = 0;
-      d.news.forEach(function(n){ newsData.push(n); });
+      d.news.forEach(function(n) { newsData.push(n); });
     }
   } catch(e) { console.log('Using default site data — API unavailable', e.message); }
 }
+
 // แปลงข้อมูลจาก bike-catalog-display API เป็น categories format
 function buildCategoriesFromAPI(rows) {
   const catOrder = [];
@@ -468,7 +2159,6 @@ function buildCategoriesFromAPI(rows) {
       bikeName    = slashIdx !== -1 ? submodel.substring(0, slashIdx).trim() : submodel.trim();
       variantName = slashIdx !== -1 ? submodel.substring(slashIdx + 3).trim() : (row.variant_name || 'มาตรฐาน');
     } else {
-      // fallback: ใช้ model_name และ variant_name จาก DB โดยตรง
       bikeName    = row.model_name || '';
       variantName = row.variant_name || 'มาตรฐาน';
     }
@@ -483,15 +2173,15 @@ function buildCategoriesFromAPI(rows) {
     // เพิ่ม variant ถ้ายังไม่มี
     if (!bike.variants.find(function(v) { return v.name === variantName; })) {
       const price = parseInt(row.price) || 0;
-      // สร้าง downs อัตโนมัติจากราคา (0%, 10%, 20%, 30%)
       const downs = price > 0
-        ? [0, Math.round(price*0.1/500)*500, Math.round(price*0.2/500)*500, Math.round(price*0.3/500)*500]
+        ? [0, Math.round(price * 0.1 / 500) * 500, Math.round(price * 0.2 / 500) * 500, Math.round(price * 0.3 / 500) * 500]
         : [0];
       const autoDownPcts = row.auto_down_pcts
-        ? row.auto_down_pcts.split(',').map(function(x){ return parseInt(x.trim()); }).filter(function(x){ return !isNaN(x); })
+        ? row.auto_down_pcts.split(',').map(function(x) { return parseInt(x.trim()); }).filter(function(x) { return !isNaN(x); })
         : [];
+      const financePrice = parseInt(row.finance_price) || 0;
       bike.variants.push({
-        name: variantName, price: price, downs: downs, _sortOrder: row.sort_order || 0,
+        name: variantName, price: price, financePrice: financePrice, downs: downs, _sortOrder: row.sort_order || 0,
         autoRate: parseFloat(row.auto_rate) || 0,
         autoRateUnit: row.auto_rate_unit || 'month',
         autoDownPcts: autoDownPcts.length ? autoDownPcts : null,
@@ -499,13 +2189,12 @@ function buildCategoriesFromAPI(rows) {
         autoRate2MinDown: parseInt(row.auto_rate2_min_down) || 0
       });
     }
-    // Merge สีเข้าด้วยกัน — แนบราคาขายและราคาไฟแนนส์ของรหัสนี้ไปกับแต่ละสี
+    // Merge สีเข้าด้วยกัน
     const rowPrice = parseInt(row.price) || 0;
     const rowFinancePrice = parseInt(row.finance_price) || 0;
     const colors = Array.isArray(row.colors) ? row.colors
-      : (typeof row.colors === 'string' ? (function(){ try{return JSON.parse(row.colors);}catch(e){return [];} })() : []);
+      : (typeof row.colors === 'string' ? (function() { try { return JSON.parse(row.colors); } catch(e) { return []; } })() : []);
     colors.forEach(function(c) {
-      // รองรับทั้ง format เก่า (string) และ format ใหม่ (object)
       const colorObj = (typeof c === 'string') ? { name: c } : c;
       if (!colorObj.name) return;
       if (!bike.colors.find(function(e) { return e.name === colorObj.name && (!colorObj.variant || e.variant === colorObj.variant); })) {
@@ -515,10 +2204,10 @@ function buildCategoriesFromAPI(rows) {
   });
   return catOrder.map(function(catName) {
     const models = Object.entries(catMap[catName])
-      .sort(function(a,b){ return a[1].sortOrder - b[1].sortOrder; })
+      .sort(function(a, b) { return a[1].sortOrder - b[1].sortOrder; })
       .map(function(entry) {
         const bike = entry[1];
-        bike.variants.sort(function(a,b){ return a._sortOrder - b._sortOrder; });
+        bike.variants.sort(function(a, b) { return a._sortOrder - b._sortOrder; });
         return { name: entry[0], icon: '🏍️', badge: bike.badge || '', colors: bike.colors, variants: bike.variants };
       });
     return { name: catName, icon: catIcons[catName] || '🏍️', models: models };
@@ -535,7 +2224,7 @@ async function fetchCatalogDisplay() {
       const built = buildCategoriesFromAPI(rows);
       if (built.length > 0) {
         categories.length = 0;
-        built.forEach(function(c){ categories.push(c); });
+        built.forEach(function(c) { categories.push(c); });
         console.log('[catalog] DB: ' + rows.length + ' รุ่นโหลดสำเร็จ');
         return;
       }
@@ -545,9 +2234,142 @@ async function fetchCatalogDisplay() {
     console.log('[catalog] DB ไม่พร้อมใช้งาน:', e.message);
   }
 }
-fetchSiteData().then(fetchCatalogDisplay).then(function(){
-  renderAllRows();renderNews();renderContactModels();
+
+fetchSiteData().then(fetchCatalogDisplay).then(function() {
+  renderAllRows(); renderNews(); renderContactModels();
+  initLiff();
 });
+
+// ===== LIFF Integration =====
+const LIFF_ID = '2010228940-rjXFOkmc';
+let isInLiff = false;
+
+async function initLiff() {
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    isInLiff = liff.isInClient();
+    if (isInLiff) {
+      // เปิดใน LINE: แสดงปุ่มสีเขียว ซ่อนปุ่มปกติ
+      const liffBtn = document.getElementById('liffSendBtn');
+      const contactBtn = document.getElementById('calcContactBtn');
+      if (liffBtn) liffBtn.style.display = 'flex';
+      if (contactBtn) contactBtn.style.display = 'none';
+    }
+  } catch(e) {
+    isInLiff = false;
+  }
+}
+
+async function sendToLine() {
+  if (!calcModel || !isInLiff) return;
+  const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
+  const cashPrice = v ? (parseInt(v.price) || 0) : 0;
+  const calcBase = (v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
+  const downPct = parseInt(document.getElementById('sliderDown').value);
+  const dn = downPct === 0 ? 0 : Math.ceil(calcBase * downPct / 100);
+  const financed = calcBase - dn;
+  const inst = getCalcInstallment();
+  const {rate, isAnnual} = getAutoRate(v);
+
+  // หารูปภาพรถ (สีแรก)
+  const imgUrl = (calcModel.colors && calcModel.colors[0] && calcModel.colors[0].img) ? calcModel.colors[0].img : null;
+
+  // สร้าง Flex Message
+  const flexMsg = {
+    type: 'flex',
+    altText: '🏍️ ' + calcModel.name + ' · ค่างวด ฿' + fmt(inst) + '/เดือน',
+    contents: {
+      type: 'bubble',
+      size: 'mega',
+      header: {
+        type: 'box', layout: 'vertical',
+        backgroundColor: '#cc0000', paddingAll: '16px',
+        contents: [
+          { type: 'text', text: '🏍️ รุ่นรถที่สนใจ', color: '#ffffff', size: 'sm', weight: 'bold' }
+        ]
+      },
+      hero: imgUrl ? {
+        type: 'image', url: imgUrl,
+        size: 'full', aspectRatio: '20:11', aspectMode: 'fit',
+        backgroundColor: '#f5f5f5'
+      } : undefined,
+      body: {
+        type: 'box', layout: 'vertical', spacing: 'md',
+        contents: [
+          {
+            type: 'box', layout: 'vertical', spacing: 'xs',
+            contents: [
+              { type: 'text', text: calcModel.name, weight: 'bold', size: 'xl', color: '#cc0000' },
+              { type: 'text', text: v ? v.name : '', size: 'sm', color: '#666666' }
+            ]
+          },
+          { type: 'separator' },
+          {
+            type: 'box', layout: 'vertical', spacing: 'sm',
+            contents: [
+              {
+                type: 'box', layout: 'horizontal',
+                contents: [
+                  { type: 'text', text: 'ราคาเงินสด', size: 'sm', color: '#888888', flex: 3 },
+                  { type: 'text', text: '฿' + fmt(cashPrice), size: 'sm', align: 'end', flex: 2 }
+                ]
+              },
+              {
+                type: 'box', layout: 'horizontal',
+                contents: [
+                  { type: 'text', text: 'เงินดาวน์ (' + downPct + '%)', size: 'sm', color: '#888888', flex: 3 },
+                  { type: 'text', text: dn > 0 ? '฿' + fmt(dn) : 'ฟรีดาวน์', size: 'sm', align: 'end', flex: 2 }
+                ]
+              },
+              {
+                type: 'box', layout: 'horizontal',
+                contents: [
+                  { type: 'text', text: 'ยอดจัดไฟแนนซ์', size: 'sm', color: '#888888', flex: 3 },
+                  { type: 'text', text: '฿' + fmt(financed), size: 'sm', align: 'end', flex: 2 }
+                ]
+              },
+              { type: 'separator' },
+              {
+                type: 'box', layout: 'horizontal',
+                contents: [
+                  { type: 'text', text: 'ค่างวด/เดือน', size: 'md', weight: 'bold', flex: 3 },
+                  { type: 'text', text: '฿' + fmt(inst), size: 'xl', weight: 'bold', color: '#cc0000', align: 'end', flex: 2 }
+                ]
+              },
+              {
+                type: 'text',
+                text: 'ผ่อน ' + calcPeriod + ' เดือน' + (rate > 0 ? ' · ดอกเบี้ย ' + rate + (isAnnual ? '%/ปี' : '%/เดือน') : ''),
+                size: 'xs', color: '#aaaaaa', align: 'end'
+              }
+            ]
+          }
+        ]
+      },
+      footer: {
+        type: 'box', layout: 'vertical', spacing: 'sm',
+        contents: [
+          {
+            type: 'button', style: 'primary', color: '#cc0000',
+            action: {
+              type: 'message',
+              label: 'สนใจรุ่นนี้ ขอข้อมูลเพิ่มเติม',
+              text: 'สนใจ ' + calcModel.name + ' ' + (v ? v.name : '') + '\nค่างวดประมาณ ฿' + fmt(inst) + '/เดือน × ' + calcPeriod + ' เดือน\nขอข้อมูลเพิ่มเติมครับ'
+            }
+          }
+        ]
+      }
+    }
+  };
+  // ลบ hero ถ้าไม่มีรูป
+  if (!imgUrl) delete flexMsg.contents.hero;
+
+  try {
+    await liff.sendMessages([flexMsg]);
+    liff.closeWindow();
+  } catch(e) {
+    alert('ไม่สามารถส่งข้อมูลได้: ' + e.message);
+  }
+}
 </script>
 </body>
 </html>
