@@ -924,15 +924,41 @@ img { display: block; max-width: 100%; }
 }
 /* Cash-only preview */
 .cash-preview {
-  background: #fff5f5;
+  background: linear-gradient(180deg, #fff5f5 0%, #ffffff 100%);
   border: 1.5px solid #ffcccc;
-  border-radius: 10px;
-  padding: 1.25rem 1rem;
-  margin-bottom: 1.25rem;
+  border-radius: 12px;
+  padding: 2rem 1.25rem 1.5rem;
+  margin-bottom: 1rem;
   text-align: center;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.4rem;
 }
-.cash-preview-label { font-size: 0.85rem; color: #888; margin-bottom: 0.35rem; }
-.cash-preview-amt { font-size: 1.85rem; font-weight: 700; color: var(--red); }
+.cash-preview-icon { font-size: 2.2rem; margin-bottom: 0.25rem; }
+.cash-preview-label { font-size: 0.9rem; color: #666; font-weight: 600; }
+.cash-preview-amt { font-size: 2.4rem; font-weight: 700; color: var(--red); line-height: 1.1; }
+.cash-preview-sub { font-size: 0.78rem; color: #999; margin-top: 0.35rem; line-height: 1.5; }
+.cash-benefits {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  padding: 0.85rem 1rem;
+  background: #f8fdf8;
+  border: 1px solid #d4ecd4;
+  border-radius: 10px;
+}
+.cash-benefit-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: #2c7a2c;
+  font-weight: 500;
+}
 /* Customer info inputs */
 .customer-info {
   background: #fafafa;
@@ -964,6 +990,37 @@ img { display: block; max-width: 100%; }
   margin-bottom: 0.5rem;
 }
 .customer-input:focus { outline: none; border-color: var(--red); }
+/* Custom down amount input */
+.custom-down-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  background: #fafafa;
+  border: 1px dashed #d0d0d0;
+  border-radius: 8px;
+}
+.custom-down-row label {
+  font-size: 0.82rem;
+  color: #666;
+  flex: 0 0 auto;
+  font-family: 'Sarabun', sans-serif;
+}
+.custom-down-row input {
+  flex: 1;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.95rem;
+  text-align: right;
+  background: white;
+  width: 100%;
+  min-width: 0;
+}
+.custom-down-row input:focus { outline: none; border-color: var(--red); }
+.custom-down-row .unit { font-size: 0.85rem; color: #888; flex: 0 0 auto; }
 /* Slider section */
 .slider-section {
   margin-bottom: 1.25rem;
@@ -1544,7 +1601,6 @@ footer .footer-brand {
           <div class="csub" id="calcCarSub"></div>
           <div class="cprice" id="calcCarPrice"></div>
         </div>
-        <div class="calc-change-link" onclick="openCalcModelPicker()">เปลี่ยนรุ่น</div>
       </div>
 
       <!-- Step 1: model picker -->
@@ -1573,6 +1629,11 @@ footer .footer-brand {
             </div>
             <input type="range" id="sliderDown" min="0" max="50" step="5" value="15" oninput="onSliderChange()">
             <div class="slider-ticks"><span>0% ฟรีดาวน์</span><span>25%</span><span>50%</span></div>
+            <div class="custom-down-row">
+              <label>หรือกำหนดเงินดาวน์เอง</label>
+              <input type="text" inputmode="numeric" id="customDown" placeholder="0" oninput="onCustomDownInput(event)" onfocus="this.select()">
+              <span class="unit">บาท</span>
+            </div>
           </div>
 
           <!-- Period pills -->
@@ -1604,8 +1665,20 @@ footer .footer-brand {
         <!-- Cash-only section -->
         <div id="cashOnly" style="display:none;">
           <div class="cash-preview">
+            <div class="cash-preview-icon">💵</div>
             <div class="cash-preview-label">ราคาเงินสด</div>
             <div class="cash-preview-amt" id="cashPriceDisplay">—</div>
+            <div class="cash-preview-sub">รับสิทธิพิเศษเมื่อซื้อสด</div>
+          </div>
+          <div class="cash-benefits">
+            <div class="cash-benefit-item">✓ ฟรีทะเบียน</div>
+            <div class="cash-benefit-item">✓ ฟรี พ.ร.บ.</div>
+            <div class="cash-benefit-item">✓ ฟรีประกันรถหาย</div>
+            <div class="cash-benefit-item">✓ ฟรีประกันอุบัติเหตุ</div>
+          </div>
+          <div style="font-size:0.78rem;color:#888;text-align:center;padding:0 0.5rem 0.75rem;line-height:1.5;">
+            * ติดต่อร้านเพื่อยืนยันราคาและโปรโมชั่นล่าสุด<br>
+            อาจมีส่วนลดเพิ่มเติมสำหรับลูกค้าเงินสด
           </div>
         </div>
 
@@ -1979,7 +2052,7 @@ function closeModal(e) {
 }
 
 // ===== CALCULATOR OVERLAY =====
-let calcModel = null, calcPeriod = 36, calcVariantIdx = 0, calcPayType = 'installment';
+let calcModel = null, calcPeriod = 36, calcVariantIdx = 0, calcPayType = 'installment', calcCustomDownAmount = null;
 
 function openCalc() {
   document.getElementById('calcOverlay').classList.add('open');
@@ -2037,6 +2110,9 @@ function onCalcModelChange() {
   const [ci, mi] = val.split('-').map(Number);
   calcModel = categories[ci].models[mi];
   calcVariantIdx = 0; // reset เมื่อเปลี่ยนรุ่น
+  calcCustomDownAmount = null; // reset custom down
+  const cd = document.getElementById('customDown');
+  if (cd) cd.value = '';
   updateCalcCarStrip();
   updateCalcLive();
 }
@@ -2064,38 +2140,53 @@ function getCalcInstallment() {
   const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
   const cashPrice = v ? (parseInt(v.price) || 0) : 0;
   if (!cashPrice) return 0;
-  // ใช้ finance_price เป็น base คำนวณทั้งดาวน์และยอดจัด (ตรงกับตาราง genAutoCI เดิม)
   const calcBase = (v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
-  const downPct = parseInt(document.getElementById('sliderDown').value);
-  const dn = downPct === 0 ? 0 : Math.ceil(calcBase * downPct / 100);
+  const { dn, pct } = getCalcDown();
   const financed = calcBase - dn;
   const {rate, rate2, rate2MinDown, isAnnual} = getAutoRate(v);
   if (rate > 0) {
-    const er = (rate2 > 0 && rate2MinDown > 0 && downPct >= rate2MinDown) ? rate2 : rate;
+    const er = (rate2 > 0 && rate2MinDown > 0 && pct >= rate2MinDown) ? rate2 : rate;
     return isAnnual ? calcInstFlatAnnual(financed, er, calcPeriod) : calcInstFlat(financed, er, calcPeriod);
   }
   return Math.ceil(financed / calcPeriod);
 }
 
+// ดาวน์: ถ้า custom set → ใช้ custom, ไม่งั้นใช้ slider %
+// คืน { dn (จำนวนเงิน), pct (%) }
+function getCalcDown() {
+  if (!calcModel) return { dn: 0, pct: 0 };
+  const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
+  const cashPrice = v ? (parseInt(v.price) || 0) : 0;
+  const base = (v && v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
+  if (calcCustomDownAmount !== null && calcCustomDownAmount >= 0) {
+    const dn = Math.min(calcCustomDownAmount, base);
+    const pct = base > 0 ? Math.round(dn / base * 1000) / 10 : 0;
+    return { dn, pct };
+  }
+  const pct = parseInt(document.getElementById('sliderDown').value);
+  const dn = pct === 0 ? 0 : Math.ceil(base * pct / 100);
+  return { dn, pct };
+}
+
 function updateCalcLive() {
-  const downPct = parseInt(document.getElementById('sliderDown').value);
-  document.getElementById('sDownPct').textContent = downPct;
   if (calcModel) {
     const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
     const cashPrice = v ? (parseInt(v.price) || 0) : 0;
     const base = (v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
-    const dn = downPct === 0 ? 0 : Math.ceil(base * downPct / 100);
+    const { dn, pct } = getCalcDown();
+    // แสดง pct (ปัด 1 ทศนิยม)
+    document.getElementById('sDownPct').textContent = (pct % 1 === 0) ? pct : pct.toFixed(1);
     document.getElementById('sDownAmt').textContent = dn > 0 ? '฿' + fmt(dn) : 'ฟรีดาวน์';
     const financed = base - dn;
     const inst = getCalcInstallment();
     document.getElementById('calcLiveResult').textContent = inst > 0 ? '฿' + fmt(inst) + ' / เดือน' : '—';
-    // ยอดจัด + ดอกเบี้ย
     const lpF = document.getElementById('lpFinanced');
     const lpR = document.getElementById('lpRate');
     if (lpF) lpF.textContent = financed > 0 ? '฿' + fmt(financed) : '—';
     if (lpR && v) {
-      const {rate, isAnnual} = getAutoRate(v);
-      lpR.textContent = rate > 0 ? 'ดอกเบี้ย ' + rate + (isAnnual ? '%/ปี' : '%/เดือน') : 'ไม่มีข้อมูลดอกเบี้ย';
+      const {rate, rate2, rate2MinDown, isAnnual} = getAutoRate(v);
+      const effRate = (rate2 > 0 && rate2MinDown > 0 && pct >= rate2MinDown) ? rate2 : rate;
+      lpR.textContent = effRate > 0 ? 'ดอกเบี้ย ' + effRate + (isAnnual ? '%/ปี' : '%/เดือน') : 'ไม่มีข้อมูลดอกเบี้ย';
     }
   } else {
     document.getElementById('sDownAmt').textContent = '';
@@ -2107,7 +2198,41 @@ function updateCalcLive() {
   }
 }
 
-function onSliderChange() { updateCalcLive(); }
+function onSliderChange() {
+  // เมื่อเลื่อน slider → ยกเลิก custom
+  calcCustomDownAmount = null;
+  const cd = document.getElementById('customDown');
+  if (cd) cd.value = '';
+  updateCalcLive();
+}
+
+function onCustomDownInput(e) {
+  // อนุญาตเฉพาะตัวเลข + format ด้วย comma
+  let raw = e.target.value.replace(/[^\d]/g, '');
+  if (!raw) {
+    calcCustomDownAmount = null;
+    e.target.value = '';
+    updateCalcLive();
+    return;
+  }
+  const num = parseInt(raw);
+  e.target.value = num.toLocaleString('en-US');
+  calcCustomDownAmount = num;
+  // sync slider position (snap ตาม step)
+  if (calcModel) {
+    const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
+    const cashPrice = v ? (parseInt(v.price) || 0) : 0;
+    const base = (v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
+    if (base > 0) {
+      const pct = num / base * 100;
+      const slider = document.getElementById('sliderDown');
+      const minV = parseInt(slider.min) || 0;
+      const snapped = Math.min(50, Math.max(minV, Math.round(pct / 5) * 5));
+      slider.value = snapped;
+    }
+  }
+  updateCalcLive();
+}
 
 function selectPeriod(mo) {
   calcPeriod = mo;
@@ -2121,8 +2246,28 @@ function goCalcStep2() {
   document.getElementById('calcStep2').style.display = 'block';
   document.getElementById('calcStep3').style.display = 'none';
   updateStepIndicators(2);
+  updateSliderRange();
   updateCalcLive();
   updateCashPreview();
+}
+
+// ปรับช่วง slider เงินดาวน์ตาม auto_down_pcts ของ variant
+// (รถบิ๊กไบค์มักไม่อนุญาตให้ฟรีดาวน์ — เริ่มที่ 10% ขึ้นไป)
+function updateSliderRange() {
+  if (!calcModel) return;
+  const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
+  const downPcts = v && v.autoDownPcts && v.autoDownPcts.length ? v.autoDownPcts : null;
+  const minDown = downPcts ? Math.min.apply(null, downPcts) : 0;
+  const slider = document.getElementById('sliderDown');
+  if (!slider) return;
+  slider.min = minDown;
+  if (parseInt(slider.value) < minDown) slider.value = minDown;
+  // อัพเดท tick labels
+  const ticks = document.querySelector('.slider-ticks');
+  if (ticks) {
+    const minLabel = minDown === 0 ? '0% ฟรีดาวน์' : minDown + '% ขั้นต่ำ';
+    ticks.innerHTML = '<span>' + minLabel + '</span><span>25%</span><span>50%</span>';
+  }
 }
 
 function setPayType(type) {
@@ -2153,18 +2298,19 @@ function goCalcStep3() {
     document.getElementById('resultCashSub').textContent = calcModel.name + (v && v.name ? ' · ' + v.name : '');
   } else {
     const calcBase = (v && v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
-    const downPct = parseInt(document.getElementById('sliderDown').value);
-    const dn = downPct === 0 ? 0 : Math.ceil(calcBase * downPct / 100);
+    const { dn, pct } = getCalcDown();
+    const pctLabel = (pct % 1 === 0) ? pct : pct.toFixed(1);
     const financed = calcBase - dn;
     const inst = getCalcInstallment();
-    const {rate, isAnnual} = getAutoRate(v);
+    const {rate, rate2, rate2MinDown, isAnnual} = getAutoRate(v);
+    const effRate = (rate2 > 0 && rate2MinDown > 0 && pct >= rate2MinDown) ? rate2 : rate;
 
     document.getElementById('resultInstallment').style.display = 'block';
     document.getElementById('resultCash').style.display = 'none';
     document.getElementById('resultAmt').textContent = '฿' + fmt(inst);
-    document.getElementById('resultPeriod').textContent = calcPeriod + ' เดือน · ดาวน์ ' + downPct + '%' + (rate > 0 ? ' · ดอกเบี้ย ' + rate + (isAnnual ? '%/ปี' : '%/เดือน') : '');
+    document.getElementById('resultPeriod').textContent = calcPeriod + ' เดือน · ดาวน์ ' + pctLabel + '%' + (effRate > 0 ? ' · ดอกเบี้ย ' + effRate + (isAnnual ? '%/ปี' : '%/เดือน') : '');
     document.getElementById('bdPrice').textContent = '฿' + fmt(cashPrice);
-    document.getElementById('bdDownLabel').textContent = 'เงินดาวน์ (' + downPct + '%)';
+    document.getElementById('bdDownLabel').textContent = 'เงินดาวน์ (' + pctLabel + '%)';
     document.getElementById('bdDown').textContent = dn > 0 ? '-฿' + fmt(dn) : 'ฟรีดาวน์';
     document.getElementById('bdFinanced').textContent = '฿' + fmt(financed);
   }
@@ -2374,14 +2520,13 @@ async function sendToLine() {
     });
   } else {
     // เงินผ่อน: รายละเอียดงวด
-    const calcBase = (v && v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
-    const downPct = parseInt(document.getElementById('sliderDown').value);
-    const dn = downPct === 0 ? 0 : Math.ceil(calcBase * downPct / 100);
+    const { dn, pct } = getCalcDown();
+    const pctLabel = (pct % 1 === 0) ? pct : pct.toFixed(1);
     const inst = getCalcInstallment();
     bodyContents.push(
       { type: 'box', layout: 'horizontal', margin: 'md',
         contents: [
-          { type: 'text', text: 'เงินดาวน์ (' + downPct + '%)', size: 'sm', color: '#888888', flex: 3 },
+          { type: 'text', text: 'เงินดาวน์ (' + pctLabel + '%)', size: 'sm', color: '#888888', flex: 3 },
           { type: 'text', text: dn > 0 ? '฿' + fmt(dn) : 'ฟรีดาวน์', size: 'sm', align: 'end', flex: 2 }
         ]
       },
@@ -2439,9 +2584,10 @@ async function sendToLine() {
   if (calcPayType === 'cash') {
     fallbackParts.push('แบบเงินสด ราคา ' + (cashPrice > 0 ? fmt(cashPrice) + ' บาท' : 'ขอสอบถามราคา'));
   } else {
-    const downPct = parseInt(document.getElementById('sliderDown').value);
+    const { dn, pct } = getCalcDown();
+    const pctLabel = (pct % 1 === 0) ? pct : pct.toFixed(1);
     const inst = getCalcInstallment();
-    fallbackParts.push('แบบผ่อน ดาวน์ ' + downPct + '% · ค่างวด ' + fmt(inst) + ' บาท/เดือน × ' + calcPeriod + ' เดือน');
+    fallbackParts.push('แบบผ่อน ดาวน์ ' + pctLabel + '% (' + (dn > 0 ? fmt(dn) + ' บาท' : 'ฟรีดาวน์') + ') · ค่างวด ' + fmt(inst) + ' บาท/เดือน × ' + calcPeriod + ' เดือน');
   }
   if (custName) fallbackParts.push('ชื่อ: ' + custName);
   if (custPhone) fallbackParts.push('เบอร์: ' + custPhone);
