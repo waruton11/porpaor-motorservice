@@ -2612,21 +2612,27 @@ async function sendToLine() {
   const fallbackText = fallbackParts.join('\n');
 
   try {
-    // วิธีหลัก: ส่ง Flex card เข้าแชท (ทำงานเมื่อเปิดจาก Rich Menu/มี permission)
+    // วิธีหลัก: ส่ง Flex card เข้าแชท (ทำงานเมื่อเปิดจาก Rich Menu — มีบริบทแชท)
     await liff.sendMessages([flexMsg]);
     liff.closeWindow();
   } catch(e) {
-    // sendMessages ใช้ไม่ได้ (เช่น เปิดจากลิงค์ภายนอก ยังไม่ได้ grant permission)
-    // → fallback: เปิดแชท OA พร้อม pre-fill ข้อความสรุป (ลูกค้าแค่กดส่ง) ไม่ต้องใช้ permission
-    const oaUrl = 'https://line.me/R/oaMessage/%40975ltwhp/?' + encodeURIComponent(fallbackText);
+    // เปิดจากลิงค์ภายนอก → ไม่มีบริบทแชท sendMessages ใช้ไม่ได้
+    // → วิธีที่ 2: ดึง userId แล้ว push การ์ดเข้าแชทผ่าน n8n (Push API)
     try {
-      if (typeof liff !== 'undefined' && liff.openWindow) {
-        liff.openWindow({ url: oaUrl, external: false });
-        setTimeout(function(){ try { liff.closeWindow(); } catch(_){} }, 400);
-      } else {
-        window.location.href = oaUrl;
-      }
+      const profile = await liff.getProfile();
+      const res = await fetch('https://n8n-wt11.onrender.com/webhook/push-lead-card', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: profile.userId, message: flexMsg })
+      });
+      if (!res.ok) throw new Error('push http ' + res.status);
+      // เปิดแชท OA ให้ลูกค้าเห็นการ์ดที่ push เข้าไป
+      const oaUrl = 'https://line.me/R/ti/p/@975ltwhp';
+      if (liff.openWindow) { liff.openWindow({ url: oaUrl, external: false }); }
+      setTimeout(function(){ try { liff.closeWindow(); } catch(_){} }, 500);
     } catch(e2) {
+      // วิธีสุดท้าย: เปิดแชท OA พร้อม pre-fill ข้อความ (ลูกค้ากดส่ง) — ไม่ต้องใช้ permission
+      const oaUrl = 'https://line.me/R/oaMessage/%40975ltwhp/?' + encodeURIComponent(fallbackText);
       window.location.href = oaUrl;
     }
   }

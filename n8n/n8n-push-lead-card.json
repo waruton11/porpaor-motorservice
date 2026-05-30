@@ -1,0 +1,118 @@
+{
+  "name": "POST push-lead-card",
+  "nodes": [
+    {
+      "id": "push-001",
+      "name": "POST push-lead-card",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "push-lead-card",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "push-lead-card",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "push-002",
+      "name": "Build push",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// รับ { userId, message } จาก LIFF (external link)\nconst body = $input.first().json.body || $input.first().json;\nconst userId = body.userId;\nconst message = body.message;\nif (!userId || !message) {\n  return [{ json: { skip: true, error: 'missing userId or message' } }];\n}\nreturn [{ json: { userId, message, token: 's6yXmBDu8IHtcIJA54MOVUqxVPNUSwht/oAxwGR+HyZ2H6cbrRS+i2BGQzfQRsCk8rUiVuGiYVSFVqsgW5SJXNIZHi736tS59Q/yJMP7TVfCA0Lot7p1NYu8ERe2tvh3ipTN12+bFfCTQ/8U0ShzYAdB04t89/1O/w1cDnyilFU=' } }];"
+      }
+    },
+    {
+      "id": "push-003",
+      "name": "LINE Push",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/push",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $json.token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ to: $json.userId, messages: [$json.message] }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "push-004",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        300
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true }) }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "POST push-lead-card": {
+      "main": [
+        [
+          {
+            "node": "Build push",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build push": {
+      "main": [
+        [
+          {
+            "node": "LINE Push",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LINE Push": {
+      "main": [
+        [
+          {
+            "node": "Respond OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
