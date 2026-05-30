@@ -248,6 +248,8 @@ img { display: block; max-width: 100%; }
   border-color: var(--red);
   background: #fff0f0;
 }
+.cat-circle-img { width: 30px; height: 30px; object-fit: contain; display: block; }
+.cat-tab-img { width: 24px; height: 24px; object-fit: contain; display: inline-block; vertical-align: middle; }
 .cat-icon-label {
   font-size: 0.65rem;
   font-weight: 500;
@@ -1719,12 +1721,13 @@ function scrollToModels() {
 function renderAllRows() {
   const c = document.getElementById('catRows');
   // Desktop tabs (hidden on mobile via CSS)
-  const tabs = categories.map((cat, ci) =>
-    '<button class="cat-tab' + (ci === 0 ? ' active' : '') + '" onclick="switchCat(' + ci + ')">' +
-    '<span class="cat-tab-icon">' + cat.icon + '</span>' +
-    '<span class="cat-tab-info"><span class="cat-tab-name">' + cat.name + '</span><span class="cat-tab-count">' + cat.models.length + ' รุ่น</span></span>' +
-    '</button>'
-  ).join('');
+  const tabs = categories.map((cat, ci) => {
+    const d = catDisplay(cat);
+    return '<button class="cat-tab' + (ci === 0 ? ' active' : '') + '" onclick="switchCat(' + ci + ')">' +
+    '<span class="cat-tab-icon">' + iconToHtml(d.icon, 'cat-tab-img') + '</span>' +
+    '<span class="cat-tab-info"><span class="cat-tab-name">' + d.label + '</span><span class="cat-tab-count">' + cat.models.length + ' รุ่น</span></span>' +
+    '</button>';
+  }).join('');
   const panels = categories.map((cat, ci) =>
     '<div class="cat-panel' + (ci === 0 ? ' active' : '') + '" id="catPanel-' + ci + '">' +
     '<div class="model-grid">' +
@@ -1766,12 +1769,13 @@ function switchCat(ci) {
 function renderCatIcons() {
   const row = document.getElementById('catIconsRow');
   if (!row) return;
-  row.innerHTML = categories.map((cat, ci) =>
-    '<div class="cat-icon-item" onclick="switchCatMobile(' + ci + ')">' +
-    '<div class="cat-icon-circle' + (ci === 0 ? ' active' : '') + '" id="catIconCircle' + ci + '">' + cat.icon + '</div>' +
-    '<div class="cat-icon-label' + (ci === 0 ? ' active' : '') + '" id="catIconLabel' + ci + '">' + cat.name + '</div>' +
-    '</div>'
-  ).join('');
+  row.innerHTML = categories.map((cat, ci) => {
+    const d = catDisplay(cat);
+    return '<div class="cat-icon-item" onclick="switchCatMobile(' + ci + ')">' +
+    '<div class="cat-icon-circle' + (ci === 0 ? ' active' : '') + '" id="catIconCircle' + ci + '">' + iconToHtml(d.icon, 'cat-circle-img') + '</div>' +
+    '<div class="cat-icon-label' + (ci === 0 ? ' active' : '') + '" id="catIconLabel' + ci + '">' + d.label + '</div>' +
+    '</div>';
+  }).join('');
 }
 
 function switchCatMobile(ci) {
@@ -2345,7 +2349,9 @@ const DEFAULT_SITE_CONFIG = {
     { icon: '🏅', label: 'รับประกัน Honda' },
     { icon: '💳', label: 'ดาวน์ 0%' },
     { icon: '📞', label: 'ช่วยเหลือ 24ชม' }
-  ]
+  ],
+  // override icon/ชื่อหมวด — key = bike_type เดิม (ไม่กระทบข้อมูลรถ)
+  categoryOverrides: {}
 };
 let siteConfig = JSON.parse(JSON.stringify(DEFAULT_SITE_CONFIG));
 
@@ -2357,8 +2363,27 @@ async function fetchSiteConfig() {
     if (d) {
       if (d.heroImage) siteConfig.heroImage = d.heroImage;
       if (Array.isArray(d.benefits) && d.benefits.length) siteConfig.benefits = d.benefits;
+      if (d.categoryOverrides && typeof d.categoryOverrides === 'object') siteConfig.categoryOverrides = d.categoryOverrides;
     }
   } catch(e) { console.log('site-config unavailable, using defaults', e.message); }
+}
+
+// แปลง icon → HTML (รองรับทั้ง URL รูป และ emoji/text)
+function iconToHtml(ic, cls) {
+  ic = ic || '';
+  if (/^https?:\/\//.test(ic)) {
+    return '<img class="' + (cls || '') + '" src="' + ic + '" alt="">';
+  }
+  return ic;
+}
+
+// คืน { icon, label } ของหมวด — ใช้ override ถ้ามี ไม่งั้นใช้ค่า default
+function catDisplay(cat) {
+  const ov = (siteConfig.categoryOverrides || {})[cat.name] || {};
+  return {
+    icon: (ov.icon && ov.icon.trim()) ? ov.icon : cat.icon,
+    label: (ov.label && ov.label.trim()) ? ov.label : cat.name
+  };
 }
 
 function renderHero() {
@@ -2584,15 +2609,25 @@ async function sendToLine() {
   if (custPhone) fallbackParts.push('เบอร์: ' + custPhone);
   fallbackParts.push('ขอข้อมูลเพิ่มเติมครับ');
 
+  const fallbackText = fallbackParts.join('\n');
+
   try {
+    // วิธีหลัก: ส่ง Flex card เข้าแชท (ทำงานเมื่อเปิดจาก Rich Menu/มี permission)
     await liff.sendMessages([flexMsg]);
     liff.closeWindow();
   } catch(e) {
+    // sendMessages ใช้ไม่ได้ (เช่น เปิดจากลิงค์ภายนอก ยังไม่ได้ grant permission)
+    // → fallback: เปิดแชท OA พร้อม pre-fill ข้อความสรุป (ลูกค้าแค่กดส่ง) ไม่ต้องใช้ permission
+    const oaUrl = 'https://line.me/R/oaMessage/%40975ltwhp/?' + encodeURIComponent(fallbackText);
     try {
-      await liff.sendMessages([{ type: 'text', text: fallbackParts.join('\n') }]);
-      liff.closeWindow();
+      if (typeof liff !== 'undefined' && liff.openWindow) {
+        liff.openWindow({ url: oaUrl, external: false });
+        setTimeout(function(){ try { liff.closeWindow(); } catch(_){} }, 400);
+      } else {
+        window.location.href = oaUrl;
+      }
     } catch(e2) {
-      alert('ส่งไม่ได้: ' + e2.message);
+      window.location.href = oaUrl;
     }
   }
 }

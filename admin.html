@@ -285,6 +285,15 @@ tr:hover td { background: #fafafa; }
           <div id="sc_benefitsRows"></div>
         </div>
 
+        <div class="card" style="margin-bottom:1.5rem;">
+          <h3 style="margin-top:0;">🏍️ หมวดประเภทรถ (Icon + ชื่อที่แสดง)</h3>
+          <div style="background:#eef6ff;border:1px solid #cfe3ff;border-radius:6px;padding:0.6rem 0.85rem;margin-bottom:0.85rem;font-size:0.82rem;color:#1a5298;">
+            ℹ️ เปลี่ยนเฉพาะ <b>รูป icon และชื่อที่แสดง</b> เท่านั้น — ไม่กระทบการจัดกลุ่มรถ (รถยังอยู่หมวดเดิม)<br>
+            เว้นว่างไว้ = ใช้ค่าเริ่มต้น · Icon ใส่ URL รูป หรือ emoji ก็ได้
+          </div>
+          <div id="sc_categoryRows"><div style="color:#999;font-size:0.85rem;">กำลังโหลดหมวด...</div></div>
+        </div>
+
         <button class="btn btn-success" onclick="saveSiteConfig()" style="font-size:1rem;padding:0.75rem 2rem;">💾 บันทึก</button>
         <button class="btn btn-gray" onclick="loadSiteConfig()" style="margin-left:0.5rem;">🔄 โหลดจาก Server</button>
       </div>
@@ -954,8 +963,10 @@ let _siteCfg = {
     { icon: '🏅', label: 'รับประกัน Honda' },
     { icon: '💳', label: 'ดาวน์ 0%' },
     { icon: '📞', label: 'ช่วยเหลือ 24ชม' }
-  ]
+  ],
+  categoryOverrides: {}  // { "<bike_type>": { icon, label } }
 };
+let _siteCatList = [];  // รายชื่อหมวด (bike_type) จาก catalog + default icon
 
 function _benefitIconPreview(ic) {
   if (/^https?:\/\//.test(ic || '')) {
@@ -976,6 +987,60 @@ function _renderBenefitsRows() {
   }).join('');
 }
 
+// default icon ตาม bike_type (ตรงกับ frontend)
+const _DEFAULT_CAT_ICONS = {
+  'ครอบครัว': '🏘️', 'ครอบครัว (Family)': '🏘️',
+  'สกู๊ตเตอร์ออโตเมติก': '🛵', 'สกู๊ตเตอร์': '🛵',
+  'สปอร์ต': '🏍️', 'สปอร์ต (Sport)': '🏍️',
+  'ผจญภัย': '🗺️', 'ผจญภัย (Adventure)': '🗺️',
+  'บ๊อบเบอร์': '☕', 'บ๊อบเบอร์ & นีโอสปอร์ตคาเฟ่': '☕',
+  'รถไฟฟ้า': '⚡', 'รถไฟฟ้า (EV)': '⚡'
+};
+
+// ดึงรายชื่อหมวด (bike_type) จาก catalog — เรียงตาม sort_order
+async function _loadCategoryList() {
+  try {
+    const res = await fetch('https://n8n-wt11.onrender.com/webhook/bike-catalog-display');
+    if (!res.ok) return;
+    const rows = await res.json();
+    const seen = {};
+    const list = [];
+    (Array.isArray(rows) ? rows : []).forEach(function(r) {
+      const bt = r.bike_type || 'อื่นๆ';
+      if (!seen[bt]) { seen[bt] = true; list.push({ key: bt, sort: r.sort_order || 0 }); }
+    });
+    list.sort(function(a, b) { return a.sort - b.sort; });
+    _siteCatList = list;
+  } catch(e) { console.warn('_loadCategoryList', e.message); }
+}
+
+function _renderCategoryRows() {
+  const wrap = document.getElementById('sc_categoryRows');
+  if (!wrap) return;
+  if (!_siteCatList.length) { wrap.innerHTML = '<div style="color:#999;font-size:0.85rem;">ไม่พบหมวด (ตรวจสอบ webhook catalog)</div>'; return; }
+  wrap.innerHTML = _siteCatList.map(function(cat, i) {
+    const ov = _siteCfg.categoryOverrides[cat.key] || {};
+    const defIcon = _DEFAULT_CAT_ICONS[cat.key] || '🏍️';
+    const curIcon = ov.icon || defIcon;
+    const escKey = cat.key.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+    return '<div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;border-bottom:1px solid #f0f0f0;padding-bottom:10px;">' +
+      '<span id="sc_catPrev' + i + '" style="flex:0 0 auto;">' + _benefitIconPreview(curIcon) + '</span>' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="font-size:0.72rem;color:#999;margin-bottom:3px;">หมวด: ' + cat.key + '</div>' +
+        '<input type="text" data-catkey="' + escKey + '" data-fld="icon" value="' + (ov.icon || '').replace(/"/g, '&quot;') + '" placeholder="(ค่าเริ่มต้น ' + defIcon + ') URL รูป หรือ emoji" style="width:100%;box-sizing:border-box;padding:0.4rem 0.6rem;border:1px solid #ddd;border-radius:6px;font-size:0.8rem;font-family:monospace;margin-bottom:5px;" oninput="_onCatIconInput(this, ' + i + ')">' +
+        '<input type="text" data-catkey="' + escKey + '" data-fld="label" value="' + (ov.label || '').replace(/"/g, '&quot;') + '" placeholder="(ค่าเริ่มต้น: ' + cat.key + ') ชื่อที่แสดง" style="width:100%;box-sizing:border-box;padding:0.4rem 0.6rem;border:1px solid #ddd;border-radius:6px;font-size:0.85rem;">' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function _onCatIconInput(inp, i) {
+  const defIcon = _DEFAULT_CAT_ICONS[_siteCatList[i].key] || '🏍️';
+  const val = inp.value.trim() || defIcon;
+  const prev = document.getElementById('sc_catPrev' + i);
+  if (prev) prev.innerHTML = _benefitIconPreview(val);
+}
+
 async function loadSiteConfig() {
   try {
     const res = await fetch('https://n8n-wt11.onrender.com/webhook/site-config');
@@ -983,11 +1048,14 @@ async function loadSiteConfig() {
       const d = await res.json();
       if (d.heroImage) _siteCfg.heroImage = d.heroImage;
       if (Array.isArray(d.benefits) && d.benefits.length === 3) _siteCfg.benefits = d.benefits;
+      _siteCfg.categoryOverrides = (d.categoryOverrides && typeof d.categoryOverrides === 'object') ? d.categoryOverrides : {};
     }
   } catch(e) { console.warn('loadSiteConfig', e.message); }
   document.getElementById('sc_heroImage').value = _siteCfg.heroImage;
   _updateHeroPreview();
   _renderBenefitsRows();
+  await _loadCategoryList();
+  _renderCategoryRows();
 }
 
 function _updateHeroPreview() {
@@ -1006,7 +1074,7 @@ function _updateHeroPreview() {
 
 async function saveSiteConfig() {
   _siteCfg.heroImage = document.getElementById('sc_heroImage').value.trim();
-  // ดึงค่า icon/label ล่าสุดอีกครั้งจาก input (เผื่อ oninput ไม่ทัน)
+  // ดึงค่า benefit ล่าสุด
   const rows = document.querySelectorAll('#sc_benefitsRows > div');
   rows.forEach(function(row, i) {
     const inputs = row.querySelectorAll('input');
@@ -1014,6 +1082,17 @@ async function saveSiteConfig() {
       _siteCfg.benefits[i] = { icon: inputs[0].value, label: inputs[1].value };
     }
   });
+  // ดึงค่า category overrides — เก็บเฉพาะที่กรอก (เว้นว่าง = ไม่ override)
+  const newOv = {};
+  document.querySelectorAll('#sc_categoryRows input[data-catkey]').forEach(function(inp) {
+    const key = inp.getAttribute('data-catkey').replace(/\\'/g, "'");
+    const fld = inp.getAttribute('data-fld');
+    const val = inp.value.trim();
+    if (!val) return;
+    if (!newOv[key]) newOv[key] = {};
+    newOv[key][fld] = val;
+  });
+  _siteCfg.categoryOverrides = newOv;
   try {
     const res = await fetch('https://n8n-wt11.onrender.com/webhook/save-site-config', {
       method: 'POST',

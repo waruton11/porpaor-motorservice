@@ -8,7 +8,7 @@
       "typeVersion": 2,
       "position": [
         240,
-        300
+        600
       ],
       "webhookId": "save-site-config",
       "parameters": {
@@ -25,11 +25,11 @@
       "typeVersion": 2,
       "position": [
         460,
-        300
+        600
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst hero = String(body.heroImage || '').replace(/'/g, \"''\");\nconst benefits = JSON.stringify(body.benefits || []).replace(/'/g, \"''\");\nconst sql = `INSERT INTO site_config (id, hero_image, benefits, updated_at)\nVALUES (1, '${hero}', '${benefits}'::jsonb, NOW())\nON CONFLICT (id) DO UPDATE SET\n  hero_image = EXCLUDED.hero_image,\n  benefits = EXCLUDED.benefits,\n  updated_at = NOW();`;\nreturn [{ json: { sql } }];"
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst hero = String(body.heroImage || '').replace(/'/g, \"''\");\nconst benefits = JSON.stringify(body.benefits || []).replace(/'/g, \"''\");\nconst catOv = JSON.stringify(body.categoryOverrides || {}).replace(/'/g, \"''\");\nconst sql = `INSERT INTO site_config (id, hero_image, benefits, category_overrides, updated_at)\nVALUES (1, '${hero}', '${benefits}'::jsonb, '${catOv}'::jsonb, NOW())\nON CONFLICT (id) DO UPDATE SET\n  hero_image = EXCLUDED.hero_image,\n  benefits = EXCLUDED.benefits,\n  category_overrides = EXCLUDED.category_overrides,\n  updated_at = NOW();`;\nreturn [{ json: { sql } }];"
       }
     },
     {
@@ -39,7 +39,7 @@
       "typeVersion": 2.5,
       "position": [
         680,
-        300
+        600
       ],
       "parameters": {
         "operation": "executeQuery",
@@ -59,7 +59,7 @@
       "typeVersion": 1.1,
       "position": [
         900,
-        300
+        600
       ],
       "parameters": {
         "respondWith": "json",
