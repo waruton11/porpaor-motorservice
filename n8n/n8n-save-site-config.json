@@ -1,0 +1,110 @@
+{
+  "name": "POST save-site-config",
+  "nodes": [
+    {
+      "id": "sc-save-001",
+      "name": "POST save-site-config",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "save-site-config",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "save-site-config",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "sc-save-002",
+      "name": "Build SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst hero = String(body.heroImage || '').replace(/'/g, \"''\");\nconst benefits = JSON.stringify(body.benefits || []).replace(/'/g, \"''\");\nconst sql = `INSERT INTO site_config (id, hero_image, benefits, updated_at)\nVALUES (1, '${hero}', '${benefits}'::jsonb, NOW())\nON CONFLICT (id) DO UPDATE SET\n  hero_image = EXCLUDED.hero_image,\n  benefits = EXCLUDED.benefits,\n  updated_at = NOW();`;\nreturn [{ json: { sql } }];"
+      }
+    },
+    {
+      "id": "sc-save-003",
+      "name": "Execute SQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        680,
+        300
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "sc-save-004",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        300
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true }) }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "POST save-site-config": {
+      "main": [
+        [
+          {
+            "node": "Build SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build SQL": {
+      "main": [
+        [
+          {
+            "node": "Execute SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute SQL": {
+      "main": [
+        [
+          {
+            "node": "Respond OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

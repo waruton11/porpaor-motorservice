@@ -219,6 +219,7 @@ tr:hover td { background: #fafafa; }
     <div class="sidebar">
       <div class="sidebar-section">จัดการข้อมูล</div>
       <a class="sidebar-item active" onclick="showPage('models')">🏍️ รุ่นรถ & ราคา</a>
+      <a class="sidebar-item" onclick="showPage('sitepage')">🎨 หน้าเว็บ (Hero/Trust)</a>
       <a class="sidebar-item" onclick="showPage('news')">📰 ข่าวกิจกรรม</a>
       <a class="sidebar-item" onclick="showPage('shop')">🏪 ข้อมูลร้าน</a>
       <a class="sidebar-item" onclick="showPage('catalog')">📋 แคตตาล็อกรถ</a>
@@ -257,6 +258,35 @@ tr:hover td { background: #fafafa; }
             <tbody id="modelTbody"></tbody>
           </table>
         </div>
+      </div>
+
+      <!-- SITE PAGE (Hero + Trust) -->
+      <div class="page" id="page-sitepage">
+        <div class="page-title">🎨 จัดการหน้าเว็บ (Hero / Trust Strip)</div>
+        <p class="page-sub">ปรับรูป Hero และข้อความ 3 จุดเด่น (รับประกัน / ดาวน์ / ช่วยเหลือ)</p>
+
+        <div class="card" style="margin-bottom:1.5rem;">
+          <h3 style="margin-top:0;">🖼️ รูป Hero</h3>
+          <div style="background:#fff8e6;border:1px solid #ffe0a0;border-radius:6px;padding:0.6rem 0.85rem;margin-bottom:0.75rem;font-size:0.82rem;color:#7a5c00;">
+            📐 ขนาดที่แนะนำ: <b>1500 × 600 px</b> (อัตราส่วน 5:2) · ไฟล์ JPG/PNG &lt; 500KB<br>
+            ข้อความ/โลโก้ในรูปควรอยู่กลางๆ ไม่ชิดขอบ เพื่อให้แสดงครบทุกหน้าจอ
+          </div>
+          <label style="display:block;font-size:.9rem;color:#555;margin-bottom:0.4rem;">URL รูป (วาง URL รูปที่ host ที่ไหนก็ได้ เช่น GitHub raw, Imgur, Cloudinary)</label>
+          <input type="text" id="sc_heroImage" class="form-input" placeholder="https://..." style="width:100%;padding:0.6rem;border:1px solid #ddd;border-radius:6px;font-family:monospace;font-size:0.85rem;">
+          <div style="margin-top:0.75rem;padding:0.75rem;background:#f8f8f8;border-radius:6px;text-align:center;min-height:80px;">
+            <img id="sc_heroPreview" src="" style="max-width:100%;max-height:200px;border-radius:4px;display:none;">
+            <div id="sc_heroPlaceholder" style="color:#999;font-size:0.85rem;padding:1.5rem;">วาง URL รูปด้านบนเพื่อดูตัวอย่าง</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:1.5rem;">
+          <h3 style="margin-top:0;">✨ Trust Strip (3 จุดเด่น)</h3>
+          <p style="font-size:0.85rem;color:#888;margin-top:0;">Icon ใส่ <b>URL รูป</b> (แนะนำ PNG โปร่งใส 64×64 px) หรือใส่ emoji ก็ได้ เช่น 🏅 💳 📞</p>
+          <div id="sc_benefitsRows"></div>
+        </div>
+
+        <button class="btn btn-success" onclick="saveSiteConfig()" style="font-size:1rem;padding:0.75rem 2rem;">💾 บันทึก</button>
+        <button class="btn btn-gray" onclick="loadSiteConfig()" style="margin-left:0.5rem;">🔄 โหลดจาก Server</button>
       </div>
 
       <!-- NEWS PAGE -->
@@ -914,7 +944,94 @@ function showPage(id) {
   document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
   event.target.classList.add('active');
+  if (id === 'sitepage') loadSiteConfig();
 }
+
+// ========== SITE CONFIG (Hero + Trust Strip) ==========
+let _siteCfg = {
+  heroImage: '',
+  benefits: [
+    { icon: '🏅', label: 'รับประกัน Honda' },
+    { icon: '💳', label: 'ดาวน์ 0%' },
+    { icon: '📞', label: 'ช่วยเหลือ 24ชม' }
+  ]
+};
+
+function _benefitIconPreview(ic) {
+  if (/^https?:\/\//.test(ic || '')) {
+    return '<img src="' + ic + '" style="width:36px;height:36px;object-fit:contain;border:1px solid #eee;border-radius:6px;background:#fafafa;">';
+  }
+  return '<span style="display:inline-flex;width:36px;height:36px;align-items:center;justify-content:center;font-size:1.5rem;border:1px solid #eee;border-radius:6px;background:#fafafa;">' + (ic || '✨') + '</span>';
+}
+
+function _renderBenefitsRows() {
+  const wrap = document.getElementById('sc_benefitsRows');
+  wrap.innerHTML = _siteCfg.benefits.map(function(b, i) {
+    return '<div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">' +
+      '<span style="color:#888;font-weight:600;width:20px;">' + (i+1) + '.</span>' +
+      '<span id="sc_iconPrev' + i + '">' + _benefitIconPreview(b.icon) + '</span>' +
+      '<input type="text" value="' + (b.icon || '').replace(/"/g, '&quot;') + '" placeholder="URL รูป หรือ emoji" style="flex:1.2;padding:0.5rem 0.7rem;border:1px solid #ddd;border-radius:6px;font-size:0.82rem;font-family:monospace;" oninput="_siteCfg.benefits[' + i + '].icon = this.value; document.getElementById(\'sc_iconPrev' + i + '\').innerHTML = _benefitIconPreview(this.value);">' +
+      '<input type="text" value="' + (b.label || '').replace(/"/g, '&quot;') + '" placeholder="ข้อความ" style="flex:1.5;padding:0.5rem 0.7rem;border:1px solid #ddd;border-radius:6px;" oninput="_siteCfg.benefits[' + i + '].label = this.value">' +
+    '</div>';
+  }).join('');
+}
+
+async function loadSiteConfig() {
+  try {
+    const res = await fetch('https://n8n-wt11.onrender.com/webhook/site-config');
+    if (res.ok) {
+      const d = await res.json();
+      if (d.heroImage) _siteCfg.heroImage = d.heroImage;
+      if (Array.isArray(d.benefits) && d.benefits.length === 3) _siteCfg.benefits = d.benefits;
+    }
+  } catch(e) { console.warn('loadSiteConfig', e.message); }
+  document.getElementById('sc_heroImage').value = _siteCfg.heroImage;
+  _updateHeroPreview();
+  _renderBenefitsRows();
+}
+
+function _updateHeroPreview() {
+  const url = document.getElementById('sc_heroImage').value.trim();
+  const img = document.getElementById('sc_heroPreview');
+  const ph = document.getElementById('sc_heroPlaceholder');
+  if (url) {
+    img.src = url;
+    img.style.display = 'block';
+    ph.style.display = 'none';
+  } else {
+    img.style.display = 'none';
+    ph.style.display = 'block';
+  }
+}
+
+async function saveSiteConfig() {
+  _siteCfg.heroImage = document.getElementById('sc_heroImage').value.trim();
+  // ดึงค่า icon/label ล่าสุดอีกครั้งจาก input (เผื่อ oninput ไม่ทัน)
+  const rows = document.querySelectorAll('#sc_benefitsRows > div');
+  rows.forEach(function(row, i) {
+    const inputs = row.querySelectorAll('input');
+    if (inputs.length >= 2) {
+      _siteCfg.benefits[i] = { icon: inputs[0].value, label: inputs[1].value };
+    }
+  });
+  try {
+    const res = await fetch('https://n8n-wt11.onrender.com/webhook/save-site-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(_siteCfg)
+    });
+    if (res.ok) showToast('บันทึกหน้าเว็บสำเร็จ ✅', 'success');
+    else showToast('บันทึกไม่สำเร็จ HTTP ' + res.status, 'error');
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+// Hero URL preview live update
+document.addEventListener('DOMContentLoaded', function() {
+  const hi = document.getElementById('sc_heroImage');
+  if (hi) hi.addEventListener('input', _updateHeroPreview);
+});
 
 // ========== MODELS ==========
 function renderModelTable() {

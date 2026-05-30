@@ -105,61 +105,59 @@ img { display: block; max-width: 100%; }
 
 /* ===== HERO ===== */
 .hero {
-  background: linear-gradient(135deg, #1a1a1a 55%, #330000);
-  color: white;
-  padding: 2.5rem 1.25rem 2rem;
-}
-.hero-content {
+  background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  width: 100%;
+  aspect-ratio: 5 / 2;       /* รูป hero 5:2 — แนะนำ 1500x600 px */
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  justify-content: center;
 }
-.hero-text { flex: 1; }
-.hero-text h1 {
-  font-family: 'Kanit', sans-serif;
-  font-size: clamp(1.4rem, 5vw, 2.6rem);
-  font-weight: 700;
-  line-height: 1.25;
-  margin-bottom: 0.75rem;
+.hero-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;          /* เต็มพื้นที่ 5:2 — ถ้ารูปทำมา 5:2 จะไม่ crop */
 }
-.hero-text p {
-  font-size: 0.95rem;
-  opacity: 0.85;
-  line-height: 1.5;
-}
-.hero-emoji {
-  font-size: clamp(3rem, 10vw, 5rem);
-  flex-shrink: 0;
-  line-height: 1;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
-}
-.hero-btns {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-.hero-btn {
-  flex: 1;
-  min-width: 140px;
-  padding: 0.75rem 1.25rem;
-  border-radius: 8px;
-  font-family: 'Sarabun', sans-serif;
-  font-size: 0.95rem;
-  font-weight: 600;
-  border: none;
-  transition: transform 0.15s, opacity 0.15s;
-  white-space: nowrap;
+.hero-fallback {
   text-align: center;
+  padding: 1.5rem;
+  color: #999;
 }
-.hero-btn:hover { transform: translateY(-2px); opacity: 0.9; }
-.hero-btn-red { background: var(--red); color: white; }
-.hero-btn-outline { background: transparent; color: white; border: 2px solid rgba(255,255,255,0.7); }
+.hero-fallback .hero-emoji {
+  font-size: clamp(3rem, 10vw, 5rem);
+  line-height: 1;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+}
+@media (min-width: 1100px) {
+  .hero { aspect-ratio: auto; height: 440px; }
+}
+
+/* ===== CTA WIDE ===== */
+.cta-wide-wrap {
+  padding: 1rem 1.25rem 1.5rem;
+  background: white;
+}
+.cta-wide {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  background: var(--red);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 12px rgba(204,0,0,0.2);
+}
+.cta-wide:hover { transform: translateY(-2px); opacity: 0.92; box-shadow: 0 6px 18px rgba(204,0,0,0.3); }
 @media (min-width: 768px) {
-  .hero { padding: 4rem 2rem 3.5rem; }
-  .hero-btns { flex-wrap: nowrap; }
-  .hero-btn { flex: 0 0 auto; }
+  .cta-wide-wrap { padding: 1.25rem 2rem 2rem; }
+  .cta-wide { font-size: 1.1rem; padding: 1.15rem 1.5rem; max-width: 500px; margin: 0 auto; display: block; }
 }
 
 /* ===== TRUST STRIP ===== */
@@ -181,7 +179,11 @@ img { display: block; max-width: 100%; }
   text-align: center;
 }
 .trust-item:last-child { border-right: none; }
-.trust-icon { font-size: 1.4rem; }
+.trust-icon { font-size: 1.4rem; line-height: 1; }
+.trust-icon img { width: 28px; height: 28px; object-fit: contain; display: block; }
+@media (min-width: 768px) {
+  .trust-icon img { width: 32px; height: 32px; }
+}
 .trust-label {
   font-size: 0.7rem;
   font-weight: 600;
@@ -1171,83 +1173,6 @@ input[type="range"]::-moz-range-thumb {
   .calc-handle { display: none; }
 }
 
-/* ===== NEWS SECTION ===== */
-#news {
-  background: var(--gray);
-  padding: 2rem 0;
-}
-.news-header {
-  padding: 0 1rem 1rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-.news-header .section-title {
-  font-family: 'Kanit', sans-serif;
-  font-size: 1.4rem;
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-}
-.news-header .section-title::after {
-  content: '';
-  display: block;
-  width: 40px;
-  height: 4px;
-  background: var(--red);
-  margin-top: 6px;
-}
-.news-header .section-sub { color: var(--text2); font-size: 0.85rem; margin-top: 0.5rem; }
-.news-scroll-wrap {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding: 0 1rem 0.5rem;
-}
-.news-scroll-wrap::-webkit-scrollbar { display: none; }
-#newsGrid {
-  display: flex;
-  gap: 0.75rem;
-  width: max-content;
-}
-.news-card {
-  background: white;
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid var(--gray2);
-  width: 220px;
-  flex-shrink: 0;
-  transition: box-shadow 0.2s;
-}
-.news-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,.1); }
-.news-img {
-  height: 120px;
-  background: var(--gray2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.5rem;
-}
-.news-body { padding: 0.75rem; }
-.news-tag {
-  display: inline-block;
-  background: #fff0f0;
-  color: var(--red);
-  font-size: 0.68rem;
-  padding: 2px 7px;
-  border-radius: 2px;
-  margin-bottom: 0.3rem;
-}
-.news-date { font-size: 0.72rem; color: var(--text2); margin-bottom: 0.25rem; }
-.news-title { font-weight: 600; font-size: 0.88rem; line-height: 1.4; }
-
-@media (min-width: 768px) {
-  #news { padding: 3rem 0; }
-  .news-header { padding: 0 1.5rem 1.5rem; }
-  .news-header .section-title { font-size: 1.8rem; }
-  .news-scroll-wrap { padding: 0 1.5rem 0.5rem; }
-  #newsGrid { width: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; }
-  .news-card { width: auto; }
-}
-
 /* ===== SOCIAL SECTION ===== */
 #social {
   padding: 2rem 1rem 2.5rem;
@@ -1458,9 +1383,8 @@ footer .footer-brand {
   <div class="top-bar-brand">ป.เปา มอเตอร์เซอร์วิส<small>ตัวแทนจำหน่าย Honda · วังน้อย</small></div>
   <ul class="desktop-nav">
     <li><a href="#models">รุ่นรถ &amp; ราคา</a></li>
-    <li><a href="#news">ข่าวกิจกรรม</a></li>
     <li><a href="#social">โซเชียล</a></li>
-    <li><a href="#contact">สอบถาม/ซื้อ</a></li>
+    <li><a href="https://line.me/R/ti/p/@975ltwhp" target="_blank">แชท LINE</a></li>
   </ul>
   <div style="display:flex;gap:8px;">
     <a href="tel:0922499686" class="top-icon-btn">📞</a>
@@ -1472,34 +1396,22 @@ footer .footer-brand {
 <div id="mobileMenu"></div>
 
 <!-- ===== HERO ===== -->
-<div class="hero">
-  <div class="hero-content">
-    <div class="hero-text">
-      <h1>เลือกรถมอเตอร์ไซค์<br><span style="color:#ff8080;">ที่ใช่ในสไตล์คุณ</span></h1>
-      <p>Honda คุณภาพ ดาวน์ต่ำ ผ่อนสบาย พร้อมช่วยเหลือทุกขั้นตอน</p>
-    </div>
+<div class="hero" id="heroSection">
+  <img id="heroImage" class="hero-image" src="" alt="" style="display:none;">
+  <div class="hero-fallback" id="heroFallback">
     <div class="hero-emoji">🏍️</div>
-  </div>
-  <div class="hero-btns">
-    <button class="hero-btn hero-btn-red" onclick="scrollToModels()">ดูรุ่นรถทั้งหมด</button>
-    <button class="hero-btn hero-btn-outline" onclick="openCalc()">คำนวณค่างวด</button>
+    <div style="color:#666;font-size:0.85rem;margin-top:0.5rem;">ตั้งค่ารูปประจำหน้าเว็บได้ใน Admin</div>
   </div>
 </div>
 
 <!-- ===== TRUST STRIP ===== -->
-<div class="trust-strip">
-  <div class="trust-item">
-    <div class="trust-icon">🏅</div>
-    <div class="trust-label">รับประกัน Honda</div>
-  </div>
-  <div class="trust-item">
-    <div class="trust-icon">💳</div>
-    <div class="trust-label">ดาวน์ 0%</div>
-  </div>
-  <div class="trust-item">
-    <div class="trust-icon">📞</div>
-    <div class="trust-label">ช่วยเหลือ 24ชม</div>
-  </div>
+<div class="trust-strip" id="trustStrip">
+  <!-- JS render จาก siteConfig.benefits -->
+</div>
+
+<!-- ===== CTA WIDE ===== -->
+<div class="cta-wide-wrap">
+  <button class="cta-wide" onclick="scrollToModels()">ดูรุ่นรถทั้งหมด →</button>
 </div>
 
 <!-- ===== CATEGORY ICONS (mobile only) ===== -->
@@ -1621,6 +1533,19 @@ footer .footer-brand {
 
         <!-- Installment-only section -->
         <div id="installmentOnly">
+          <!-- Live preview (ขึ้นบนเพื่อให้ลูกค้าเห็นทันที) -->
+          <div class="live-preview">
+            <div class="lp-col">
+              <div class="lp-label">ยอดจัดไฟแนนซ์</div>
+              <div class="lp-val" id="lpFinanced">—</div>
+              <div class="lp-note" id="lpRate">—</div>
+            </div>
+            <div class="lp-col">
+              <div class="lp-label">ค่างวดโดยประมาณ</div>
+              <div class="live-amt" id="calcLiveResult">—</div>
+            </div>
+          </div>
+
           <!-- Down % slider -->
           <div class="slider-section">
             <div class="slider-top">
@@ -1645,19 +1570,6 @@ footer .footer-brand {
               <button class="period-pill active" data-mo="36" onclick="selectPeriod(36)">36 เดือน</button>
               <button class="period-pill" data-mo="42" onclick="selectPeriod(42)">42 เดือน</button>
               <button class="period-pill" data-mo="48" onclick="selectPeriod(48)">48 เดือน</button>
-            </div>
-          </div>
-
-          <!-- Live preview -->
-          <div class="live-preview">
-            <div class="lp-col">
-              <div class="lp-label">ยอดจัดไฟแนนซ์</div>
-              <div class="lp-val" id="lpFinanced">—</div>
-              <div class="lp-note" id="lpRate">—</div>
-            </div>
-            <div class="lp-col">
-              <div class="lp-label">ค่างวดโดยประมาณ</div>
-              <div class="live-amt" id="calcLiveResult">—</div>
             </div>
           </div>
         </div>
@@ -1712,8 +1624,8 @@ footer .footer-brand {
           <div class="bd-note">* ติดต่อร้านเพื่อยืนยันราคาและโปรโมชั่นล่าสุด</div>
         </div>
 
-        <!-- Customer info (LIFF only) -->
-        <div id="customerInfoBox" class="customer-info" style="display:none;">
+        <!-- Customer info (แสดงเสมอ ทั้ง LIFF และ browser) -->
+        <div id="customerInfoBox" class="customer-info">
           <div class="customer-info-title">📝 ข้อมูลติดต่อ (ไม่บังคับ)</div>
           <div class="customer-info-note">หากกรอกข้อมูลส่วนนี้ ทางร้านจะดำเนินการได้รวดเร็วยิ่งขึ้น</div>
           <input type="text" id="custName" class="customer-input" placeholder="ชื่อ-นามสกุล (ถ้าสะดวก)">
@@ -1727,7 +1639,7 @@ footer .footer-brand {
             ส่งข้อมูลนี้ให้ร้าน
           </button>
           <!-- ปุ่มปกติ: ซ่อนเมื่ออยู่ใน LINE -->
-          <a id="calcContactBtn" class="calc-primary-btn" href="https://line.me/R/ti/p/@975ltwhp" target="_blank" style="display:block;text-align:center;text-decoration:none;">💬 ติดต่อร้านทาง LINE</a>
+          <button id="calcContactBtn" class="calc-primary-btn" onclick="sendToLineViaBrowser()" style="display:block;text-align:center;">💬 ส่งข้อมูลให้ร้านทาง LINE</button>
           <button class="calc-secondary-btn" onclick="goBackToStep2()">← ปรับค่าใหม่</button>
         </div>
       </div>
@@ -1735,17 +1647,6 @@ footer .footer-brand {
     </div><!-- end .calc-inner -->
   </div><!-- end .calc-sheet -->
 </div><!-- end .calc-overlay -->
-
-<!-- ===== NEWS SECTION ===== -->
-<section id="news">
-  <div class="news-header">
-    <h2 class="section-title">ข่าวกิจกรรมทางร้าน</h2>
-    <p class="section-sub">อัปเดตโปรโมชั่น กิจกรรม และข่าวสารจากร้านเรา</p>
-  </div>
-  <div class="news-scroll-wrap">
-    <div id="newsGrid"></div>
-  </div>
-</section>
 
 <!-- ===== SOCIAL SECTION ===== -->
 <section id="social">
@@ -1788,11 +1689,6 @@ footer .footer-brand {
 // ===== CONSTANTS =====
 const RATE = 0.065;
 let categories = [/* ข้อมูลโหลดจาก DB ผ่าน fetchCatalogDisplay() */];
-const newsData = [
-  {"title":"ดาวน์พิเศษ 0% เดือนนี้เท่านั้น!","tag":"โปรโมชั่น","date":"พฤษภาคม 2569","icon":"🏍️","body":"Honda CLICK 160 และ PCX160"},
-  {"title":"เช็กรถฟรี ต้อนรับเทศกาลสงกรานต์","tag":"บริการ","date":"เมษายน 2569","icon":"🔧","body":"ศูนย์บริการฮอนด้า วังน้อย"},
-  {"title":"ส่งมอบรถ Honda ADV160","tag":"กิจกรรม","date":"มีนาคม 2569","icon":"🎉","body":"ร่วมแสดงความยินดีกับลูกค้า"}
-];
 let modalModel = null, modalVariantIdx = 0, modalColorIdx = 0;
 
 // ===== UTILITIES =====
@@ -2247,6 +2143,7 @@ function goCalcStep2() {
   document.getElementById('calcStep3').style.display = 'none';
   updateStepIndicators(2);
   updateSliderRange();
+  setPayType(calcPayType);
   updateCalcLive();
   updateCashPreview();
 }
@@ -2275,6 +2172,9 @@ function setPayType(type) {
   document.querySelectorAll('.pay-opt').forEach(b => b.classList.toggle('active', b.dataset.pay === type));
   document.getElementById('installmentOnly').style.display = (type === 'installment') ? 'block' : 'none';
   document.getElementById('cashOnly').style.display = (type === 'cash') ? 'block' : 'none';
+  // ซ่อนราคารถบน car-strip เมื่อเงินผ่อน (ลูกค้าจะเห็นเฉพาะค่างวด ไม่งงตัวเลข)
+  const cprice = document.getElementById('calcCarPrice');
+  if (cprice) cprice.style.display = (type === 'installment') ? 'none' : '';
   if (type === 'cash') updateCashPreview();
 }
 
@@ -2337,36 +2237,9 @@ function updateStepIndicators(active) {
   });
 }
 
-// ===== NEWS =====
-function renderNews() {
-  document.getElementById('newsGrid').innerHTML = newsData.map(n =>
-    '<div class="news-card">' +
-    '<div class="news-img">' + n.icon + '</div>' +
-    '<div class="news-body">' +
-    '<div class="news-tag">' + n.tag + '</div>' +
-    '<div class="news-date">' + n.date + '</div>' +
-    '<div class="news-title">' + n.title + '</div>' +
-    '</div></div>'
-  ).join('');
-}
-
 // Legacy mobile menu functions (kept for JS compatibility)
 function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
 function closeMenu() { document.getElementById('mobileMenu').classList.remove('open'); }
-
-// ===== FETCH SITE DATA =====
-async function fetchSiteData() {
-  // ดึงเฉพาะ news (categories รถดึงจาก fetchCatalogDisplay แทน)
-  try {
-    const res = await fetch('https://n8n-wt11.onrender.com/webhook/site-data');
-    if (!res.ok) return;
-    const d = await res.json();
-    if (d && Array.isArray(d.news) && d.news.length > 0) {
-      newsData.length = 0;
-      d.news.forEach(function(n) { newsData.push(n); });
-    }
-  } catch(e) { console.log('Using default site data — API unavailable', e.message); }
-}
 
 // แปลงข้อมูลจาก bike-catalog-display API เป็น categories format
 function buildCategoriesFromAPI(rows) {
@@ -2465,8 +2338,58 @@ async function fetchCatalogDisplay() {
   }
 }
 
-fetchSiteData().then(fetchCatalogDisplay).then(function() {
-  renderAllRows(); renderNews();
+// ===== SITE CONFIG (hero image + benefits) =====
+const DEFAULT_SITE_CONFIG = {
+  heroImage: '',  // url รูป hero (ตั้งใน admin)
+  benefits: [
+    { icon: '🏅', label: 'รับประกัน Honda' },
+    { icon: '💳', label: 'ดาวน์ 0%' },
+    { icon: '📞', label: 'ช่วยเหลือ 24ชม' }
+  ]
+};
+let siteConfig = JSON.parse(JSON.stringify(DEFAULT_SITE_CONFIG));
+
+async function fetchSiteConfig() {
+  try {
+    const res = await fetch('https://n8n-wt11.onrender.com/webhook/site-config');
+    if (!res.ok) return;
+    const d = await res.json();
+    if (d) {
+      if (d.heroImage) siteConfig.heroImage = d.heroImage;
+      if (Array.isArray(d.benefits) && d.benefits.length) siteConfig.benefits = d.benefits;
+    }
+  } catch(e) { console.log('site-config unavailable, using defaults', e.message); }
+}
+
+function renderHero() {
+  const img = document.getElementById('heroImage');
+  const fb = document.getElementById('heroFallback');
+  if (siteConfig.heroImage) {
+    img.src = siteConfig.heroImage;
+    img.style.display = 'block';
+    if (fb) fb.style.display = 'none';
+  } else {
+    img.style.display = 'none';
+    if (fb) fb.style.display = 'block';
+  }
+}
+
+function renderTrustStrip() {
+  const items = (siteConfig.benefits || []).slice(0, 3);
+  document.getElementById('trustStrip').innerHTML = items.map(b => {
+    const ic = b.icon || '✨';
+    // ถ้าเป็น URL → แสดงเป็นรูป, ถ้าเป็น emoji/text → แสดงตรงๆ
+    const iconHtml = /^https?:\/\//.test(ic)
+      ? '<img src="' + ic + '" alt="">'
+      : ic;
+    return '<div class="trust-item"><div class="trust-icon">' + iconHtml + '</div><div class="trust-label">' + (b.label || '') + '</div></div>';
+  }).join('');
+}
+
+fetchSiteConfig().then(fetchCatalogDisplay).then(function() {
+  renderHero();
+  renderTrustStrip();
+  renderAllRows();
   initLiff();
 });
 
@@ -2479,17 +2402,85 @@ async function initLiff() {
     await liff.init({ liffId: LIFF_ID });
     isInLiff = liff.isInClient();
     if (isInLiff) {
-      // เปิดใน LINE: แสดงปุ่มสีเขียว + customer info ซ่อนปุ่มปกติ
+      // เปิดใน LINE: แสดงปุ่มสีเขียว ซ่อนปุ่มปกติ (Flex Message)
       const liffBtn = document.getElementById('liffSendBtn');
       const contactBtn = document.getElementById('calcContactBtn');
-      const custBox = document.getElementById('customerInfoBox');
       if (liffBtn) liffBtn.style.display = 'flex';
       if (contactBtn) contactBtn.style.display = 'none';
-      if (custBox) custBox.style.display = 'block';
+      // ตรวจสอบ autoSend param (มาจาก browser sendToLineViaBrowser)
+      handleAutoSend();
     }
+    // ถ้าไม่ใช่ LIFF จะใช้ calcContactBtn → redirect ไป LIFF URL
   } catch(e) {
     isInLiff = false;
   }
+}
+
+// อ่าน autoSend params จาก URL → restore state → auto-fire sendToLine
+function handleAutoSend() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('autoSend') !== '1') return;
+  const ci = parseInt(params.get('ci')) || 0;
+  const mi = parseInt(params.get('mi')) || 0;
+  if (!categories[ci] || !categories[ci].models[mi]) return;
+  calcModel = categories[ci].models[mi];
+  calcVariantIdx = parseInt(params.get('vi')) || 0;
+  calcPayType = params.get('pay') || 'installment';
+  calcPeriod = parseInt(params.get('period')) || 36;
+  const cd = params.get('cd');
+  if (cd !== null && cd !== '') {
+    calcCustomDownAmount = parseInt(cd);
+  } else {
+    const dn = params.get('down');
+    const slider = document.getElementById('sliderDown');
+    if (dn && slider) slider.value = dn;
+  }
+  const nm = params.get('name');
+  const ph = params.get('phone');
+  const nameEl = document.getElementById('custName');
+  const phoneEl = document.getElementById('custPhone');
+  if (nm && nameEl) nameEl.value = nm;
+  if (ph && phoneEl) phoneEl.value = ph;
+  // รอ DOM พร้อม แล้วยิง sendToLine
+  setTimeout(function() { sendToLine(); }, 300);
+}
+
+// ใช้เมื่อเปิดผ่าน browser ปกติ (ไม่ใช่ LIFF)
+// → redirect ไป LIFF URL พร้อม params → LIFF เปิดใน LINE → auto-fire sendToLine() → Flex card เข้า chat
+function sendToLineViaBrowser() {
+  if (!calcModel) {
+    window.open('https://line.me/R/ti/p/@975ltwhp', '_blank');
+    return;
+  }
+  // หา index ของ model ใน catalog
+  let ci = -1, mi = -1;
+  outer: for (let i = 0; i < categories.length; i++) {
+    for (let j = 0; j < categories[i].models.length; j++) {
+      if (categories[i].models[j] === calcModel) { ci = i; mi = j; break outer; }
+    }
+  }
+  if (ci < 0) {
+    window.open('https://line.me/R/ti/p/@975ltwhp', '_blank');
+    return;
+  }
+  const custName = (document.getElementById('custName')?.value || '').trim();
+  const custPhone = (document.getElementById('custPhone')?.value || '').trim();
+  const params = new URLSearchParams();
+  params.set('autoSend', '1');
+  params.set('ci', String(ci));
+  params.set('mi', String(mi));
+  params.set('vi', String(calcVariantIdx));
+  params.set('pay', calcPayType);
+  params.set('period', String(calcPeriod));
+  if (calcCustomDownAmount !== null) {
+    params.set('cd', String(calcCustomDownAmount));
+  } else {
+    params.set('down', document.getElementById('sliderDown').value);
+  }
+  if (custName) params.set('name', custName);
+  if (custPhone) params.set('phone', custPhone);
+  const url = 'https://liff.line.me/' + LIFF_ID + '?' + params.toString();
+  window.open(url, '_blank');
 }
 
 async function sendToLine() {
