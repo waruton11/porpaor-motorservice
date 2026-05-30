@@ -895,6 +895,75 @@ img { display: block; max-width: 100%; }
   gap: 8px;
 }
 .liff-send-btn:hover { background: #05a847; }
+/* Payment type toggle */
+.pay-toggle {
+  display: flex;
+  gap: 8px;
+  background: #f0f0f0;
+  padding: 4px;
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+}
+.pay-opt {
+  flex: 1;
+  padding: 0.7rem 0.5rem;
+  border: 0;
+  background: transparent;
+  border-radius: 9px;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.15s;
+}
+.pay-opt.active {
+  background: white;
+  color: var(--red);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+/* Cash-only preview */
+.cash-preview {
+  background: #fff5f5;
+  border: 1.5px solid #ffcccc;
+  border-radius: 10px;
+  padding: 1.25rem 1rem;
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+.cash-preview-label { font-size: 0.85rem; color: #888; margin-bottom: 0.35rem; }
+.cash-preview-amt { font-size: 1.85rem; font-weight: 700; color: var(--red); }
+/* Customer info inputs */
+.customer-info {
+  background: #fafafa;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+.customer-info-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 0.5rem;
+}
+.customer-info-note {
+  font-size: 0.75rem;
+  color: #888;
+  margin-bottom: 0.65rem;
+  line-height: 1.4;
+}
+.customer-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+.customer-input:focus { outline: none; border-color: var(--red); }
 /* Slider section */
 .slider-section {
   margin-bottom: 1.25rem;
@@ -1488,38 +1557,55 @@ footer .footer-brand {
 
       <!-- Step 2: sliders -->
       <div id="calcStep2" style="display:none;">
-        <!-- Down % slider -->
-        <div class="slider-section">
-          <div class="slider-top">
-            <span class="slbl">เงินดาวน์</span>
-            <span><b id="sDownPct">15</b>% &nbsp;<span class="samt" id="sDownAmt"></span></span>
-          </div>
-          <input type="range" id="sliderDown" min="0" max="50" step="5" value="15" oninput="onSliderChange()">
-          <div class="slider-ticks"><span>0% ฟรีดาวน์</span><span>25%</span><span>50%</span></div>
+        <!-- Payment type toggle -->
+        <div class="pay-toggle">
+          <button class="pay-opt active" data-pay="installment" onclick="setPayType('installment')">💳 เงินผ่อน</button>
+          <button class="pay-opt" data-pay="cash" onclick="setPayType('cash')">💵 เงินสด</button>
         </div>
 
-        <!-- Period pills -->
-        <div class="slider-section">
-          <div class="slbl" style="margin-bottom:8px;">ระยะเวลาผ่อน</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            <button class="period-pill" data-mo="24" onclick="selectPeriod(24)">24 เดือน</button>
-            <button class="period-pill" data-mo="30" onclick="selectPeriod(30)">30 เดือน</button>
-            <button class="period-pill active" data-mo="36" onclick="selectPeriod(36)">36 เดือน</button>
-            <button class="period-pill" data-mo="42" onclick="selectPeriod(42)">42 เดือน</button>
-            <button class="period-pill" data-mo="48" onclick="selectPeriod(48)">48 เดือน</button>
+        <!-- Installment-only section -->
+        <div id="installmentOnly">
+          <!-- Down % slider -->
+          <div class="slider-section">
+            <div class="slider-top">
+              <span class="slbl">เงินดาวน์</span>
+              <span><b id="sDownPct">15</b>% &nbsp;<span class="samt" id="sDownAmt"></span></span>
+            </div>
+            <input type="range" id="sliderDown" min="0" max="50" step="5" value="15" oninput="onSliderChange()">
+            <div class="slider-ticks"><span>0% ฟรีดาวน์</span><span>25%</span><span>50%</span></div>
+          </div>
+
+          <!-- Period pills -->
+          <div class="slider-section">
+            <div class="slbl" style="margin-bottom:8px;">ระยะเวลาผ่อน</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="period-pill" data-mo="24" onclick="selectPeriod(24)">24 เดือน</button>
+              <button class="period-pill" data-mo="30" onclick="selectPeriod(30)">30 เดือน</button>
+              <button class="period-pill active" data-mo="36" onclick="selectPeriod(36)">36 เดือน</button>
+              <button class="period-pill" data-mo="42" onclick="selectPeriod(42)">42 เดือน</button>
+              <button class="period-pill" data-mo="48" onclick="selectPeriod(48)">48 เดือน</button>
+            </div>
+          </div>
+
+          <!-- Live preview -->
+          <div class="live-preview">
+            <div class="lp-col">
+              <div class="lp-label">ยอดจัดไฟแนนซ์</div>
+              <div class="lp-val" id="lpFinanced">—</div>
+              <div class="lp-note" id="lpRate">—</div>
+            </div>
+            <div class="lp-col">
+              <div class="lp-label">ค่างวดโดยประมาณ</div>
+              <div class="live-amt" id="calcLiveResult">—</div>
+            </div>
           </div>
         </div>
 
-        <!-- Live preview -->
-        <div class="live-preview">
-          <div class="lp-col">
-            <div class="lp-label">ยอดจัดไฟแนนซ์</div>
-            <div class="lp-val" id="lpFinanced">—</div>
-            <div class="lp-note" id="lpRate">—</div>
-          </div>
-          <div class="lp-col">
-            <div class="lp-label">ค่างวดโดยประมาณ</div>
-            <div class="live-amt" id="calcLiveResult">—</div>
+        <!-- Cash-only section -->
+        <div id="cashOnly" style="display:none;">
+          <div class="cash-preview">
+            <div class="cash-preview-label">ราคาเงินสด</div>
+            <div class="cash-preview-amt" id="cashPriceDisplay">—</div>
           </div>
         </div>
 
@@ -1528,18 +1614,39 @@ footer .footer-brand {
 
       <!-- Step 3: result -->
       <div id="calcStep3" style="display:none;">
-        <div class="result-box">
-          <div class="rlabel">ค่างวดต่อเดือน (ประมาณ)</div>
-          <div class="ramt" id="resultAmt">—</div>
-          <div class="rperiod" id="resultPeriod"></div>
+        <!-- Installment result (shown when payType=installment) -->
+        <div id="resultInstallment">
+          <div class="result-box">
+            <div class="rlabel">ค่างวดต่อเดือน (ประมาณ)</div>
+            <div class="ramt" id="resultAmt">—</div>
+            <div class="rperiod" id="resultPeriod"></div>
+          </div>
+          <div class="breakdown-table">
+            <div class="bdr"><span>ราคารถ</span><span id="bdPrice">—</span></div>
+            <div class="bdr"><span id="bdDownLabel">เงินดาวน์</span><span id="bdDown" style="color:#22aa55;">—</span></div>
+            <div class="bdr"><span>ยอดจัดไฟแนนซ์</span><span id="bdFinanced">—</span></div>
+          </div>
+          <div class="bd-note">* ตัวเลขเป็นการประมาณการเบื้องต้น เงื่อนไขตามบริษัทไฟแนนซ์กำหนด</div>
         </div>
-        <div class="breakdown-table">
-          <div class="bdr"><span>ราคารถ</span><span id="bdPrice">—</span></div>
-          <div class="bdr"><span id="bdDownLabel">เงินดาวน์</span><span id="bdDown" style="color:#22aa55;">—</span></div>
-          <div class="bdr"><span>ยอดจัดไฟแนนซ์</span><span id="bdFinanced">—</span></div>
-          <div class="bdr total"><span>รวมยอดผ่อนทั้งหมด</span><span id="bdTotal">—</span></div>
+
+        <!-- Cash result (shown when payType=cash) -->
+        <div id="resultCash" style="display:none;">
+          <div class="result-box">
+            <div class="rlabel">ราคาเงินสด</div>
+            <div class="ramt" id="resultCashAmt">—</div>
+            <div class="rperiod" id="resultCashSub"></div>
+          </div>
+          <div class="bd-note">* ติดต่อร้านเพื่อยืนยันราคาและโปรโมชั่นล่าสุด</div>
         </div>
-        <div class="bd-note">* ตัวเลขเป็นการประมาณการเบื้องต้น เงื่อนไขตามบริษัทไฟแนนซ์กำหนด</div>
+
+        <!-- Customer info (LIFF only) -->
+        <div id="customerInfoBox" class="customer-info" style="display:none;">
+          <div class="customer-info-title">📝 ข้อมูลติดต่อ (ไม่บังคับ)</div>
+          <div class="customer-info-note">หากกรอกข้อมูลส่วนนี้ ทางร้านจะดำเนินการได้รวดเร็วยิ่งขึ้น</div>
+          <input type="text" id="custName" class="customer-input" placeholder="ชื่อ-นามสกุล (ถ้าสะดวก)">
+          <input type="tel" id="custPhone" class="customer-input" placeholder="เบอร์โทรศัพท์ (ถ้าสะดวกให้ติดต่อกลับ)">
+        </div>
+
         <div style="display:flex;flex-direction:column;gap:8px;">
           <!-- ปุ่ม LIFF: แสดงเฉพาะเมื่อเปิดในแอป LINE -->
           <button id="liffSendBtn" class="calc-primary-btn liff-send-btn" style="display:none;" onclick="sendToLine()">
@@ -1547,7 +1654,7 @@ footer .footer-brand {
             ส่งข้อมูลนี้ให้ร้าน
           </button>
           <!-- ปุ่มปกติ: ซ่อนเมื่ออยู่ใน LINE -->
-          <button id="calcContactBtn" class="calc-primary-btn" onclick="openContactFromCalc()">ยื่นสอบถาม / จองรถ</button>
+          <a id="calcContactBtn" class="calc-primary-btn" href="https://line.me/R/ti/p/@975ltwhp" target="_blank" style="display:block;text-align:center;text-decoration:none;">💬 ติดต่อร้านทาง LINE</a>
           <button class="calc-secondary-btn" onclick="goBackToStep2()">← ปรับค่าใหม่</button>
         </div>
       </div>
@@ -1588,29 +1695,6 @@ footer .footer-brand {
 </section>
 
 <!-- ===== CONTACT SECTION ===== -->
-<section id="contact" style="background:var(--black);color:white;padding:2rem 1rem 2.5rem;">
-  <div style="max-width:700px;">
-    <h2 class="contact-title">สอบถาม / จองรถ / ส่งต่อข้อมูลลูกค้า</h2>
-    <p class="contact-sub">กรอกข้อมูลด้านล่าง เจ้าหน้าที่จะติดต่อกลับโดยเร็ว</p>
-    <div class="lead-form">
-      <form id="leadForm" onsubmit="submitForm(event)">
-        <div class="form-grid">
-          <div class="form-group"><label>ชื่อ-นามสกุล *</label><input type="text" required></div>
-          <div class="form-group"><label>เบอร์โทรศัพท์ *</label><input type="tel" required></div>
-          <div class="form-group"><label>รุ่นรถที่สนใจ *</label><select required id="intModel"><option value="">-- เลือกรุ่น --</option></select></div>
-          <div class="form-group"><label>งบดาวน์ (บาท)</label><input type="number"></div>
-          <div class="form-group"><label>ระยะเวลาผ่อน</label><select><option selected>48 เดือน</option><option>42 เดือน</option><option>36 เดือน</option><option>30 เดือน</option><option>24 เดือน</option></select></div>
-          <div class="form-group"><label>ประเภท</label><select><option>สอบถาม</option><option>จองรถ</option><option>ส่งต่อไฟแนนซ์</option><option>นัดทดลองขับ</option></select></div>
-          <div class="form-group full"><label>หมายเหตุ</label><textarea></textarea></div>
-        </div>
-        <button type="submit" class="form-submit">📨 ส่งข้อมูล / จองรถ</button>
-        <p class="form-note">* ข้อมูลจะถูกส่งให้ทีมขายและตรวจสอบโดยเช็กเกอร์ไฟแนนซ์</p>
-      </form>
-      <div class="success-msg" id="successMsg">✅ ได้รับข้อมูลแล้วครับ! ทีมงานจะติดต่อกลับภายใน 24 ชั่วโมง</div>
-    </div>
-  </div>
-</section>
-
 <!-- ===== FOOTER ===== -->
 <footer>
   <div class="footer-brand">ป.เปา มอเตอร์เซอร์วิส</div>
@@ -1623,7 +1707,7 @@ footer .footer-brand {
   <button class="bottom-nav-item active" id="bnHome" onclick="bottomNav('Home')"><div class="nav-ico">🏠</div><div class="nav-lbl">หน้าหลัก</div></button>
   <button class="bottom-nav-item" id="bnModels" onclick="bottomNav('Models')"><div class="nav-ico">🏍️</div><div class="nav-lbl">รุ่นรถ</div></button>
   <button class="bottom-nav-item" id="bnCalc" onclick="bottomNav('Calc')"><div class="nav-ico">🧮</div><div class="nav-lbl">ค่างวด</div></button>
-  <button class="bottom-nav-item" id="bnContact" onclick="bottomNav('Contact')"><div class="nav-ico">💬</div><div class="nav-lbl">สอบถาม</div></button>
+  <a class="bottom-nav-item" id="bnContact" href="https://line.me/R/ti/p/@975ltwhp" target="_blank" style="text-decoration:none;color:inherit;"><div class="nav-ico">💬</div><div class="nav-lbl">แชท LINE</div></a>
   <button class="bottom-nav-item" id="bnSocial" onclick="bottomNav('Social')"><div class="nav-ico">📱</div><div class="nav-lbl">โซเชียล</div></button>
 </nav>
 
@@ -1654,7 +1738,6 @@ function bottomNav(tab) {
   if (tab === 'Home') window.scrollTo({top: 0, behavior: 'smooth'});
   else if (tab === 'Models') { document.getElementById('models').scrollIntoView({behavior: 'smooth'}); }
   else if (tab === 'Calc') openCalc();
-  else if (tab === 'Contact') document.getElementById('contact').scrollIntoView({behavior: 'smooth'});
   else if (tab === 'Social') document.getElementById('social').scrollIntoView({behavior: 'smooth'});
 }
 
@@ -1896,7 +1979,7 @@ function closeModal(e) {
 }
 
 // ===== CALCULATOR OVERLAY =====
-let calcModel = null, calcPeriod = 36, calcVariantIdx = 0;
+let calcModel = null, calcPeriod = 36, calcVariantIdx = 0, calcPayType = 'installment';
 
 function openCalc() {
   document.getElementById('calcOverlay').classList.add('open');
@@ -2039,26 +2122,52 @@ function goCalcStep2() {
   document.getElementById('calcStep3').style.display = 'none';
   updateStepIndicators(2);
   updateCalcLive();
+  updateCashPreview();
+}
+
+function setPayType(type) {
+  calcPayType = type;
+  document.querySelectorAll('.pay-opt').forEach(b => b.classList.toggle('active', b.dataset.pay === type));
+  document.getElementById('installmentOnly').style.display = (type === 'installment') ? 'block' : 'none';
+  document.getElementById('cashOnly').style.display = (type === 'cash') ? 'block' : 'none';
+  if (type === 'cash') updateCashPreview();
+}
+
+function updateCashPreview() {
+  if (!calcModel) return;
+  const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
+  const cashPrice = v ? (parseInt(v.price) || 0) : 0;
+  const el = document.getElementById('cashPriceDisplay');
+  if (el) el.textContent = cashPrice > 0 ? '฿' + fmt(cashPrice) : 'ติดต่อสอบถามราคา';
 }
 
 function goCalcStep3() {
   if (!calcModel) return;
   const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
   const cashPrice = v ? (parseInt(v.price) || 0) : 0;
-  const calcBase = (v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
-  const downPct = parseInt(document.getElementById('sliderDown').value);
-  const dn = downPct === 0 ? 0 : Math.ceil(calcBase * downPct / 100);
-  const financed = calcBase - dn;
-  const inst = getCalcInstallment();
-  const {rate, isAnnual} = getAutoRate(v);
 
-  document.getElementById('resultAmt').textContent = '฿' + fmt(inst);
-  document.getElementById('resultPeriod').textContent = calcPeriod + ' เดือน · ดาวน์ ' + downPct + '%' + (rate > 0 ? ' · ดอกเบี้ย ' + rate + (isAnnual ? '%/ปี' : '%/เดือน') : '');
-  document.getElementById('bdPrice').textContent = '฿' + fmt(cashPrice);
-  document.getElementById('bdDownLabel').textContent = 'เงินดาวน์ (' + downPct + '%)';
-  document.getElementById('bdDown').textContent = dn > 0 ? '-฿' + fmt(dn) : 'ฟรีดาวน์';
-  document.getElementById('bdFinanced').textContent = '฿' + fmt(financed);
-  document.getElementById('bdTotal').textContent = '฿' + fmt(inst * calcPeriod);
+  if (calcPayType === 'cash') {
+    document.getElementById('resultInstallment').style.display = 'none';
+    document.getElementById('resultCash').style.display = 'block';
+    document.getElementById('resultCashAmt').textContent = cashPrice > 0 ? '฿' + fmt(cashPrice) : 'ติดต่อสอบถามราคา';
+    document.getElementById('resultCashSub').textContent = calcModel.name + (v && v.name ? ' · ' + v.name : '');
+  } else {
+    const calcBase = (v && v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
+    const downPct = parseInt(document.getElementById('sliderDown').value);
+    const dn = downPct === 0 ? 0 : Math.ceil(calcBase * downPct / 100);
+    const financed = calcBase - dn;
+    const inst = getCalcInstallment();
+    const {rate, isAnnual} = getAutoRate(v);
+
+    document.getElementById('resultInstallment').style.display = 'block';
+    document.getElementById('resultCash').style.display = 'none';
+    document.getElementById('resultAmt').textContent = '฿' + fmt(inst);
+    document.getElementById('resultPeriod').textContent = calcPeriod + ' เดือน · ดาวน์ ' + downPct + '%' + (rate > 0 ? ' · ดอกเบี้ย ' + rate + (isAnnual ? '%/ปี' : '%/เดือน') : '');
+    document.getElementById('bdPrice').textContent = '฿' + fmt(cashPrice);
+    document.getElementById('bdDownLabel').textContent = 'เงินดาวน์ (' + downPct + '%)';
+    document.getElementById('bdDown').textContent = dn > 0 ? '-฿' + fmt(dn) : 'ฟรีดาวน์';
+    document.getElementById('bdFinanced').textContent = '฿' + fmt(financed);
+  }
 
   document.getElementById('calcStep1').style.display = 'none';
   document.getElementById('calcStep2').style.display = 'none';
@@ -2082,17 +2191,6 @@ function updateStepIndicators(active) {
   });
 }
 
-function openContactFromCalc() {
-  closeCalc();
-  if (calcModel) {
-    const sel = document.getElementById('intModel');
-    for (let i = 0; i < sel.options.length; i++) {
-      if (sel.options[i].text === calcModel.name) { sel.value = sel.options[i].value; break; }
-    }
-  }
-  document.getElementById('contact').scrollIntoView({behavior: 'smooth'});
-}
-
 // ===== NEWS =====
 function renderNews() {
   document.getElementById('newsGrid').innerHTML = newsData.map(n =>
@@ -2104,20 +2202,6 @@ function renderNews() {
     '<div class="news-title">' + n.title + '</div>' +
     '</div></div>'
   ).join('');
-}
-
-// ===== CONTACT MODELS =====
-function renderContactModels() {
-  const sel = document.getElementById('intModel');
-  sel.innerHTML = '<option value="">-- เลือกรุ่น --</option>' +
-    categories.flatMap(c => c.models.map(m => '<option>' + m.name + '</option>')).join('');
-}
-
-// ===== FORM =====
-function submitForm(e) {
-  e.preventDefault();
-  document.getElementById('leadForm').style.display = 'none';
-  document.getElementById('successMsg').style.display = 'block';
 }
 
 // Legacy mobile menu functions (kept for JS compatibility)
@@ -2236,7 +2320,7 @@ async function fetchCatalogDisplay() {
 }
 
 fetchSiteData().then(fetchCatalogDisplay).then(function() {
-  renderAllRows(); renderNews(); renderContactModels();
+  renderAllRows(); renderNews();
   initLiff();
 });
 
@@ -2249,11 +2333,13 @@ async function initLiff() {
     await liff.init({ liffId: LIFF_ID });
     isInLiff = liff.isInClient();
     if (isInLiff) {
-      // เปิดใน LINE: แสดงปุ่มสีเขียว ซ่อนปุ่มปกติ
+      // เปิดใน LINE: แสดงปุ่มสีเขียว + customer info ซ่อนปุ่มปกติ
       const liffBtn = document.getElementById('liffSendBtn');
       const contactBtn = document.getElementById('calcContactBtn');
+      const custBox = document.getElementById('customerInfoBox');
       if (liffBtn) liffBtn.style.display = 'flex';
       if (contactBtn) contactBtn.style.display = 'none';
+      if (custBox) custBox.style.display = 'block';
     }
   } catch(e) {
     isInLiff = false;
@@ -2264,122 +2350,112 @@ async function sendToLine() {
   if (!calcModel || !isInLiff) return;
   const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
   const cashPrice = v ? (parseInt(v.price) || 0) : 0;
-  const calcBase = (v && v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
-  const downPct = parseInt(document.getElementById('sliderDown').value);
-  const dn = downPct === 0 ? 0 : Math.ceil(calcBase * downPct / 100);
-  const financed = calcBase - dn;
-  const inst = getCalcInstallment();
-  const {rate, isAnnual} = getAutoRate(v);
   const variantName = (v && v.name) ? v.name : '';
 
-  // รูปภาพรถ — แปลง relative path เป็น absolute HTTPS URL และ encode space
-  const rawImg = (calcModel.colors && calcModel.colors[0] && calcModel.colors[0].img) ? calcModel.colors[0].img : null;
-  const imgUrl = rawImg
-    ? encodeURI(rawImg.startsWith('http') ? rawImg : window.location.origin + (rawImg.startsWith('/') ? rawImg : '/' + rawImg))
-    : null;
+  // อ่านข้อมูลลูกค้า (ถ้ามี)
+  const custName = (document.getElementById('custName')?.value || '').trim();
+  const custPhone = (document.getElementById('custPhone')?.value || '').trim();
 
-  // body rows
-  const bodyRows = [
-    {
-      type: 'box', layout: 'horizontal',
-      contents: [
-        { type: 'text', text: 'ราคาเงินสด', size: 'sm', color: '#888888', flex: 3 },
-        { type: 'text', text: '฿' + fmt(cashPrice), size: 'sm', align: 'end', flex: 2 }
-      ]
-    },
-    {
-      type: 'box', layout: 'horizontal',
-      contents: [
-        { type: 'text', text: 'เงินดาวน์ (' + downPct + '%)', size: 'sm', color: '#888888', flex: 3 },
-        { type: 'text', text: dn > 0 ? '฿' + fmt(dn) : 'ฟรีดาวน์', size: 'sm', align: 'end', flex: 2 }
-      ]
-    },
-    {
-      type: 'box', layout: 'horizontal',
-      contents: [
-        { type: 'text', text: 'ยอดจัดไฟแนนซ์', size: 'sm', color: '#888888', flex: 3 },
-        { type: 'text', text: '฿' + fmt(financed), size: 'sm', align: 'end', flex: 2 }
-      ]
-    },
-    { type: 'separator' },
-    {
-      type: 'box', layout: 'horizontal',
-      contents: [
-        { type: 'text', text: 'ค่างวด/เดือน', size: 'md', weight: 'bold', flex: 3 },
-        { type: 'text', text: '฿' + fmt(inst), size: 'xl', weight: 'bold', color: '#cc0000', align: 'end', flex: 2 }
-      ]
-    },
-    {
-      type: 'text',
-      text: 'ผ่อน ' + calcPeriod + ' เดือน' + (rate > 0 ? ' ดอกเบี้ย ' + rate + (isAnnual ? '%/ปี' : '%/เดือน') : ''),
-      size: 'xs', color: '#aaaaaa', align: 'end'
-    }
+  // สร้าง body components
+  const bodyContents = [
+    { type: 'text', text: calcPayType === 'cash' ? '💵 สนใจซื้อเงินสด' : '💳 สนใจผ่อน', size: 'sm', color: '#888888' },
+    { type: 'text', text: calcModel.name, weight: 'bold', size: 'xl', color: '#cc0000', wrap: true },
+    { type: 'text', text: variantName || '-', size: 'sm', color: '#666666', wrap: true }
   ];
 
-  // title rows (ชื่อรุ่น + variant)
-  const titleContents = [
-    { type: 'text', text: calcModel.name, weight: 'bold', size: 'xl', color: '#cc0000' }
-  ];
-  if (variantName) {
-    titleContents.push({ type: 'text', text: variantName, size: 'sm', color: '#666666' });
+  if (calcPayType === 'cash') {
+    // เงินสด: แค่ราคาเงินสด
+    bodyContents.push({
+      type: 'box', layout: 'horizontal', margin: 'md',
+      contents: [
+        { type: 'text', text: 'ราคาเงินสด', size: 'sm', weight: 'bold', flex: 3 },
+        { type: 'text', text: cashPrice > 0 ? '฿' + fmt(cashPrice) : 'สอบถาม', size: 'lg', weight: 'bold', color: '#cc0000', align: 'end', flex: 2 }
+      ]
+    });
+  } else {
+    // เงินผ่อน: รายละเอียดงวด
+    const calcBase = (v && v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
+    const downPct = parseInt(document.getElementById('sliderDown').value);
+    const dn = downPct === 0 ? 0 : Math.ceil(calcBase * downPct / 100);
+    const inst = getCalcInstallment();
+    bodyContents.push(
+      { type: 'box', layout: 'horizontal', margin: 'md',
+        contents: [
+          { type: 'text', text: 'เงินดาวน์ (' + downPct + '%)', size: 'sm', color: '#888888', flex: 3 },
+          { type: 'text', text: dn > 0 ? '฿' + fmt(dn) : 'ฟรีดาวน์', size: 'sm', align: 'end', flex: 2 }
+        ]
+      },
+      { type: 'box', layout: 'horizontal',
+        contents: [
+          { type: 'text', text: 'ค่างวด/เดือน', size: 'sm', weight: 'bold', flex: 3 },
+          { type: 'text', text: '฿' + fmt(inst), size: 'sm', weight: 'bold', color: '#cc0000', align: 'end', flex: 2 }
+        ]
+      },
+      { type: 'text', text: 'ผ่อน ' + calcPeriod + ' เดือน', size: 'xs', color: '#aaaaaa', align: 'end' }
+    );
   }
 
-  // Flex Message — ไม่มี footer/button (ตัวที่ทำให้ liff reject)
-  // ข้อความสรุปอยู่ใน body แทน
+  // ข้อมูลลูกค้า (ถ้ามี)
+  if (custName || custPhone) {
+    bodyContents.push({ type: 'text', text: ' ', size: 'xs' }); // spacer
+    if (custName) {
+      bodyContents.push({
+        type: 'box', layout: 'horizontal',
+        contents: [
+          { type: 'text', text: '👤 ชื่อ', size: 'sm', color: '#888888', flex: 2 },
+          { type: 'text', text: custName, size: 'sm', align: 'end', flex: 3, wrap: true }
+        ]
+      });
+    }
+    if (custPhone) {
+      bodyContents.push({
+        type: 'box', layout: 'horizontal',
+        contents: [
+          { type: 'text', text: '📞 เบอร์', size: 'sm', color: '#888888', flex: 2 },
+          { type: 'text', text: custPhone, size: 'sm', align: 'end', flex: 3, weight: 'bold', color: '#22aa55' }
+        ]
+      });
+    }
+  }
+
+  const altSummary = calcModel.name + (calcPayType === 'cash' ? ' · เงินสด' : ' · ค่างวด ' + fmt(getCalcInstallment()) + ' บาท/เดือน');
+
   const flexMsg = {
     type: 'flex',
-    altText: calcModel.name + ' ค่างวด ' + fmt(inst) + ' บาท/เดือน',
+    altText: altSummary,
     contents: {
       type: 'bubble',
       body: {
         type: 'box',
         layout: 'vertical',
         spacing: 'md',
-        contents: [
-          { type: 'text', text: '🏍️ รุ่นรถที่สนใจ', size: 'sm', color: '#888888' },
-          { type: 'text', text: calcModel.name, weight: 'bold', size: 'xl', color: '#cc0000', wrap: true },
-          { type: 'text', text: variantName || '-', size: 'sm', color: '#666666', wrap: true },
-          {
-            type: 'box', layout: 'horizontal', margin: 'md',
-            contents: [
-              { type: 'text', text: 'ราคาเงินสด', size: 'sm', color: '#888888', flex: 3 },
-              { type: 'text', text: '฿' + fmt(cashPrice), size: 'sm', align: 'end', flex: 2 }
-            ]
-          },
-          {
-            type: 'box', layout: 'horizontal',
-            contents: [
-              { type: 'text', text: 'เงินดาวน์ (' + downPct + '%)', size: 'sm', color: '#888888', flex: 3 },
-              { type: 'text', text: dn > 0 ? '฿' + fmt(dn) : 'ฟรีดาวน์', size: 'sm', align: 'end', flex: 2 }
-            ]
-          },
-          {
-            type: 'box', layout: 'horizontal',
-            contents: [
-              { type: 'text', text: 'ค่างวด/เดือน', size: 'sm', weight: 'bold', flex: 3 },
-              { type: 'text', text: '฿' + fmt(inst), size: 'sm', weight: 'bold', color: '#cc0000', align: 'end', flex: 2 }
-            ]
-          },
-          { type: 'text', text: 'ผ่อน ' + calcPeriod + ' เดือน', size: 'xs', color: '#aaaaaa', align: 'end' }
-        ]
+        contents: bodyContents
       }
     }
   };
 
-  // ลอง Flex ก่อน ถ้าไม่ผ่านให้ fallback เป็น text
+  // fallback text ถ้า Flex พัง
+  const fallbackParts = ['สนใจ ' + calcModel.name + (variantName ? ' ' + variantName : '')];
+  if (calcPayType === 'cash') {
+    fallbackParts.push('แบบเงินสด ราคา ' + (cashPrice > 0 ? fmt(cashPrice) + ' บาท' : 'ขอสอบถามราคา'));
+  } else {
+    const downPct = parseInt(document.getElementById('sliderDown').value);
+    const inst = getCalcInstallment();
+    fallbackParts.push('แบบผ่อน ดาวน์ ' + downPct + '% · ค่างวด ' + fmt(inst) + ' บาท/เดือน × ' + calcPeriod + ' เดือน');
+  }
+  if (custName) fallbackParts.push('ชื่อ: ' + custName);
+  if (custPhone) fallbackParts.push('เบอร์: ' + custPhone);
+  fallbackParts.push('ขอข้อมูลเพิ่มเติมครับ');
+
   try {
     await liff.sendMessages([flexMsg]);
     liff.closeWindow();
   } catch(e) {
-    alert('Flex error: ' + e.message + '\nver: 2025-05-29-v2');
     try {
-      await liff.sendMessages([{
-        type: 'text',
-        text: 'สนใจ ' + calcModel.name + (variantName ? ' ' + variantName : '') + '\nค่างวดประมาณ ' + fmt(inst) + ' บาท/เดือน x ' + calcPeriod + ' เดือน\nขอข้อมูลเพิ่มเติมครับ'
-      }]);
+      await liff.sendMessages([{ type: 'text', text: fallbackParts.join('\n') }]);
       liff.closeWindow();
     } catch(e2) {
-      alert('ส่งไม่ได้ทั้ง Flex และ Text: ' + e2.message);
+      alert('ส่งไม่ได้: ' + e2.message);
     }
   }
 }
