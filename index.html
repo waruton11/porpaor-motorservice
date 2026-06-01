@@ -1101,12 +1101,13 @@ input[type="range"]::-moz-range-thumb {
   margin-bottom: 1rem;
 }
 .lp-col {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
+.lp-col:first-child { flex: 0 0 auto; }
 .lp-col + .lp-col {
+  flex: 1;
   border-left: 1px solid #ffcccc;
   padding-left: 0.85rem;
   margin-left: 0.85rem;
@@ -1117,9 +1118,11 @@ input[type="range"]::-moz-range-thumb {
 .lp-note { font-size: 0.68rem; color: var(--text2); }
 .live-amt {
   font-family: 'Kanit', sans-serif;
-  font-size: 1.2rem;
+  font-size: 1.85rem;
   font-weight: 700;
   color: var(--red);
+  line-height: 1.1;
+  white-space: nowrap;
 }
 /* Result box */
 .result-box {
@@ -2190,6 +2193,9 @@ function goCalcStep2() {
   document.getElementById('calcStep2').style.display = 'block';
   document.getElementById('calcStep3').style.display = 'none';
   updateStepIndicators(2);
+  // ล็อคค่าเริ่มต้น: ผ่อน 48 งวด (สูงสุด) เพื่อให้ค่างวดถูกสุดตอนเปิดครั้งแรก
+  calcPeriod = 48;
+  document.querySelectorAll('.period-pill').forEach(p => p.classList.toggle('active', parseInt(p.dataset.mo) === 48));
   updateSliderRange();
   renderCalcColors();
   setPayType(calcPayType);
@@ -2207,7 +2213,11 @@ function updateSliderRange() {
   const slider = document.getElementById('sliderDown');
   if (!slider) return;
   slider.min = minDown;
-  if (parseInt(slider.value) < minDown) slider.value = minDown;
+  // ล็อคค่าเริ่มต้นที่ดาวน์ต่ำสุดของรุ่นเสมอ (ค่างวดถูกสุด)
+  slider.value = minDown;
+  calcCustomDownAmount = null;
+  const cd = document.getElementById('customDown');
+  if (cd) cd.value = '';
   // อัพเดท tick labels
   const ticks = document.querySelector('.slider-ticks');
   if (ticks) {
@@ -2577,7 +2587,7 @@ async function sendToLine() {
     bodyContents.push({
       type: 'box', layout: 'horizontal', margin: 'sm',
       contents: [
-        { type: 'text', text: '🎨 สี', size: 'sm', color: '#888888', flex: 2 },
+        { type: 'text', text: 'สี', size: 'sm', color: '#888888', flex: 2 },
         { type: 'text', text: colorName, size: 'sm', align: 'end', flex: 3, wrap: true, weight: 'bold' }
       ]
     });
