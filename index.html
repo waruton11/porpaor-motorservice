@@ -1527,6 +1527,12 @@ footer .footer-brand {
 
       <!-- Step 2: sliders -->
       <div id="calcStep2" style="display:none;">
+        <!-- Color picker (แสดงทั้งเงินผ่อน/เงินสด) -->
+        <div id="calcColorSection" style="margin-bottom:1rem;">
+          <div class="slbl" style="margin-bottom:8px;">เลือกสี <span id="calcColorName" style="color:#888;font-weight:400;"></span></div>
+          <div id="calcColorSwatches" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+        </div>
+
         <!-- Payment type toggle -->
         <div class="pay-toggle">
           <button class="pay-opt active" data-pay="installment" onclick="setPayType('installment')">💳 เงินผ่อน</button>
@@ -1952,7 +1958,44 @@ function closeModal(e) {
 }
 
 // ===== CALCULATOR OVERLAY =====
-let calcModel = null, calcPeriod = 36, calcVariantIdx = 0, calcPayType = 'installment', calcCustomDownAmount = null;
+let calcModel = null, calcPeriod = 36, calcVariantIdx = 0, calcPayType = 'installment', calcCustomDownAmount = null, calcColorIdx = 0;
+
+// สีที่เลือกได้ของ variant ปัจจุบัน
+function getCalcColors() {
+  if (!calcModel || !calcModel.colors || !calcModel.colors.length) return [];
+  const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
+  const vname = v ? v.name : '';
+  const filtered = calcModel.colors.filter(c => !c.variant || c.variant === vname || !vname);
+  return filtered.length ? filtered : calcModel.colors;
+}
+
+function renderCalcColors() {
+  const section = document.getElementById('calcColorSection');
+  const wrap = document.getElementById('calcColorSwatches');
+  const nameEl = document.getElementById('calcColorName');
+  if (!section || !wrap) return;
+  const colors = getCalcColors();
+  if (!colors.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  if (calcColorIdx >= colors.length) calcColorIdx = 0;
+  wrap.innerHTML = colors.map((c, i) => {
+    const bg = c.hex2
+      ? 'conic-gradient(' + c.hex + ' 0deg 180deg,' + c.hex2 + ' 180deg 360deg)'
+      : (c.hex || '#ccc');
+    return '<div class="color-swatch' + (i === calcColorIdx ? ' active' : '') + '" style="background:' + bg + ';" title="' + (c.name || '') + '" onclick="selectCalcColor(' + i + ')"></div>';
+  }).join('');
+  if (nameEl) nameEl.textContent = colors[calcColorIdx] ? '· ' + colors[calcColorIdx].name : '';
+}
+
+function selectCalcColor(i) {
+  calcColorIdx = i;
+  renderCalcColors();
+}
+
+function getSelectedColorName() {
+  const colors = getCalcColors();
+  return (colors[calcColorIdx] && colors[calcColorIdx].name) ? colors[calcColorIdx].name : '';
+}
 
 function openCalc() {
   document.getElementById('calcOverlay').classList.add('open');
@@ -2010,6 +2053,7 @@ function onCalcModelChange() {
   const [ci, mi] = val.split('-').map(Number);
   calcModel = categories[ci].models[mi];
   calcVariantIdx = 0; // reset เมื่อเปลี่ยนรุ่น
+  calcColorIdx = 0; // reset สี
   calcCustomDownAmount = null; // reset custom down
   const cd = document.getElementById('customDown');
   if (cd) cd.value = '';
@@ -2147,6 +2191,7 @@ function goCalcStep2() {
   document.getElementById('calcStep3').style.display = 'none';
   updateStepIndicators(2);
   updateSliderRange();
+  renderCalcColors();
   setPayType(calcPayType);
   updateCalcLive();
   updateCashPreview();
@@ -2450,6 +2495,7 @@ function handleAutoSend() {
   if (!categories[ci] || !categories[ci].models[mi]) return;
   calcModel = categories[ci].models[mi];
   calcVariantIdx = parseInt(params.get('vi')) || 0;
+  calcColorIdx = parseInt(params.get('co')) || 0;
   calcPayType = params.get('pay') || 'installment';
   calcPeriod = parseInt(params.get('period')) || 36;
   const cd = params.get('cd');
@@ -2495,6 +2541,7 @@ function sendToLineViaBrowser() {
   params.set('ci', String(ci));
   params.set('mi', String(mi));
   params.set('vi', String(calcVariantIdx));
+  params.set('co', String(calcColorIdx));
   params.set('pay', calcPayType);
   params.set('period', String(calcPeriod));
   if (calcCustomDownAmount !== null) {
@@ -2518,12 +2565,23 @@ async function sendToLine() {
   const custName = (document.getElementById('custName')?.value || '').trim();
   const custPhone = (document.getElementById('custPhone')?.value || '').trim();
 
+  const colorName = getSelectedColorName();
+
   // สร้าง body components
   const bodyContents = [
     { type: 'text', text: calcPayType === 'cash' ? '💵 สนใจซื้อเงินสด' : '💳 สนใจผ่อน', size: 'sm', color: '#888888' },
     { type: 'text', text: calcModel.name, weight: 'bold', size: 'xl', color: '#cc0000', wrap: true },
     { type: 'text', text: variantName || '-', size: 'sm', color: '#666666', wrap: true }
   ];
+  if (colorName) {
+    bodyContents.push({
+      type: 'box', layout: 'horizontal', margin: 'sm',
+      contents: [
+        { type: 'text', text: '🎨 สี', size: 'sm', color: '#888888', flex: 2 },
+        { type: 'text', text: colorName, size: 'sm', align: 'end', flex: 3, wrap: true, weight: 'bold' }
+      ]
+    });
+  }
 
   if (calcPayType === 'cash') {
     // เงินสด: แค่ราคาเงินสด
@@ -2597,6 +2655,7 @@ async function sendToLine() {
 
   // fallback text ถ้า Flex พัง
   const fallbackParts = ['สนใจ ' + calcModel.name + (variantName ? ' ' + variantName : '')];
+  if (colorName) fallbackParts.push('สี: ' + colorName);
   if (calcPayType === 'cash') {
     fallbackParts.push('แบบเงินสด ราคา ' + (cashPrice > 0 ? fmt(cashPrice) + ' บาท' : 'ขอสอบถามราคา'));
   } else {
