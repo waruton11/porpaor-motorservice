@@ -7,7 +7,7 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        240,
+        200,
         300
       ],
       "webhookId": "line-oa",
@@ -24,12 +24,56 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        480,
+        420,
         300
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "// ===== CONFIG =====\nconst TOKEN = 's6yXmBDu8IHtcIJA54MOVUqxVPNUSwht/oAxwGR+HyZ2H6cbrRS+i2BGQzfQRsCk8rUiVuGiYVSFVqsgW5SJXNIZHi736tS59Q/yJMP7TVfCA0Lot7p1NYu8ERe2tvh3ipTN12+bFfCTQ/8U0ShzYAdB04t89/1O/w1cDnyilFU=';\nconst LIFF_URL = 'https://liff.line.me/2010228940-rjXFOkmc';\n\nconst body = $input.first().json.body || $input.first().json;\nconst events = body.events || [];\nif (events.length === 0) return [];\n\nfunction isBusinessHours() {\n  const bkk = new Date(Date.now() + 7 * 3600 * 1000);\n  const day = bkk.getUTCDay();\n  const t = bkk.getUTCHours() * 60 + bkk.getUTCMinutes();\n  return day >= 1 && day <= 6 && t >= 480 && t < 1050;\n}\n\nfunction liffBubble(title, desc, btnLabel) {\n  return {\n    type: 'flex', altText: title,\n    contents: {\n      type: 'bubble',\n      body: { type: 'box', layout: 'vertical', spacing: 'md', contents: [\n        { type: 'text', text: title, weight: 'bold', size: 'lg', wrap: true, color: '#cc0000' },\n        { type: 'text', text: desc, size: 'sm', color: '#555555', wrap: true }\n      ]},\n      footer: { type: 'box', layout: 'vertical', contents: [{\n        type: 'button', style: 'primary', color: '#cc0000',\n        action: { type: 'uri', label: btnLabel, uri: LIFF_URL }\n      }]}\n    }\n  };\n}\n\nfunction qr(items) {\n  return { items: items.map(it => ({ type: 'action', action: { type: 'message', label: it.label, text: it.text } })) };\n}\n\nconst results = [];\n\nfor (const event of events) {\n  if (!event.replyToken || event.replyToken === '00000000000000000000000000000000') continue;\n  let messages = null;\n\n  if (event.type === 'follow') {\n    messages = [\n      { type: 'text', text: 'ยินดีต้อนรับครับ 🏍️\\nป.เปา มอเตอร์เซอร์วิส ตัวแทนจำหน่าย Honda วังน้อย\\n\\nพิมพ์ถามได้เลยครับ หรือกดเมนูด้านล่างเพื่อเลือกรุ่นรถ' },\n      liffBubble('🛵 ดูรุ่นรถ & คำนวณค่างวด', 'เลือกรุ่นรถ คำนวณค่างวด ดูราคา ได้ตลอด 24 ชม.', 'เลือกรุ่นรถเลย')\n    ];\n\n  } else if (event.type === 'message' && event.message && event.message.type === 'text') {\n    const raw = (event.message.text || '').trim();\n    const tl = raw.toLowerCase();\n\n    // === Guided lead flow (ทำงาน 24 ชม.) ===\n    // จังหวะ 2 ปลายทาง: เลือกวิธีติดต่อ → ปิดเรื่อง (เช็คก่อน — ข้อความไม่มี 'สะดวกทำสัญญา')\n    if (raw.includes('พร้อมให้โทรได้เลย')) {\n      messages = [{ type: 'text', text: 'รับทราบครับ เดี๋ยวเจ้าหน้าที่โทรกลับหาเลยครับ 📞\\nขอบคุณที่ไว้วางใจ ป.เปา มอเตอร์เซอร์วิสครับ 🙏\\n\\n(ถ้ายังไม่ได้ฝากเบอร์ รบกวนพิมพ์เบอร์โทรไว้ได้เลยครับ)' }];\n\n    } else if (raw.includes('ขอนัดเวลาให้โทร')) {\n      messages = [{ type: 'text', text: 'ได้เลยครับ 🙏 สะดวกให้โทรช่วงไหน พิมพ์บอกได้เลยครับ\\nเช่น บ่าย 2 / หลังเลิกงาน / พรุ่งนี้เช้า\\n\\n(พร้อมเบอร์โทร ถ้ายังไม่ได้ฝากไว้ครับ)' }];\n\n    } else if (raw.includes('ขอสอบถามทางแชทก่อน')) {\n      messages = [{ type: 'text', text: 'ได้เลยครับ 😊 สอบถามเข้ามาได้เลย เดี๋ยวเจ้าหน้าที่มาตอบให้ครับ' }];\n\n    // จังหวะ 1 → 2: เลือกสาขาแล้ว → คลายกังวลเครดิต + ชวนโทร\n    } else if (raw.includes('สะดวกทำสัญญา')) {\n      messages = [{\n        type: 'text',\n        text: 'รับทราบครับ 🙏 เรื่องจัดไฟแนนซ์ไม่ต้องกังวลนะครับ ร้านมีหลายบริษัทให้เลือก และมีทีมช่วยดูเงื่อนไขให้ผ่านง่ายที่สุดครับ\\n\\nขอเจ้าหน้าที่โทรอธิบายเงื่อนไขให้ชัดๆ สะดวกแบบไหนดีครับ?',\n        quickReply: qr([\n          { label: '📞 โทรได้เลย', text: 'พร้อมให้โทรได้เลย' },\n          { label: '⏰ นัดเวลาโทร', text: 'ขอนัดเวลาให้โทร' },\n          { label: '💬 ขอแชทก่อน', text: 'ขอสอบถามทางแชทก่อน' }\n        ])\n      }];\n\n    } else if (!isBusinessHours()) {\n      messages = [ liffBubble('❤️ ขอบคุณที่ไว้วางใจ ป.เปา มอเตอร์เซอร์วิส', 'เราได้รับข้อความของคุณแล้วครับ\\n\\nหากส่งข้อมูลไว้ ทีมงานจะตรวจสอบและติดต่อกลับในเวลาทำการถัดไป\\n\\nไม่ต้องรอเจ้าหน้าที่ สามารถเช็กรุ่นรถและคำนวณค่างวดเบื้องต้นได้ตลอด 24 ชั่วโมง', 'เลือกรุ่นรถ / คำนวณค่างวด') ];\n\n    } else if (tl.includes('สาขา') || tl === 'สาขาของเรา') {\n      messages = [{ type: 'text', text: '📍 สาขาวังน้อย\\n☎️ 092-2499686\\n🗺️ https://maps.app.goo.gl/9HexF99DPcKtdtsj9\\n\\n📍 สาขานครหลวง\\n☎️ 092-2499685\\n🗺️ https://maps.app.goo.gl/z1qu63BnxFthPtdW9' }];\n\n    } else if (tl.includes('เอกสาร') || tl.includes('ออกรถ')) {\n      messages = [{ type: 'image', originalContentUrl: 'https://raw.githubusercontent.com/waruton11/porpaor-motorservice/main/images/doc-requirements.png', previewImageUrl: 'https://raw.githubusercontent.com/waruton11/porpaor-motorservice/main/images/doc-requirements.png' }];\n\n    } else if (tl.includes('myanmar') || tl.includes('myanmar support')) {\n      messages = [{ type: 'text', text: 'ဆက်သွယ်ရန် ဖုန်းနံပါတ် ပေးပါ ခင်ဗျာ 📞\\nMyanmar staff ဆက်သွယ်ပေးပါမည်ခင်ဗျာ\\n\\nส่งเบอร์โทรมาได้เลยครับ เซลพม่าจะโทรหาโดยเร็วครับ 😊' }];\n    }\n  }\n\n  if (messages) results.push({ json: { replyToken: event.replyToken, messages: messages, token: TOKEN } });\n}\n\nreturn results;"
+        "jsCode": "// ===== CONFIG =====\nconst TOKEN = 's6yXmBDu8IHtcIJA54MOVUqxVPNUSwht/oAxwGR+HyZ2H6cbrRS+i2BGQzfQRsCk8rUiVuGiYVSFVqsgW5SJXNIZHi736tS59Q/yJMP7TVfCA0Lot7p1NYu8ERe2tvh3ipTN12+bFfCTQ/8U0ShzYAdB04t89/1O/w1cDnyilFU=';\nconst LIFF_URL = 'https://liff.line.me/2010228940-rjXFOkmc';\n\nconst body = $input.first().json.body || $input.first().json;\nconst events = body.events || [];\nif (events.length === 0) return [];\n\nfunction isBusinessHours() {\n  const bkk = new Date(Date.now() + 7 * 3600 * 1000);\n  const day = bkk.getUTCDay();\n  const t = bkk.getUTCHours() * 60 + bkk.getUTCMinutes();\n  return day >= 1 && day <= 6 && t >= 480 && t < 1050;\n}\n\nfunction liffBubble(title, desc, btnLabel) {\n  return {\n    type: 'flex', altText: title,\n    contents: {\n      type: 'bubble',\n      body: { type: 'box', layout: 'vertical', spacing: 'md', contents: [\n        { type: 'text', text: title, weight: 'bold', size: 'lg', wrap: true, color: '#cc0000' },\n        { type: 'text', text: desc, size: 'sm', color: '#555555', wrap: true }\n      ]},\n      footer: { type: 'box', layout: 'vertical', contents: [{\n        type: 'button', style: 'primary', color: '#cc0000',\n        action: { type: 'uri', label: btnLabel, uri: LIFF_URL }\n      }]}\n    }\n  };\n}\n\nfunction qr(items) {\n  return { items: items.map(it => ({ type: 'action', action: { type: 'message', label: it.label, text: it.text } })) };\n}\n\nconst results = [];\n\nfor (const event of events) {\n  if (!event.replyToken || event.replyToken === '00000000000000000000000000000000') continue;\n  let messages = null;\n\n  if (event.type === 'follow') {\n    messages = [\n      { type: 'text', text: 'ยินดีต้อนรับครับ 🏍️\\nป.เปา มอเตอร์เซอร์วิส ตัวแทนจำหน่าย Honda วังน้อย\\n\\nพิมพ์ถามได้เลยครับ หรือกดเมนูด้านล่างเพื่อเลือกรุ่นรถ' },\n      liffBubble('🛵 ดูรุ่นรถ & คำนวณค่างวด', 'เลือกรุ่นรถ คำนวณค่างวด ดูราคา ได้ตลอด 24 ชม.', 'เลือกรุ่นรถเลย')\n    ];\n\n  } else if (event.type === 'message' && event.message && event.message.type === 'text') {\n    const raw = (event.message.text || '').trim();\n    const tl = raw.toLowerCase();\n\n    // === Guided lead flow (ทำงาน 24 ชม.) ===\n    if (raw.includes('พร้อมให้โทรได้เลย')) {\n      messages = [{ type: 'text', text: 'รับทราบครับ เดี๋ยวเจ้าหน้าที่โทรกลับหาเลยครับ 📞\\nขอบคุณที่ไว้วางใจ ป.เปา มอเตอร์เซอร์วิสครับ 🙏\\n\\n(ถ้ายังไม่ได้ฝากเบอร์ รบกวนพิมพ์เบอร์โทรไว้ได้เลยครับ)' }];\n\n    } else if (raw.includes('ขอนัดเวลาให้โทร')) {\n      messages = [{ type: 'text', text: 'ได้เลยครับ 🙏 สะดวกให้โทรช่วงไหน พิมพ์บอกได้เลยครับ\\nเช่น บ่าย 2 / หลังเลิกงาน / พรุ่งนี้เช้า\\n\\n(พร้อมเบอร์โทร ถ้ายังไม่ได้ฝากไว้ครับ)' }];\n\n    } else if (raw.includes('ขอสอบถามทางแชทก่อน')) {\n      messages = [{ type: 'text', text: 'ได้เลยครับ 😊 สอบถามเข้ามาได้เลย เดี๋ยวเจ้าหน้าที่มาตอบให้ครับ' }];\n\n    } else if (raw.includes('สะดวกทำสัญญา')) {\n      messages = [{\n        type: 'text',\n        text: 'รับทราบครับ 🙏 เรื่องจัดไฟแนนซ์ไม่ต้องกังวลนะครับ ร้านมีหลายบริษัทให้เลือก และมีทีมช่วยดูเงื่อนไขให้ผ่านง่ายที่สุดครับ\\n\\nขอเจ้าหน้าที่โทรอธิบายเงื่อนไขให้ชัดๆ สะดวกแบบไหนดีครับ?',\n        quickReply: qr([\n          { label: '📞 โทรได้เลย', text: 'พร้อมให้โทรได้เลย' },\n          { label: '⏰ นัดเวลาโทร', text: 'ขอนัดเวลาให้โทร' },\n          { label: '💬 ขอแชทก่อน', text: 'ขอสอบถามทางแชทก่อน' }\n        ])\n      }];\n\n    } else if (!isBusinessHours()) {\n      messages = [ liffBubble('❤️ ขอบคุณที่ไว้วางใจ ป.เปา มอเตอร์เซอร์วิส', 'เราได้รับข้อความของคุณแล้วครับ\\n\\nหากส่งข้อมูลไว้ ทีมงานจะตรวจสอบและติดต่อกลับในเวลาทำการถัดไป\\n\\nไม่ต้องรอเจ้าหน้าที่ สามารถเช็กรุ่นรถและคำนวณค่างวดเบื้องต้นได้ตลอด 24 ชั่วโมง', 'เลือกรุ่นรถ / คำนวณค่างวด') ];\n\n    } else if (tl.includes('สาขา') || tl === 'สาขาของเรา') {\n      messages = [{ type: 'text', text: '📍 สาขาวังน้อย\\n☎️ 092-2499686\\n🗺️ https://maps.app.goo.gl/9HexF99DPcKtdtsj9\\n\\n📍 สาขานครหลวง\\n☎️ 092-2499685\\n🗺️ https://maps.app.goo.gl/z1qu63BnxFthPtdW9' }];\n\n    } else if (tl.includes('เอกสาร') || tl.includes('ออกรถ')) {\n      messages = [{ type: 'image', originalContentUrl: 'https://raw.githubusercontent.com/waruton11/porpaor-motorservice/main/images/doc-requirements.png', previewImageUrl: 'https://raw.githubusercontent.com/waruton11/porpaor-motorservice/main/images/doc-requirements.png' }];\n\n    } else if (tl.includes('myanmar') || tl.includes('myanmar support')) {\n      messages = [{ type: 'text', text: 'ဆက်သွယ်ရန် ဖုန်းနံပါတ် ပေးပါ ခင်ဗျာ 📞\\nMyanmar staff ဆက်သွယ်ပေးပါမည်ခင်ဗျာ\\n\\nส่งเบอร์โทรมาได้เลยครับ เซลพม่าจะโทรหาโดยเร็วครับ 😊' }];\n    }\n  }\n\n  if (messages) {\n    const userId = (event.source && event.source.userId) ? event.source.userId : '';\n    results.push({ json: { replyToken: event.replyToken, messages: messages, token: TOKEN, userId: userId } });\n  }\n}\n\nreturn results;"
+      }
+    },
+    {
+      "id": "line-node-0001-0001-0001-000000000004",
+      "name": "Show Typing",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        300
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/chat/loading/start",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('Process LINE Events').item.json.token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ chatId: $('Process LINE Events').item.json.userId, loadingSeconds: 5 }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "line-node-0001-0001-0001-000000000005",
+      "name": "Wait 2s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        860,
+        300
+      ],
+      "webhookId": "wait-line-reply",
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
       }
     },
     {
@@ -38,7 +82,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        720,
+        1080,
         300
       ],
       "parameters": {
@@ -49,14 +93,14 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "={{ 'Bearer ' + $json.token }}"
+              "value": "={{ 'Bearer ' + $('Process LINE Events').item.json.token }}"
             }
           ]
         },
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
-        "body": "={{ JSON.stringify({ replyToken: $json.replyToken, messages: $json.messages }) }}",
+        "body": "={{ JSON.stringify({ replyToken: $('Process LINE Events').item.json.replyToken, messages: $('Process LINE Events').item.json.messages }) }}",
         "options": {}
       }
     }
@@ -74,6 +118,28 @@
       ]
     },
     "Process LINE Events": {
+      "main": [
+        [
+          {
+            "node": "Show Typing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Show Typing": {
+      "main": [
+        [
+          {
+            "node": "Wait 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2s": {
       "main": [
         [
           {
