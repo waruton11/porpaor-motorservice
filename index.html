@@ -2680,25 +2680,40 @@ async function sendToLine() {
 
   const fallbackText = fallbackParts.join('\n');
 
+  // ดึง userId ไว้ล่วงหน้า (ใช้ทั้ง push การ์ด + ยิงข้อความตอบรับ)
+  let userId = null;
+  try { const p = await liff.getProfile(); userId = p.userId; } catch(_) {}
+
+  // ยิงข้อความตอบรับอัตโนมัติ (ปุ่มเลือกสาขา) — หลังการ์ดถูกส่ง
+  function fireAck() {
+    if (!userId) return;
+    fetch('https://n8n-wt11.onrender.com/webhook/ack-lead', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: userId })
+    }).catch(function(){});
+  }
+
   try {
     // วิธีหลัก: ส่ง Flex card เข้าแชท (ทำงานเมื่อเปิดจาก Rich Menu — มีบริบทแชท)
     await liff.sendMessages([flexMsg]);
-    liff.closeWindow();
+    fireAck();
+    setTimeout(function(){ try { liff.closeWindow(); } catch(_){} }, 600);
   } catch(e) {
     // เปิดจากลิงค์ภายนอก → ไม่มีบริบทแชท sendMessages ใช้ไม่ได้
-    // → วิธีที่ 2: ดึง userId แล้ว push การ์ดเข้าแชทผ่าน n8n (Push API)
+    // → วิธีที่ 2: push การ์ดเข้าแชทผ่าน n8n (Push API)
     try {
-      const profile = await liff.getProfile();
+      if (!userId) { const p = await liff.getProfile(); userId = p.userId; }
       const res = await fetch('https://n8n-wt11.onrender.com/webhook/push-lead-card', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: profile.userId, message: flexMsg })
+        body: JSON.stringify({ userId: userId, message: flexMsg })
       });
       if (!res.ok) throw new Error('push http ' + res.status);
-      // เปิดแชท OA ให้ลูกค้าเห็นการ์ดที่ push เข้าไป
+      fireAck();
+      // เปิดแชท OA ให้ลูกค้าเห็นการ์ด + ข้อความตอบรับ
       const oaUrl = 'https://line.me/R/ti/p/@975ltwhp';
       if (liff.openWindow) { liff.openWindow({ url: oaUrl, external: false }); }
-      setTimeout(function(){ try { liff.closeWindow(); } catch(_){} }, 500);
+      setTimeout(function(){ try { liff.closeWindow(); } catch(_){} }, 600);
     } catch(e2) {
       // วิธีสุดท้าย: เปิดแชท OA พร้อม pre-fill ข้อความ (ลูกค้ากดส่ง) — ไม่ต้องใช้ permission
       const oaUrl = 'https://line.me/R/oaMessage/%40975ltwhp/?' + encodeURIComponent(fallbackText);

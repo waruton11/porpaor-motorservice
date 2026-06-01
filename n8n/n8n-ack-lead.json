@@ -1,0 +1,118 @@
+{
+  "name": "POST ack-lead",
+  "nodes": [
+    {
+      "id": "ack-001",
+      "name": "POST ack-lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "ack-lead",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ack-lead",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "ack-002",
+      "name": "Build ack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst userId = body.userId;\nif (!userId) return [{ json: { skip: true } }];\n\nfunction qr(items) {\n  return { items: items.map(it => ({ type: 'action', action: { type: 'message', label: it.label, text: it.text } })) };\n}\n\nconst message = {\n  type: 'text',\n  text: 'ขอบคุณที่สนใจ Honda กับ ป.เปา ครับ 🙏\\nทีมงานได้รับรุ่นที่คุณเลือกแล้ว เดี๋ยวเจ้าหน้าที่ติดต่อกลับนะครับ\\n\\nลูกค้าสะดวกทำสัญญาที่สาขาไหนครับ',\n  quickReply: qr([\n    { label: '📍 วังน้อย', text: 'สะดวกทำสัญญาที่สาขาวังน้อย' },\n    { label: '📍 นครหลวง', text: 'สะดวกทำสัญญาที่สาขานครหลวง' },\n    { label: 'ทำสัญญานอกสถานที่', text: 'สะดวกทำสัญญานอกสถานที่' }\n  ])\n};\n\nreturn [{ json: { userId, message, token: 's6yXmBDu8IHtcIJA54MOVUqxVPNUSwht/oAxwGR+HyZ2H6cbrRS+i2BGQzfQRsCk8rUiVuGiYVSFVqsgW5SJXNIZHi736tS59Q/yJMP7TVfCA0Lot7p1NYu8ERe2tvh3ipTN12+bFfCTQ/8U0ShzYAdB04t89/1O/w1cDnyilFU=' } }];"
+      }
+    },
+    {
+      "id": "ack-003",
+      "name": "LINE Push",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/push",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $json.token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ to: $json.userId, messages: [$json.message] }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "ack-004",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        300
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true }) }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "POST ack-lead": {
+      "main": [
+        [
+          {
+            "node": "Build ack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build ack": {
+      "main": [
+        [
+          {
+            "node": "LINE Push",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LINE Push": {
+      "main": [
+        [
+          {
+            "node": "Respond OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
