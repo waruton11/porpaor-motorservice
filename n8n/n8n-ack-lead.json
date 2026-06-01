@@ -7,7 +7,7 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        240,
+        200,
         300
       ],
       "webhookId": "ack-lead",
@@ -24,7 +24,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        460,
+        420,
         300
       ],
       "parameters": {
@@ -33,12 +33,56 @@
       }
     },
     {
+      "id": "ack-005",
+      "name": "Show Typing",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        300
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/chat/loading/start",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('Build ack').item.json.token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ chatId: $('Build ack').item.json.userId, loadingSeconds: 5 }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "ack-006",
+      "name": "Wait 2s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        860,
+        300
+      ],
+      "webhookId": "wait-ack-lead",
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
+      }
+    },
+    {
       "id": "ack-003",
       "name": "LINE Push",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        680,
+        1080,
         300
       ],
       "parameters": {
@@ -49,14 +93,14 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "={{ 'Bearer ' + $json.token }}"
+              "value": "={{ 'Bearer ' + $('Build ack').item.json.token }}"
             }
           ]
         },
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
-        "body": "={{ JSON.stringify({ to: $json.userId, messages: [$json.message] }) }}",
+        "body": "={{ JSON.stringify({ to: $('Build ack').item.json.userId, messages: [$('Build ack').item.json.message] }) }}",
         "options": {}
       }
     },
@@ -66,7 +110,7 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        900,
+        1300,
         300
       ],
       "parameters": {
@@ -89,6 +133,28 @@
       ]
     },
     "Build ack": {
+      "main": [
+        [
+          {
+            "node": "Show Typing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Show Typing": {
+      "main": [
+        [
+          {
+            "node": "Wait 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2s": {
       "main": [
         [
           {
