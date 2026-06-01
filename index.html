@@ -1993,6 +1993,7 @@ function renderCalcColors() {
 function selectCalcColor(i) {
   calcColorIdx = i;
   renderCalcColors();
+  updateCalcCarThumb();
 }
 
 function getSelectedColorName() {
@@ -2077,8 +2078,16 @@ function updateCalcCarStrip() {
   document.getElementById('calcCarName').textContent = calcModel.name;
   document.getElementById('calcCarSub').textContent = v ? v.name : '';
   document.getElementById('calcCarPrice').textContent = price > 0 ? '฿' + fmt(price) : 'ติดต่อสอบถามราคา';
+  updateCalcCarThumb();
+}
+
+// อัพเดตรูปบน car-strip ตามสีที่เลือก
+function updateCalcCarThumb() {
   const thumb = document.getElementById('calcCarThumb');
-  const img = calcModel.colors && calcModel.colors[0] && calcModel.colors[0].img;
+  if (!thumb || !calcModel) return;
+  const colors = getCalcColors();
+  const sel = colors[calcColorIdx] || colors[0];
+  const img = (sel && sel.img) ? sel.img : (calcModel.colors && calcModel.colors[0] && calcModel.colors[0].img);
   thumb.innerHTML = img ? '<img src="' + img + '" style="width:100%;height:100%;object-fit:contain;">' : '🏍️';
 }
 
