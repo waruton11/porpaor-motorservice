@@ -2750,15 +2750,6 @@ async function sendToLine() {
       setTimeout(function(){ try { liff.closeWindow(); } catch(_){} }, 600);
     } catch(e2) {
       // วิธีสุดท้าย: เปิดแชท OA พร้อม pre-fill ข้อความ (ลูกค้ากดส่ง) — ไม่ต้องใช้ permission
-      // [DIAGNOSTIC] แสดงสาเหตุที่ส่งการ์ดไม่ได้ (ลบออกหลัง debug เสร็จ)
-      try {
-        var diag = 'ส่งการ์ดไม่สำเร็จ (debug)\n' +
-          'userId: ' + (userId || 'ไม่มี') + '\n' +
-          'inClient: ' + (liff.isInClient ? liff.isInClient() : '?') + '\n' +
-          'loggedIn: ' + (liff.isLoggedIn ? liff.isLoggedIn() : '?') + '\n' +
-          'error: ' + (e2 && e2.message ? e2.message : e2);
-        alert(diag);
-      } catch(_) {}
       const oaUrl = 'https://line.me/R/oaMessage/%40975ltwhp/?' + encodeURIComponent(fallbackText);
       window.location.href = oaUrl;
     }
