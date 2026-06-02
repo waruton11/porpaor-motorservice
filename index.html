@@ -195,6 +195,39 @@ img { display: block; max-width: 100%; }
   .trust-label { font-size: 0.85rem; }
 }
 
+/* ===== SPECIAL SERVICES ===== */
+.svc-wrap {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0 1rem 0.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.svc-card {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: white;
+  border: 1.5px solid var(--gray2);
+  border-radius: 12px;
+  padding: 0.75rem 0.85rem;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+.svc-card:hover { border-color: var(--red); box-shadow: 0 4px 14px rgba(204,0,0,.1); transform: translateY(-1px); }
+.svc-card:active { transform: translateY(0); }
+.svc-ico { font-size: 1.7rem; flex-shrink: 0; }
+.svc-title { font-weight: 700; font-size: 0.92rem; color: var(--text); line-height: 1.2; }
+.svc-sub { font-size: 0.72rem; color: var(--text2); margin-top: 2px; }
+@media (min-width: 768px) {
+  .svc-wrap { padding: 0.5rem 1.5rem 0.75rem; }
+  .svc-card { padding: 1rem 1.25rem; }
+  .svc-title { font-size: 1rem; }
+  .svc-sub { font-size: 0.8rem; }
+}
+
 /* ===== CATEGORY ICONS (mobile only) ===== */
 .cat-icons-wrap {
   background: white;
@@ -1417,6 +1450,24 @@ footer .footer-brand {
 <!-- ===== CTA WIDE ===== -->
 <div class="cta-wide-wrap">
   <button class="cta-wide" onclick="scrollToModels()">ดูรุ่นรถทั้งหมด →</button>
+</div>
+
+<!-- ===== SPECIAL SERVICES ===== -->
+<div class="svc-wrap">
+  <a class="svc-card" href="https://line.me/R/oaMessage/%40975ltwhp/?%E0%B8%AA%E0%B8%99%E0%B9%83%E0%B8%88%E0%B9%80%E0%B8%97%E0%B8%B4%E0%B8%A3%E0%B9%8C%E0%B8%99%E0%B8%A3%E0%B8%96%E0%B9%80%E0%B8%81%E0%B9%88%E0%B8%B2" target="_blank">
+    <div class="svc-ico">🔄</div>
+    <div class="svc-body">
+      <div class="svc-title">เทิร์นรถเก่า</div>
+      <div class="svc-sub">รับเทิร์นทุกรุ่น · ตีราคาที่ร้าน</div>
+    </div>
+  </a>
+  <a class="svc-card" href="https://line.me/R/oaMessage/%40975ltwhp/?%E0%B8%AA%E0%B8%99%E0%B9%83%E0%B8%88%E0%B8%97%E0%B8%94%E0%B8%A5%E0%B8%AD%E0%B8%87%E0%B8%82%E0%B8%B1%E0%B8%9A" target="_blank">
+    <div class="svc-ico">🏍️</div>
+    <div class="svc-body">
+      <div class="svc-title">ทดลองขับฟรี</div>
+      <div class="svc-sub">PCX160 & UC3 · ที่วังน้อย</div>
+    </div>
+  </a>
 </div>
 
 <!-- ===== CATEGORY ICONS (mobile only) ===== -->
