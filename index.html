@@ -1454,7 +1454,7 @@ footer .footer-brand {
 
 <!-- ===== SPECIAL SERVICES ===== -->
 <div class="svc-wrap">
-  <a class="svc-card" href="https://line.me/R/oaMessage/%40975ltwhp/?%E0%B8%AA%E0%B8%99%E0%B9%83%E0%B8%88%E0%B9%80%E0%B8%97%E0%B8%B4%E0%B8%A3%E0%B9%8C%E0%B8%99%E0%B8%A3%E0%B8%96%E0%B9%80%E0%B8%81%E0%B9%88%E0%B8%B2" target="_blank">
+  <a class="svc-card" href="javascript:void(0)" onclick="openTradeIn()">
     <div class="svc-ico">🔄</div>
     <div class="svc-body">
       <div class="svc-title">เทิร์นรถเก่า</div>
@@ -1715,6 +1715,38 @@ footer .footer-brand {
     </div><!-- end .calc-inner -->
   </div><!-- end .calc-sheet -->
 </div><!-- end .calc-overlay -->
+
+<!-- ===== TRADE-IN OVERLAY ===== -->
+<div class="calc-overlay" id="tradeOverlay">
+  <div class="calc-sheet">
+    <div class="calc-head">
+      <button class="calc-close" onclick="closeTradeIn()">✕</button>
+      <div class="calc-title">🔄 เทิร์นรถเก่า</div>
+    </div>
+    <div class="calc-inner">
+      <div style="background:#eef6ff;border:1px solid #cfe3ff;border-radius:10px;padding:.7rem .9rem;margin-bottom:1rem;font-size:.84rem;color:#1a5298;line-height:1.5;">
+        รับเทิร์นทุกรุ่นครับ 🔄 กรอกข้อมูลรถเก่า เดี๋ยวเจ้าหน้าที่โทรนัดเอารถมาตีราคาที่ร้าน
+        <div style="font-size:.76rem;color:#5b7fb4;margin-top:4px;">* การตีราคาต้องดูสภาพรถจริงที่ร้าน</div>
+      </div>
+      <div class="customer-info" style="margin-bottom:1rem;">
+        <div class="customer-info-title">🏍️ รถเก่าที่จะเทิร์น</div>
+        <div class="customer-info-note">ดูรุ่นรถได้ที่เล่มทะเบียนรถ (สมุดคู่มือจดทะเบียน)</div>
+        <input type="text" id="tiOldBike" class="customer-input" placeholder="รุ่นรถเก่า * เช่น Honda Wave110i">
+        <input type="text" id="tiOldYear" class="customer-input" placeholder="ปีที่จดทะเบียน (ถ้าทราบ) เช่น 2563">
+      </div>
+      <div class="customer-info" style="margin-bottom:1rem;">
+        <div class="customer-info-title">📝 ข้อมูลติดต่อ</div>
+        <input type="text" id="tiNewModel" class="customer-input" placeholder="สนใจรุ่นใหม่รุ่นไหน (ถ้ามี)">
+        <input type="text" id="tiName" class="customer-input" placeholder="ชื่อ-นามสกุล (ถ้าสะดวก)">
+        <input type="tel" id="tiPhone" class="customer-input" placeholder="เบอร์โทร — ให้เจ้าหน้าที่โทรนัดตีราคา">
+      </div>
+      <button class="calc-primary-btn liff-send-btn" onclick="submitTradeIn()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+        ส่งข้อมูลเทิร์นให้ร้าน
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- ===== SOCIAL SECTION ===== -->
 <section id="social">
@@ -2087,6 +2119,81 @@ function openCalc() {
 function closeCalc() {
   document.getElementById('calcOverlay').classList.remove('open');
   document.body.style.overflow = '';
+}
+
+// ===== เทิร์นรถเก่า =====
+function openTradeIn() {
+  document.getElementById('tradeOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeTradeIn() {
+  document.getElementById('tradeOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// สร้าง Flex card เทิร์นรถ
+function buildTradeInCard(d) {
+  const rows = [
+    { type: 'text', text: '🔄 ขอเทิร์นรถเก่า', size: 'sm', color: '#888888' },
+    { type: 'text', text: d.oldBike, weight: 'bold', size: 'xl', color: '#cc0000', wrap: true }
+  ];
+  if (d.oldYear) rows.push({ type: 'text', text: 'ปีจดทะเบียน ' + d.oldYear, size: 'sm', color: '#666666' });
+  const kv = [];
+  if (d.newModel) kv.push(['🏍️ สนใจรุ่นใหม่', d.newModel]);
+  if (d.name) kv.push(['👤 ชื่อ', d.name]);
+  if (d.phone) kv.push(['📞 เบอร์', d.phone]);
+  if (kv.length) {
+    rows.push({ type: 'separator', margin: 'md' });
+    kv.forEach(function(p, i) {
+      rows.push({
+        type: 'box', layout: 'horizontal', margin: i === 0 ? 'md' : 'sm',
+        contents: [
+          { type: 'text', text: p[0], size: 'sm', color: '#888888', flex: 2 },
+          { type: 'text', text: p[1], size: 'sm', align: 'end', flex: 3, wrap: true, weight: p[0].indexOf('เบอร์') !== -1 ? 'bold' : 'regular', color: p[0].indexOf('เบอร์') !== -1 ? '#22aa55' : '#333333' }
+        ]
+      });
+    });
+  }
+  rows.push({ type: 'text', text: 'ตีราคาต้องดูรถจริงที่ร้าน เดี๋ยวเจ้าหน้าที่โทรนัดครับ', size: 'xs', color: '#aaaaaa', wrap: true, margin: 'md' });
+  return {
+    type: 'flex', altText: 'ขอเทิร์นรถเก่า: ' + d.oldBike,
+    contents: { type: 'bubble', body: { type: 'box', layout: 'vertical', spacing: 'sm', contents: rows } }
+  };
+}
+
+function tradeInData() {
+  return {
+    oldBike: (document.getElementById('tiOldBike')?.value || '').trim(),
+    oldYear: (document.getElementById('tiOldYear')?.value || '').trim(),
+    newModel: (document.getElementById('tiNewModel')?.value || '').trim(),
+    name: (document.getElementById('tiName')?.value || '').trim(),
+    phone: (document.getElementById('tiPhone')?.value || '').trim()
+  };
+}
+
+async function submitTradeIn() {
+  const d = tradeInData();
+  if (!d.oldBike) { alert('กรุณากรอกรุ่นรถเก่าที่จะเทิร์นครับ (ดูได้ที่เล่มทะเบียนรถ)'); return; }
+
+  if (isInLiff) {
+    const flexMsg = buildTradeInCard(d);
+    const parts = ['ขอเทิร์นรถเก่า: ' + d.oldBike + (d.oldYear ? ' ปี ' + d.oldYear : '')];
+    if (d.newModel) parts.push('สนใจรุ่นใหม่: ' + d.newModel);
+    if (d.name) parts.push('ชื่อ: ' + d.name);
+    if (d.phone) parts.push('เบอร์: ' + d.phone);
+    parts.push('รบกวนนัดตีราคาให้ด้วยครับ');
+    await deliverFlexToLine(flexMsg, parts.join('\n'), {});
+  } else {
+    // เปิดผ่าน browser → redirect ไป LIFF พร้อม params
+    const params = new URLSearchParams();
+    params.set('autoSend', 'tradein');
+    params.set('oldBike', d.oldBike);
+    if (d.oldYear) params.set('oldYear', d.oldYear);
+    if (d.newModel) params.set('newModel', d.newModel);
+    if (d.name) params.set('name', d.name);
+    if (d.phone) params.set('phone', d.phone);
+    window.open('https://liff.line.me/' + LIFF_ID + '?' + params.toString(), '_blank');
+  }
 }
 
 function openCalcFromModal() {
@@ -2584,7 +2691,27 @@ async function initLiff() {
 // อ่าน autoSend params จาก URL → restore state → auto-fire sendToLine
 function handleAutoSend() {
   const params = new URLSearchParams(window.location.search);
-  if (params.get('autoSend') !== '1') return;
+  const mode = params.get('autoSend');
+  // เทิร์นรถ (มาจาก browser → LIFF)
+  if (mode === 'tradein') {
+    const d = {
+      oldBike: params.get('oldBike') || '',
+      oldYear: params.get('oldYear') || '',
+      newModel: params.get('newModel') || '',
+      name: params.get('name') || '',
+      phone: params.get('phone') || ''
+    };
+    if (!d.oldBike) return;
+    const flexMsg = buildTradeInCard(d);
+    const parts = ['ขอเทิร์นรถเก่า: ' + d.oldBike + (d.oldYear ? ' ปี ' + d.oldYear : '')];
+    if (d.newModel) parts.push('สนใจรุ่นใหม่: ' + d.newModel);
+    if (d.name) parts.push('ชื่อ: ' + d.name);
+    if (d.phone) parts.push('เบอร์: ' + d.phone);
+    parts.push('รบกวนนัดตีราคาให้ด้วยครับ');
+    setTimeout(function() { deliverFlexToLine(flexMsg, parts.join('\n'), {}); }, 300);
+    return;
+  }
+  if (mode !== '1') return;
   const ci = parseInt(params.get('ci')) || 0;
   const mi = parseInt(params.get('mi')) || 0;
   if (!categories[ci] || !categories[ci].models[mi]) return;
@@ -2764,14 +2891,18 @@ async function sendToLine() {
   fallbackParts.push('ขอข้อมูลเพิ่มเติมครับ');
 
   const fallbackText = fallbackParts.join('\n');
+  await deliverFlexToLine(flexMsg, fallbackText, { ack: true });
+}
 
-  // ดึง userId ไว้ล่วงหน้า (ใช้ทั้ง push การ์ด + ยิงข้อความตอบรับ)
+// ===== ส่ง Flex card เข้าแชท (ใช้ร่วมกัน: lead card + เทิร์นรถ) =====
+// opts.ack = true → ยิงข้อความตอบรับ (ack-lead) หลังส่ง
+async function deliverFlexToLine(flexMsg, fallbackText, opts) {
+  opts = opts || {};
   let userId = null;
   try { const p = await liff.getProfile(); userId = p.userId; } catch(_) {}
 
-  // ยิงข้อความตอบรับอัตโนมัติ (ปุ่มเลือกสาขา) — หลังการ์ดถูกส่ง
   function fireAck() {
-    if (!userId) return;
+    if (!userId || !opts.ack) return;
     fetch('https://n8n-wt11.onrender.com/webhook/ack-lead', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: userId })
@@ -2779,28 +2910,25 @@ async function sendToLine() {
   }
 
   try {
-    // วิธีหลัก: ส่ง Flex card เข้าแชท (ทำงานเมื่อเปิดจาก Rich Menu — มีบริบทแชท)
+    // วิธีหลัก: ส่ง Flex card เข้าแชท (Rich Menu — มีบริบทแชท)
     await liff.sendMessages([flexMsg]);
     fireAck();
     setTimeout(function(){ try { liff.closeWindow(); } catch(_){} }, 600);
   } catch(e) {
-    // เปิดจากลิงค์ภายนอก → ไม่มีบริบทแชท sendMessages ใช้ไม่ได้
-    // → วิธีที่ 2: push การ์ดเข้าแชทผ่าน n8n (Push API)
+    // เปิดจากลิงค์ภายนอก → push การ์ดผ่าน n8n
     try {
       if (!userId) { const p = await liff.getProfile(); userId = p.userId; }
       const res = await fetch('https://n8n-wt11.onrender.com/webhook/push-lead-card', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: userId, message: flexMsg })
       });
       if (!res.ok) throw new Error('push http ' + res.status);
       fireAck();
-      // เปิดแชท OA ให้ลูกค้าเห็นการ์ด + ข้อความตอบรับ
       const oaUrl = 'https://line.me/R/ti/p/@975ltwhp';
       if (liff.openWindow) { liff.openWindow({ url: oaUrl, external: false }); }
       setTimeout(function(){ try { liff.closeWindow(); } catch(_){} }, 600);
     } catch(e2) {
-      // วิธีสุดท้าย: เปิดแชท OA พร้อม pre-fill ข้อความ (ลูกค้ากดส่ง) — ไม่ต้องใช้ permission
+      // วิธีสุดท้าย: เปิดแชท OA พร้อม pre-fill ข้อความ
       const oaUrl = 'https://line.me/R/oaMessage/%40975ltwhp/?' + encodeURIComponent(fallbackText);
       window.location.href = oaUrl;
     }
