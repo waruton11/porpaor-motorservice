@@ -844,6 +844,26 @@ function saveData() {
   localStorage.setItem('papao_data', JSON.stringify(data));
   _syncToN8n(false); // sync ไป server — retry อัตโนมัติถ้า Render หลับ
   syncRatesToDB();   // sync rates ไปยัง bike_catalog ใน DB
+  syncFreebiesToDB(); // sync ของแถม (ต่อรุ่นย่อย) ไปยัง bike_catalog
+}
+
+// sync ของแถมต่อรุ่นย่อย → จับคู่ submodel_name = ชื่อรุ่น + ' / ' + ชื่อรุ่นย่อย
+function syncFreebiesToDB() {
+  const items = [];
+  (data.categories || []).forEach(function(cat) {
+    (cat.models || []).forEach(function(model) {
+      (model.variants || []).forEach(function(v) {
+        const submodel = (model.name + ' / ' + v.name).trim();
+        items.push({ submodel_name: submodel, freebies: Array.isArray(v.freebies) ? v.freebies : [] });
+      });
+    });
+  });
+  if (items.length === 0) return;
+  fetch('https://n8n-wt11.onrender.com/webhook/update-catalog-freebies', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items })
+  }).catch(function(e) { console.warn('syncFreebiesToDB failed:', e.message); });
 }
 
 // ส่งข้อมูลไป n8n — ถ้าล้มเหลวครั้งแรก รอ 35 วิแล้วลองใหม่อัตโนมัติ
@@ -1175,7 +1195,7 @@ function openEditModel(ci, mi) {
   // variants
   document.getElementById('variantRows').innerHTML = '';
   m.variants.forEach(v => {
-    addVariantRow(v.name, v.price, v.autoRate || '', v.autoRateUnit || 'month', v.autoDownPcts ? v.autoDownPcts.join(',') : '', v.autoRate2 || '', v.autoRate2MinDown || '');
+    addVariantRow(v.name, v.price, v.autoRate || '', v.autoRateUnit || 'month', v.autoDownPcts ? v.autoDownPcts.join(',') : '', v.autoRate2 || '', v.autoRate2MinDown || '', v.freebies || []);
   });
   // colors
   document.getElementById('colorRows').innerHTML = '';
@@ -1183,10 +1203,45 @@ function openEditModel(ci, mi) {
   document.getElementById('modelModal').classList.add('open');
 }
 
-function addVariantRow(name='', price='', autoRate='', autoRateUnit='month', autoDownPcts='', autoRate2='', autoRate2MinDown='') {
+// ของแถมมาตรฐาน (เลือกได้ + เพิ่มเองได้)
+const STD_FREEBIES = ['หมวกกันน็อค', 'เสื้อแจ็คเก็ต', 'จดทะเบียน', 'พ.ร.บ.', 'ประกันรถหาย', 'ประกันชีวิต', 'ประกันช่วยเหลือฉุกเฉิน', 'ประกันซ่อมศูนย์ 3Plus (กรณีรถชนรถ)'];
+
+function _freebieCustomRow(value) {
+  return '<div style="display:flex;gap:6px;align-items:center;margin-bottom:5px;">' +
+    '<input class="vfreebieCustom" value="' + String(value || '').replace(/"/g, '&quot;') + '" placeholder="ของแถมอื่น เช่น กล้อง GoPro" ' +
+      'style="flex:1;box-sizing:border-box;padding:.4rem .6rem;border:1px solid #ddd;border-radius:6px;font-size:.82rem;">' +
+    '<button type="button" onclick="this.closest(\'div\').remove()" style="background:#eee;border:none;border-radius:6px;cursor:pointer;padding:4px 9px;color:#c62828;font-size:.85rem;" title="ลบ">✕</button>' +
+  '</div>';
+}
+
+function addCustomFreebie(btn) {
+  const wrap = btn.previousElementSibling; // .vCustomFreebies container
+  wrap.insertAdjacentHTML('beforeend', _freebieCustomRow(''));
+}
+
+function _buildFreebiesUI(freebies) {
+  freebies = Array.isArray(freebies) ? freebies : [];
+  const checks = STD_FREEBIES.map(function(g) {
+    const on = freebies.indexOf(g) !== -1 ? 'checked' : '';
+    return '<label style="display:inline-flex;align-items:center;gap:4px;font-size:.8rem;cursor:pointer;background:#fff;border:1px solid #ddd;border-radius:6px;padding:3px 8px;">' +
+      '<input type="checkbox" class="vfreebie" value="' + g + '" ' + on + '> ' + g + '</label>';
+  }).join('');
+  // ของแถมที่ไม่ใช่มาตรฐาน → แต่ละอันเป็น 1 ช่อง
+  const customGifts = freebies.filter(function(g) { return STD_FREEBIES.indexOf(g) === -1; });
+  const customRows = customGifts.map(_freebieCustomRow).join('');
+  return '<div style="flex:1 1 100%;margin-top:8px;border-top:1px dashed #ddd;padding-top:8px;">' +
+    '<label style="font-size:.8rem;color:#555;font-weight:600;">🎁 ของแถม (เลือกได้หลายอย่าง)</label>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:5px 0;">' + checks + '</div>' +
+    '<div style="font-size:.72rem;color:#999;margin:6px 0 4px;">ของแถมอื่น (ที่ไม่มีในรายการ):</div>' +
+    '<div class="vCustomFreebies">' + customRows + '</div>' +
+    '<button type="button" onclick="addCustomFreebie(this)" style="background:#e8f0fe;border:1px solid #c5d6f5;border-radius:6px;cursor:pointer;padding:5px 12px;font-size:.8rem;color:#1a5298;margin-top:2px;">+ เพิ่มของแถมอื่น</button>' +
+  '</div>';
+}
+
+function addVariantRow(name='', price='', autoRate='', autoRateUnit='month', autoDownPcts='', autoRate2='', autoRate2MinDown='', freebies=[]) {
   const div = document.createElement('div');
   div.className = 'form-row variant-row';
-  div.style.background = '#fafafa'; div.style.padding = '0.75rem'; div.style.borderRadius = '8px'; div.style.marginBottom = '0.5rem';
+  div.style.background = '#fafafa'; div.style.padding = '0.75rem'; div.style.borderRadius = '8px'; div.style.marginBottom = '0.5rem'; div.style.flexWrap = 'wrap';
   div.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:2px;justify-content:center;padding-top:18px;margin-right:4px;">
       <button type="button" onclick="moveRow(this,'up')" style="background:#e0e0e0;border:none;border-radius:4px;cursor:pointer;padding:1px 6px;font-size:0.75rem;line-height:1.4;" title="เลื่อนขึ้น">▲</button>
@@ -1226,6 +1281,7 @@ function addVariantRow(name='', price='', autoRate='', autoRateUnit='month', aut
     <div style="display:flex; align-items:flex-end; padding-bottom:2px;">
       <button class="btn btn-danger btn-sm" onclick="this.closest('.variant-row').remove()">✕</button>
     </div>
+    ${_buildFreebiesUI(freebies)}
   `;
   document.getElementById('variantRows').appendChild(div);
 }
@@ -1362,6 +1418,14 @@ function saveModel() {
       const vautoRate2 = parseFloat(row.querySelector('.vautoRate2')?.value) || 0;
       const vautoRate2MinDown = parseInt(row.querySelector('.vautoRate2MinDown')?.value) || 0;
       if (vautoRate2 > 0 && vautoRate2MinDown > 0) { v.autoRate2 = vautoRate2; v.autoRate2MinDown = vautoRate2MinDown; }
+      // ของแถม: checkbox มาตรฐาน + ช่อง custom หลายช่อง
+      const freebies = [];
+      row.querySelectorAll('.vfreebie:checked').forEach(function(cb) { freebies.push(cb.value); });
+      row.querySelectorAll('.vfreebieCustom').forEach(function(inp) {
+        const t = (inp.value || '').trim();
+        if (t && freebies.indexOf(t) === -1) freebies.push(t);
+      });
+      if (freebies.length) v.freebies = freebies;
       // preserve ค่าเดิมเมื่อ edit (ถ้า field ว่าง)
       if (editModelIdx) {
         const old = data.categories[editModelIdx.ci].models[editModelIdx.mi];
@@ -1370,6 +1434,7 @@ function saveModel() {
           if (!v.autoRate && oldV.autoRate) { v.autoRate = oldV.autoRate; v.autoRateUnit = oldV.autoRateUnit; }
           if (!v.autoDownPcts && oldV.autoDownPcts) v.autoDownPcts = oldV.autoDownPcts;
           if (!v.autoRate2 && oldV.autoRate2) { v.autoRate2 = oldV.autoRate2; v.autoRate2MinDown = oldV.autoRate2MinDown; }
+          if (!v.freebies && oldV.freebies) v.freebies = oldV.freebies;
         }
       }
       variants.push(v);

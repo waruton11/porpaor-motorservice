@@ -1460,6 +1460,12 @@ footer .footer-brand {
         <div id="mColorName" style="margin-top:.45rem;font-size:.82rem;color:var(--text2);"></div>
       </div>
 
+      <!-- Freebies (ของแถม) -->
+      <div id="mFreebies" style="display:none;margin-bottom:1.1rem;background:linear-gradient(180deg,#fffbe6 0%,#fff 100%);border:1.5px solid #ffe08a;border-radius:10px;padding:.85rem 1rem;">
+        <div style="font-size:.9rem;font-weight:700;color:#b8860b;margin-bottom:.5rem;">🎁 ของแถมรุ่นนี้</div>
+        <div id="mFreebiesList" style="display:flex;flex-direction:column;gap:.35rem;"></div>
+      </div>
+
       <!-- Price -->
       <div class="modal-price" id="mPrice" style="display:none;"></div>
 
@@ -1800,9 +1806,24 @@ function oM(ci, mi) {
   modalVariantIdx = 0;
   modalColorIdx = 0;
   document.getElementById('mName').textContent = modalModel.name;
-  rV(); rC(); uT();
+  rV(); rC(); rFreebies(); uT();
   document.getElementById('modalOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+}
+
+// แสดงของแถมของรุ่นย่อยที่เลือก
+function rFreebies() {
+  const box = document.getElementById('mFreebies');
+  const list = document.getElementById('mFreebiesList');
+  if (!box || !list || !modalModel) return;
+  const v = modalModel.variants[modalVariantIdx] || modalModel.variants[0];
+  const fb = (v && Array.isArray(v.freebies)) ? v.freebies : [];
+  if (!fb.length) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  list.innerHTML = fb.map(function(g) {
+    return '<div style="display:flex;align-items:center;gap:6px;font-size:.86rem;color:#444;">' +
+      '<span style="color:#22aa55;font-weight:700;">✓</span> ' + g + '</div>';
+  }).join('');
 }
 
 function rV() {
@@ -1819,7 +1840,7 @@ function sV(i) {
   modalVariantIdx = i;
   modalColorIdx = 0;
   document.querySelectorAll('.variant-btn').forEach((b, j) => b.classList.toggle('active', j === i));
-  rC(); uT();
+  rC(); rFreebies(); uT();
 }
 
 function rC() {
@@ -2351,13 +2372,17 @@ function buildCategoriesFromAPI(rows) {
         ? row.auto_down_pcts.split(',').map(function(x) { return parseInt(x.trim()); }).filter(function(x) { return !isNaN(x); })
         : [];
       const financePrice = parseInt(row.finance_price) || 0;
+      var fb = row.freebies;
+      if (typeof fb === 'string') { try { fb = JSON.parse(fb); } catch(e) { fb = []; } }
+      if (!Array.isArray(fb)) fb = [];
       bike.variants.push({
         name: variantName, price: price, financePrice: financePrice, downs: downs, _sortOrder: row.sort_order || 0,
         autoRate: parseFloat(row.auto_rate) || 0,
         autoRateUnit: row.auto_rate_unit || 'month',
         autoDownPcts: autoDownPcts.length ? autoDownPcts : null,
         autoRate2: parseFloat(row.auto_rate2) || 0,
-        autoRate2MinDown: parseInt(row.auto_rate2_min_down) || 0
+        autoRate2MinDown: parseInt(row.auto_rate2_min_down) || 0,
+        freebies: fb
       });
     }
     // Merge สีเข้าด้วยกัน

@@ -1,0 +1,110 @@
+{
+  "name": "POST update-catalog-freebies",
+  "nodes": [
+    {
+      "id": "fb-001",
+      "name": "POST update-catalog-freebies",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "update-catalog-freebies",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "update-catalog-freebies",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "fb-002",
+      "name": "Build SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst items = body.items || [];\nif (items.length === 0) return [{ json: { sql: 'SELECT 1;', count: 0 } }];\nconst esc = (s) => String(s == null ? '' : s).replace(/'/g, \"''\");\n// UPDATE ของแถมต่อรุ่นย่อย (จับด้วย submodel_name)\nconst stmts = items.map(it => {\n  const sm = esc(it.submodel_name);\n  const fb = esc(JSON.stringify(Array.isArray(it.freebies) ? it.freebies : []));\n  return `UPDATE bike_catalog SET freebies = '${fb}'::jsonb WHERE submodel_name = '${sm}';`;\n}).join('\\n');\nreturn [{ json: { sql: stmts, count: items.length } }];"
+      }
+    },
+    {
+      "id": "fb-003",
+      "name": "Execute",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        680,
+        300
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "fb-004",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        300
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, count: $('Build SQL').first().json.count }) }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "POST update-catalog-freebies": {
+      "main": [
+        [
+          {
+            "node": "Build SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build SQL": {
+      "main": [
+        [
+          {
+            "node": "Execute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute": {
+      "main": [
+        [
+          {
+            "node": "Respond OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
