@@ -2916,23 +2916,38 @@ async function deliverFlexToLine(flexMsg, fallbackText, opts) {
     setTimeout(function(){ try { liff.closeWindow(); } catch(_){} }, 600);
   } catch(e) {
     // เปิดจากลิงค์ภายนอก → push การ์ดผ่าน n8n
+    // ลูกค้าใหม่: เพิ่งกดเพิ่มเพื่อน LINE อาจยัง sync ไม่ทัน → push ซ้ำหลายครั้งให้เวลา sync
     try {
       if (!userId) { const p = await liff.getProfile(); userId = p.userId; }
-      const res = await fetch('https://n8n-wt11.onrender.com/webhook/push-lead-card', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: userId, message: flexMsg })
-      });
-      if (!res.ok) throw new Error('push http ' + res.status);
+      const ok = await pushCardWithRetry(userId, flexMsg);
+      if (!ok) throw new Error('push failed after retries');
       fireAck();
       const oaUrl = 'https://line.me/R/ti/p/@975ltwhp';
       if (liff.openWindow) { liff.openWindow({ url: oaUrl, external: false }); }
-      setTimeout(function(){ try { liff.closeWindow(); } catch(_){} }, 600);
+      setTimeout(function(){ try { liff.closeWindow(); } catch(_){} }, 800);
     } catch(e2) {
       // วิธีสุดท้าย: เปิดแชท OA พร้อม pre-fill ข้อความ
       const oaUrl = 'https://line.me/R/oaMessage/%40975ltwhp/?' + encodeURIComponent(fallbackText);
       window.location.href = oaUrl;
     }
   }
+}
+
+// push การ์ดพร้อม retry — รองรับ propagation lag ของเพื่อนใหม่
+async function pushCardWithRetry(userId, flexMsg) {
+  const delays = [0, 1500, 2500, 3500]; // รวม ~7.5 วิ
+  for (let i = 0; i < delays.length; i++) {
+    if (delays[i]) await new Promise(function(r){ setTimeout(r, delays[i]); });
+    try {
+      const res = await fetch('https://n8n-wt11.onrender.com/webhook/push-lead-card', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: userId, message: flexMsg })
+      });
+      const j = await res.json().catch(function(){ return {}; });
+      if (j && j.ok) return true; // LINE push สำเร็จจริง
+    } catch(_) {}
+  }
+  return false;
 }
 </script>
 </body>
