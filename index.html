@@ -2278,6 +2278,15 @@ function tradeInData() {
   };
 }
 
+function tradeInLead(d) {
+  return { lead_type: 'tradein', model: d.oldBike, cust_name: d.name, cust_phone: d.phone,
+    detail: { old_year: d.oldYear || '', new_model: d.newModel || '' } };
+}
+function testRideLead(d) {
+  return { lead_type: 'testride', model: d.bike, cust_name: d.name, cust_phone: d.phone,
+    detail: { datetime: d.dateTime || '' } };
+}
+
 async function submitTradeIn() {
   const d = tradeInData();
   if (!d.oldBike) { alert('กรุณากรอกรุ่นรถเก่าที่จะเทิร์นครับ (ดูได้ที่เล่มทะเบียนรถ)'); return; }
@@ -2289,7 +2298,7 @@ async function submitTradeIn() {
     if (d.name) parts.push('ชื่อ: ' + d.name);
     if (d.phone) parts.push('เบอร์: ' + d.phone);
     parts.push('รบกวนนัดตีราคาให้ด้วยครับ');
-    await deliverFlexToLine(flexMsg, parts.join('\n'), {});
+    await deliverFlexToLine(flexMsg, parts.join('\n'), { lead: tradeInLead(d) });
   } else {
     const params = new URLSearchParams();
     params.set('autoSend', 'tradein');
@@ -2430,7 +2439,7 @@ async function submitTestRide() {
     if (d.name) parts.push('ชื่อ: ' + d.name);
     if (d.phone) parts.push('เบอร์: ' + d.phone);
     parts.push('รบกวนยืนยันนัดและเตรียมรถให้ด้วยครับ');
-    await deliverFlexToLine(flexMsg, parts.join('\n'), {});
+    await deliverFlexToLine(flexMsg, parts.join('\n'), { lead: testRideLead(d) });
   } else {
     const params = new URLSearchParams();
     params.set('autoSend', 'testride');
@@ -2923,6 +2932,17 @@ fetchSiteConfig().then(fetchCatalogDisplay).then(function() {
 const LIFF_ID = '2010228940-rjXFOkmc';
 let isInLiff = false;
 
+// บันทึก lead ลง DB (fire-and-forget — ไม่ขัดจังหวะการส่งการ์ด)
+function saveLead(lead) {
+  if (!lead) return;
+  try {
+    fetch('https://n8n-wt11.onrender.com/webhook/save-lead', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(lead)
+    }).catch(function(){});
+  } catch(_) {}
+}
+
 async function initLiff() {
   try {
     await liff.init({ liffId: LIFF_ID });
@@ -2962,7 +2982,7 @@ function handleAutoSend() {
     if (d.name) parts.push('ชื่อ: ' + d.name);
     if (d.phone) parts.push('เบอร์: ' + d.phone);
     parts.push('รบกวนนัดตีราคาให้ด้วยครับ');
-    setTimeout(function() { deliverFlexToLine(flexMsg, parts.join('\n'), {}); }, 300);
+    setTimeout(function() { deliverFlexToLine(flexMsg, parts.join('\n'), { lead: tradeInLead(d) }); }, 300);
     return;
   }
   // นัดทดลองขับ
@@ -2979,7 +2999,7 @@ function handleAutoSend() {
     if (d.name) parts.push('ชื่อ: ' + d.name);
     if (d.phone) parts.push('เบอร์: ' + d.phone);
     parts.push('รบกวนยืนยันนัดและเตรียมรถให้ด้วยครับ');
-    setTimeout(function() { deliverFlexToLine(flexMsg, parts.join('\n'), {}); }, 300);
+    setTimeout(function() { deliverFlexToLine(flexMsg, parts.join('\n'), { lead: testRideLead(d) }); }, 300);
     return;
   }
   if (mode !== '1') return;
@@ -3176,7 +3196,24 @@ async function sendToLine() {
   fallbackParts.push('ขอข้อมูลเพิ่มเติมครับ');
 
   const fallbackText = fallbackParts.join('\n');
-  await deliverFlexToLine(flexMsg, fallbackText, { ack: true });
+
+  // lead object สำหรับบันทึก DB
+  const _down = (calcPayType === 'installment') ? getCalcDown() : { pct: null };
+  const leadObj = {
+    lead_type: calcPayType,
+    model: calcModel.name,
+    variant: variantName,
+    color: colorName,
+    pay_type: calcPayType,
+    down_pct: (calcPayType === 'installment') ? _down.pct : null,
+    installment: (calcPayType === 'installment') ? getCalcInstallment() : null,
+    period: (calcPayType === 'installment') ? calcPeriod : null,
+    price: cashPrice,
+    cust_name: custName,
+    cust_phone: custPhone
+  };
+
+  await deliverFlexToLine(flexMsg, fallbackText, { ack: true, lead: leadObj });
 }
 
 // ===== ส่ง Flex card เข้าแชท (ใช้ร่วมกัน: lead card + เทิร์นรถ) =====
@@ -3185,6 +3222,9 @@ async function deliverFlexToLine(flexMsg, fallbackText, opts) {
   opts = opts || {};
   let userId = null;
   try { const p = await liff.getProfile(); userId = p.userId; } catch(_) {}
+
+  // บันทึก lead ลง DB (แนบ userId)
+  if (opts.lead) { opts.lead.line_user_id = userId || ''; saveLead(opts.lead); }
 
   function fireAck() {
     if (!userId || !opts.ack) return;
