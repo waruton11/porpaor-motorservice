@@ -1,0 +1,119 @@
+{
+  "name": "POST update-customer",
+  "nodes": [
+    {
+      "id": "cust-u-001",
+      "name": "POST update-customer",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        600
+      ],
+      "webhookId": "update-customer",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "update-customer",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "cust-u-002",
+      "name": "Build SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        600
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const b = $input.first().json.body || $input.first().json;\nconst esc = (s) => (s == null || s === '') ? 'NULL' : `'${String(s).replace(/'/g, \"''\")}'`;\nconst lit = (s) => String(s == null ? '' : s).replace(/'/g, \"''\");\nconst uid = lit(b.line_user_id);\nif (!uid) return [{ json: { sql: 'SELECT 1;', ok: false } }];\nconst sets = [];\nif (b.status !== undefined) sets.push(`status = ${esc(b.status)}`);\nif (b.assignee !== undefined) sets.push(`assignee = ${esc(b.assignee)}`);\nif (b.display_name !== undefined) sets.push(`display_name = ${esc(b.display_name)}`);\nif (b.note !== undefined) sets.push(`note = ${esc(b.note)}`);\nif (b.purchase_date !== undefined) sets.push(`purchase_date = ${esc(b.purchase_date)}`);\nsets.push('updated_at = NOW()');\nconst sql = `UPDATE customers SET ${sets.join(', ')} WHERE line_user_id = '${uid}';`;\nreturn [{ json: { sql } }];"
+      }
+    },
+    {
+      "id": "cust-u-003",
+      "name": "Execute",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        680,
+        600
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "cust-u-004",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        600
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true }) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "POST update-customer": {
+      "main": [
+        [
+          {
+            "node": "Build SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build SQL": {
+      "main": [
+        [
+          {
+            "node": "Execute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute": {
+      "main": [
+        [
+          {
+            "node": "Respond OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

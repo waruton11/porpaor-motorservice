@@ -217,6 +217,8 @@ tr:hover td { background: #fafafa; }
   <div class="layout">
     <!-- SIDEBAR -->
     <div class="sidebar">
+      <div class="sidebar-section">ลูกค้า</div>
+      <a class="sidebar-item" onclick="showPage('crm')">👥 ลูกค้า (CRM) <span id="crmNewBadge" style="display:none;background:#e53935;color:#fff;font-size:0.65rem;padding:1px 6px;border-radius:10px;margin-left:4px;"></span></a>
       <div class="sidebar-section">จัดการข้อมูล</div>
       <a class="sidebar-item active" onclick="showPage('models')">🏍️ รุ่นรถ & ราคา</a>
       <a class="sidebar-item" onclick="showPage('sitepage')">🎨 หน้าเว็บ (Hero/Trust)</a>
@@ -230,6 +232,25 @@ tr:hover td { background: #fafafa; }
 
     <!-- CONTENT -->
     <div class="content">
+
+      <!-- CRM PAGE -->
+      <div class="page" id="page-crm">
+        <div class="page-title">👥 ลูกค้า (CRM)</div>
+        <p class="page-sub">รายชื่อลูกค้าที่สนใจ — รับเคส โทรติดต่อ และอัปเดตสถานะ (real-time กันโทรซ้ำ)</p>
+        <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem;">
+          <input type="text" id="crmSearch" placeholder="🔍 ค้นหา ชื่อ/เบอร์/รุ่น" oninput="renderCrm()" style="flex:1;min-width:180px;padding:0.5rem 0.8rem;border:1.5px solid var(--gray2);border-radius:6px;font-size:0.9rem;">
+          <select id="crmStatusFilter" onchange="renderCrm()" style="padding:0.5rem 0.8rem;border:1.5px solid var(--gray2);border-radius:6px;font-size:0.9rem;">
+            <option value="">ทุกสถานะ</option>
+            <option value="new">🔴 รอติดต่อ</option>
+            <option value="following">🟡 กำลังติดตาม</option>
+            <option value="approved">🟢 อนุมัติ/ออกรถ</option>
+            <option value="rejected">⚫ ไม่ผ่าน</option>
+            <option value="owner">🔵 ลูกค้าเก่า</option>
+          </select>
+          <button class="btn btn-gray btn-sm" onclick="loadCrm()">🔄 รีเฟรช</button>
+        </div>
+        <div id="crmList"><div style="color:#999;padding:1rem;">กำลังโหลด...</div></div>
+      </div>
 
       <!-- MODELS PAGE -->
       <div class="page active" id="page-models">
@@ -981,6 +1002,99 @@ function showPage(id) {
   document.getElementById('page-' + id).classList.add('active');
   event.target.classList.add('active');
   if (id === 'sitepage') loadSiteConfig();
+  if (id === 'crm') loadCrm();
+}
+
+// ========== CRM (ลูกค้า) ==========
+let _crmData = [];
+const CRM_STATUS = {
+  new:       { label: 'รอติดต่อ',      dot: '#e53935', bg: '#ffebee' },
+  following: { label: 'กำลังติดตาม',   dot: '#f9a825', bg: '#fff8e1' },
+  approved:  { label: 'อนุมัติ/ออกรถ', dot: '#22aa55', bg: '#e8f5e9' },
+  rejected:  { label: 'ไม่ผ่าน',       dot: '#424242', bg: '#f0f0f0' },
+  owner:     { label: 'ลูกค้าเก่า',    dot: '#1e6fe0', bg: '#e7f0fd' }
+};
+// เซลที่ login (ชั่วคราว — เฟส role login จะ set ของจริง)
+function crmCurrentSales() { return localStorage.getItem('papao_sales_name') || 'แอดมิน'; }
+
+async function loadCrm() {
+  const wrap = document.getElementById('crmList');
+  if (wrap) wrap.innerHTML = '<div style="color:#999;padding:1rem;">กำลังโหลด...</div>';
+  try {
+    const res = await fetch('https://n8n-wt11.onrender.com/webhook/customers');
+    _crmData = res.ok ? await res.json() : [];
+    if (!Array.isArray(_crmData)) _crmData = [];
+  } catch(e) { _crmData = []; console.warn('loadCrm', e.message); }
+  // badge จำนวนลูกค้าใหม่ (รอติดต่อ)
+  const newCount = _crmData.filter(c => c.status === 'new').length;
+  const badge = document.getElementById('crmNewBadge');
+  if (badge) { if (newCount > 0) { badge.textContent = newCount; badge.style.display = 'inline-block'; } else badge.style.display = 'none'; }
+  renderCrm();
+}
+
+function _custCode(id) { return 'PP-' + String(id).padStart(4, '0'); }
+
+function renderCrm() {
+  const wrap = document.getElementById('crmList');
+  if (!wrap) return;
+  const q = (document.getElementById('crmSearch')?.value || '').toLowerCase().trim();
+  const sf = document.getElementById('crmStatusFilter')?.value || '';
+  let list = _crmData.slice();
+  if (sf) list = list.filter(c => c.status === sf);
+  if (q) list = list.filter(c => ((c.display_name||'') + ' ' + (c.phone||'') + ' ' + (c.interest_model||'') + ' ' + _custCode(c.id)).toLowerCase().includes(q));
+  if (!list.length) { wrap.innerHTML = '<div style="color:#999;padding:1.5rem;text-align:center;">ไม่มีลูกค้าตามเงื่อนไข</div>'; return; }
+
+  wrap.innerHTML = list.map(function(c) {
+    const st = CRM_STATUS[c.status] || CRM_STATUS.new;
+    const uid = (c.line_user_id || '').replace(/'/g, "\\'");
+    const claimed = c.assignee && c.assignee.trim();
+    const phoneBtn = c.phone ? '<a href="tel:' + c.phone + '" style="color:#1e6fe0;font-weight:600;text-decoration:none;">📞 ' + c.phone + '</a>' : '<span style="color:#bbb;">ไม่มีเบอร์</span>';
+    return '<div style="border:1px solid #e5e5e5;border-left:5px solid ' + st.dot + ';border-radius:8px;padding:0.8rem 1rem;margin-bottom:0.6rem;background:#fff;">' +
+      '<div style="display:flex;justify-content:space-between;gap:0.5rem;flex-wrap:wrap;align-items:center;">' +
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+          '<span style="background:' + st.bg + ';color:' + st.dot + ';font-size:0.72rem;font-weight:700;padding:2px 9px;border-radius:12px;">● ' + st.label + '</span>' +
+          '<b style="font-size:0.95rem;">' + (c.display_name || '(ไม่มีชื่อ)') + '</b>' +
+          '<span style="font-size:0.72rem;color:#999;">' + _custCode(c.id) + '</span>' +
+        '</div>' +
+        '<div style="font-size:0.78rem;color:#888;">' + (c.lead_count || 0) + ' ครั้ง</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:6px;font-size:0.86rem;color:#555;">' +
+        '<span>🏍️ <b>' + (c.interest_model || '-') + '</b></span>' +
+        '<span>' + phoneBtn + '</span>' +
+        (claimed ? '<span style="color:#f9a825;">👤 ดูแลโดย ' + c.assignee + '</span>' : '') +
+      '</div>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">' +
+        (!claimed ? '<button class="btn btn-sm" style="background:#fff3e0;color:#e65100;border:1px solid #ffcc80;" onclick="crmClaim(\'' + uid + '\')">📞 รับเคส</button>' : '') +
+        '<button class="btn btn-sm btn-gray" onclick="crmSetStatus(\'' + uid + '\',\'following\')">🟡 ติดตาม</button>' +
+        '<button class="btn btn-sm" style="background:#e8f5e9;color:#1b7a3e;border:1px solid #a5d6a7;" onclick="crmSetStatus(\'' + uid + '\',\'approved\')">🟢 อนุมัติ</button>' +
+        '<button class="btn btn-sm" style="background:#f0f0f0;color:#333;border:1px solid #ccc;" onclick="crmSetStatus(\'' + uid + '\',\'rejected\')">⚫ ไม่ผ่าน</button>' +
+        '<button class="btn btn-sm btn-gray" onclick="crmEditName(\'' + uid + '\')">✏️ ชื่อ</button>' +
+        (claimed ? '<button class="btn btn-sm btn-gray" onclick="crmRelease(\'' + uid + '\')">↩️ คืนเคส</button>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function _crmUpdate(uid, fields) {
+  fields.line_user_id = uid;
+  try {
+    await fetch('https://n8n-wt11.onrender.com/webhook/update-customer', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fields)
+    });
+  } catch(e) { showToast('อัปเดตไม่สำเร็จ: ' + e.message, 'error'); return false; }
+  // อัปเดต local + re-render ทันที (ไม่ต้องรอ reload)
+  const c = _crmData.find(x => x.line_user_id === uid);
+  if (c) Object.keys(fields).forEach(k => { if (k !== 'line_user_id') c[k] = fields[k]; });
+  renderCrm();
+  return true;
+}
+function crmClaim(uid) { _crmUpdate(uid, { assignee: crmCurrentSales(), status: 'following' }).then(ok => { if (ok) showToast('รับเคสแล้ว — โทรได้เลย 📞', 'success'); }); }
+function crmRelease(uid) { _crmUpdate(uid, { assignee: '' }).then(ok => { if (ok) showToast('คืนเคสแล้ว', 'success'); }); }
+function crmSetStatus(uid, status) { _crmUpdate(uid, { status: status }).then(ok => { if (ok) showToast('เปลี่ยนสถานะแล้ว', 'success'); }); }
+function crmEditName(uid) {
+  const c = _crmData.find(x => x.line_user_id === uid);
+  const name = prompt('ชื่อลูกค้า (เช่น ต้น · เวฟ125 · วังน้อย):', (c && c.display_name) || '');
+  if (name !== null) _crmUpdate(uid, { display_name: name.trim() }).then(ok => { if (ok) showToast('แก้ชื่อแล้ว', 'success'); });
 }
 
 // ========== SITE CONFIG (Hero + Trust Strip) ==========
