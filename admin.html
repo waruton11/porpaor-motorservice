@@ -996,6 +996,16 @@ let _siteCfg = {
 };
 let _siteCatList = [];  // รายชื่อหมวด (bike_type) จาก catalog + default icon
 
+// ชุดคำถามเริ่มต้น (ตรงกับ FAQ_DATA ในเว็บลูกค้า) — โชว์ให้แก้เมื่อยังไม่เคยตั้ง
+const DEFAULT_FAQ = [
+  { q: 'ติดแบล็คลิสต์ / เครดิตไม่ดี ผ่อนได้ไหม?', a: 'ไม่ต้องกังวลครับ 🙏 ร้านมีหลายบริษัทไฟแนนซ์ให้เลือก แต่ละที่เงื่อนไขต่างกัน ทีมงานช่วยดูและจัดให้ผ่านง่ายที่สุด แนะนำส่งข้อมูลหรือโทรคุยกับเจ้าหน้าที่ เพื่อประเมินให้ตรงกับเคสของคุณครับ' },
+  { q: 'ต้องมีคนค้ำไหม?', a: 'บางเคสไม่ต้องมีคนค้ำครับ บางเคสอาจขอคนค้ำเพื่อช่วยให้อนุมัติง่ายขึ้น ขึ้นกับเงื่อนไขแต่ละบริษัทและประวัติของลูกค้า เจ้าหน้าที่จะแจ้งให้ทราบตอนประเมินครับ' },
+  { q: 'ดาวน์เริ่มต้นเท่าไหร่?', a: 'มีตั้งแต่ฟรีดาวน์ (0%) สำหรับบางรุ่น ไปจนถึงดาวน์ตามที่สะดวกครับ ดาวน์มากขึ้น = ค่างวดน้อยลง ลองกด "คำนวณค่างวด" เลือกดาวน์ที่พอใจดูได้เลยครับ' },
+  { q: 'ใช้เอกสารอะไรบ้าง?', a: 'หลักๆ คือ บัตรประชาชน + ทะเบียนบ้าน (ตัวจริง) และหลักฐานรายได้ (ถ้ามี) ครับ รายละเอียดเต็มพิมพ์ "เอกสารออกรถ" ในแชท หรือสอบถามเจ้าหน้าที่ได้เลยครับ' },
+  { q: 'อนุมัติกี่วัน?', a: 'ปกติทราบผลเบื้องต้นภายในวันเดียว บางเคสไม่กี่ชั่วโมงครับ ขึ้นกับบริษัทไฟแนนซ์และความครบของเอกสาร' },
+  { q: 'ผ่อนไม่ผ่านทำยังไง?', a: 'ไม่ต้องกังวลครับ ร้านมีทีมช่วยดูเงื่อนไขและลองยื่นหลายบริษัทให้ หรือปรับแผน เช่น เพิ่มดาวน์ / มีคนค้ำ เพื่อเพิ่มโอกาสผ่าน ปรึกษาฟรีครับ' }
+];
+
 // ===== FAQ rows =====
 function _faqRowHtml(q, a) {
   return '<div class="faq-edit-row" style="border:1px solid #e5e5e5;border-radius:8px;padding:0.7rem;margin-bottom:0.6rem;background:#fafafa;">' +
@@ -1097,7 +1107,7 @@ async function loadSiteConfig() {
       if (d.heroImage) _siteCfg.heroImage = d.heroImage;
       if (Array.isArray(d.benefits) && d.benefits.length === 3) _siteCfg.benefits = d.benefits;
       _siteCfg.categoryOverrides = (d.categoryOverrides && typeof d.categoryOverrides === 'object') ? d.categoryOverrides : {};
-      _siteCfg.faq = Array.isArray(d.faq) ? d.faq : [];
+      _siteCfg.faq = (Array.isArray(d.faq) && d.faq.length) ? d.faq : JSON.parse(JSON.stringify(DEFAULT_FAQ));
     }
   } catch(e) { console.warn('loadSiteConfig', e.message); }
   document.getElementById('sc_heroImage').value = _siteCfg.heroImage;
