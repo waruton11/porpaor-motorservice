@@ -228,6 +228,44 @@ img { display: block; max-width: 100%; }
   .svc-sub { font-size: 0.8rem; }
 }
 
+/* ===== FAQ BAR ===== */
+.faq-bar-wrap { padding: 0 1rem 0.75rem; max-width: 1200px; margin: 0 auto; }
+.faq-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: #fff8e6;
+  border: 1.5px solid #ffe0a0;
+  border-radius: 12px;
+  padding: 0.75rem 0.95rem;
+  cursor: pointer;
+  text-align: left;
+  font-family: 'Sarabun', sans-serif;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.faq-bar:hover { border-color: #f5a623; box-shadow: 0 4px 14px rgba(245,166,35,.12); }
+.faq-bar-ico { font-size: 1.5rem; flex-shrink: 0; }
+.faq-bar-text { flex: 1; font-size: 0.9rem; color: var(--text); line-height: 1.35; }
+.faq-bar-sub { font-size: 0.74rem; color: #a07b2e; font-weight: 400; }
+.faq-bar-arrow { font-size: 1.6rem; color: #d0a040; flex-shrink: 0; }
+@media (min-width: 768px) { .faq-bar-wrap { padding: 0 1.5rem 0.75rem; } }
+/* FAQ accordion */
+.faq-item { border: 1px solid var(--gray2); border-radius: 10px; margin-bottom: 0.6rem; overflow: hidden; }
+.faq-q {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+  padding: 0.85rem 1rem; cursor: pointer; background: #fafafa;
+  font-weight: 600; font-size: 0.9rem; color: var(--text); line-height: 1.4;
+}
+.faq-q:hover { background: #f3f3f3; }
+.faq-q .faq-chev { flex-shrink: 0; color: var(--red); font-size: 1.1rem; transition: transform 0.2s; }
+.faq-item.open .faq-q .faq-chev { transform: rotate(180deg); }
+.faq-a {
+  max-height: 0; overflow: hidden; transition: max-height 0.25s ease, padding 0.25s ease;
+  padding: 0 1rem; font-size: 0.86rem; color: var(--text2); line-height: 1.6;
+}
+.faq-item.open .faq-a { max-height: 400px; padding: 0.85rem 1rem; }
+
 /* ===== CATEGORY ICONS (mobile only) ===== */
 .cat-icons-wrap {
   background: white;
@@ -1471,6 +1509,15 @@ footer .footer-brand {
   </a>
 </div>
 
+<!-- ===== FAQ BAR ===== -->
+<div class="faq-bar-wrap">
+  <button class="faq-bar" onclick="openFAQ()">
+    <span class="faq-bar-ico">❓</span>
+    <span class="faq-bar-text"><b>คำถามที่พบบ่อย</b><br><span class="faq-bar-sub">ผ่อนไม่ผ่าน? ติดแบล็คลิสต์? ดาวน์เท่าไหร่? — อ่านคำตอบ</span></span>
+    <span class="faq-bar-arrow">›</span>
+  </button>
+</div>
+
 <!-- ===== CATEGORY ICONS (mobile only) ===== -->
 <div class="cat-icons-wrap" id="catIconsWrap">
   <div class="cat-icons-header"><span class="section-title-sm">เลือกตามประเภท</span></div>
@@ -1781,6 +1828,23 @@ footer .footer-brand {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
         ส่งนัดทดลองขับให้ร้าน
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FAQ OVERLAY ===== -->
+<div class="calc-overlay" id="faqOverlay">
+  <div class="calc-sheet">
+    <div class="calc-head">
+      <button class="calc-close" onclick="closeFAQ()">✕</button>
+      <div class="calc-title">❓ คำถามที่พบบ่อย</div>
+    </div>
+    <div class="calc-inner">
+      <div id="faqList"></div>
+      <div style="background:#e9f9ef;border:1px solid #b6e6c6;border-radius:10px;padding:.85rem 1rem;margin-top:1rem;text-align:center;">
+        <div style="font-size:.88rem;color:#1a8c47;font-weight:600;margin-bottom:.5rem;">ยังไม่หายสงสัย? ทักถามเจ้าหน้าที่ได้เลยครับ 😊</div>
+        <a href="https://line.me/R/ti/p/@975ltwhp" target="_blank" class="calc-primary-btn liff-send-btn" style="display:inline-flex;text-decoration:none;padding:0.6rem 1.5rem;">💬 แชทถามเจ้าหน้าที่</a>
+      </div>
     </div>
   </div>
 </div>
@@ -2230,6 +2294,47 @@ async function submitTradeIn() {
     if (d.phone) params.set('phone', d.phone);
     window.open('https://liff.line.me/' + LIFF_ID + '?' + params.toString(), '_blank');
   }
+}
+
+// ===== FAQ =====
+const FAQ_DATA = [
+  { q: 'ติดแบล็คลิสต์ / เครดิตไม่ดี ผ่อนได้ไหม?',
+    a: 'ไม่ต้องกังวลครับ 🙏 ร้านมีหลายบริษัทไฟแนนซ์ให้เลือก แต่ละที่เงื่อนไขต่างกัน ทีมงานช่วยดูและจัดให้ผ่านง่ายที่สุด แนะนำส่งข้อมูลหรือโทรคุยกับเจ้าหน้าที่ เพื่อประเมินให้ตรงกับเคสของคุณครับ' },
+  { q: 'ต้องมีคนค้ำไหม?',
+    a: 'บางเคสไม่ต้องมีคนค้ำครับ บางเคสอาจขอคนค้ำเพื่อช่วยให้อนุมัติง่ายขึ้น ขึ้นกับเงื่อนไขแต่ละบริษัทและประวัติของลูกค้า เจ้าหน้าที่จะแจ้งให้ทราบตอนประเมินครับ' },
+  { q: 'ดาวน์เริ่มต้นเท่าไหร่?',
+    a: 'มีตั้งแต่ฟรีดาวน์ (0%) สำหรับบางรุ่น ไปจนถึงดาวน์ตามที่สะดวกครับ ดาวน์มากขึ้น = ค่างวดน้อยลง ลองกด "คำนวณค่างวด" เลือกดาวน์ที่พอใจดูได้เลยครับ' },
+  { q: 'ใช้เอกสารอะไรบ้าง?',
+    a: 'หลักๆ คือ บัตรประชาชน + ทะเบียนบ้าน (ตัวจริง) และหลักฐานรายได้ (ถ้ามี) ครับ รายละเอียดเต็มพิมพ์ "เอกสารออกรถ" ในแชท หรือสอบถามเจ้าหน้าที่ได้เลยครับ' },
+  { q: 'อนุมัติกี่วัน?',
+    a: 'ปกติทราบผลเบื้องต้นภายในวันเดียว บางเคสไม่กี่ชั่วโมงครับ ขึ้นกับบริษัทไฟแนนซ์และความครบของเอกสาร' },
+  { q: 'ผ่อนไม่ผ่านทำยังไง?',
+    a: 'ไม่ต้องกังวลครับ ร้านมีทีมช่วยดูเงื่อนไขและลองยื่นหลายบริษัทให้ หรือปรับแผน เช่น เพิ่มดาวน์ / มีคนค้ำ เพื่อเพิ่มโอกาสผ่าน ปรึกษาฟรีครับ' }
+];
+
+function renderFAQ() {
+  const el = document.getElementById('faqList');
+  if (!el) return;
+  const list = (siteConfig.faq && siteConfig.faq.length) ? siteConfig.faq : FAQ_DATA;
+  el.innerHTML = list.map(function(f, i) {
+    return '<div class="faq-item" id="faqItem' + i + '">' +
+      '<div class="faq-q" onclick="toggleFaq(' + i + ')">' +
+        '<span>' + f.q + '</span><span class="faq-chev">⌄</span></div>' +
+      '<div class="faq-a">' + f.a + '</div></div>';
+  }).join('');
+}
+function toggleFaq(i) {
+  const item = document.getElementById('faqItem' + i);
+  if (item) item.classList.toggle('open');
+}
+function openFAQ() {
+  renderFAQ();
+  document.getElementById('faqOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeFAQ() {
+  document.getElementById('faqOverlay').classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 // ===== นัดทดลองขับ =====
@@ -2733,7 +2838,8 @@ const DEFAULT_SITE_CONFIG = {
     { icon: '📞', label: 'ช่วยเหลือ 24ชม' }
   ],
   // override icon/ชื่อหมวด — key = bike_type เดิม (ไม่กระทบข้อมูลรถ)
-  categoryOverrides: {}
+  categoryOverrides: {},
+  faq: []  // คำถามที่พบบ่อย — แก้ใน admin (ว่าง = ใช้ค่าเริ่มต้น FAQ_DATA)
 };
 let siteConfig = JSON.parse(JSON.stringify(DEFAULT_SITE_CONFIG));
 
@@ -2746,6 +2852,7 @@ async function fetchSiteConfig() {
       if (d.heroImage) siteConfig.heroImage = d.heroImage;
       if (Array.isArray(d.benefits) && d.benefits.length) siteConfig.benefits = d.benefits;
       if (d.categoryOverrides && typeof d.categoryOverrides === 'object') siteConfig.categoryOverrides = d.categoryOverrides;
+      if (Array.isArray(d.faq)) siteConfig.faq = d.faq;
     }
   } catch(e) { console.log('site-config unavailable, using defaults', e.message); }
 }

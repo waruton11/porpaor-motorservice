@@ -294,6 +294,13 @@ tr:hover td { background: #fafafa; }
           <div id="sc_categoryRows"><div style="color:#999;font-size:0.85rem;">กำลังโหลดหมวด...</div></div>
         </div>
 
+        <div class="card" style="margin-bottom:1.5rem;">
+          <h3 style="margin-top:0;">❓ คำถามที่พบบ่อย (FAQ)</h3>
+          <p style="font-size:0.85rem;color:#888;margin-top:0;">เพิ่ม/แก้/ลบ คำถาม-คำตอบ ที่แสดงบนเว็บลูกค้า · เว้นว่างทั้งหมด = ใช้ชุดเริ่มต้น</p>
+          <div id="sc_faqRows"></div>
+          <button type="button" class="btn btn-gray btn-sm" onclick="addFaqRow()" style="margin-top:0.25rem;">+ เพิ่มคำถาม</button>
+        </div>
+
         <button class="btn btn-success" onclick="saveSiteConfig()" style="font-size:1rem;padding:0.75rem 2rem;">💾 บันทึก</button>
         <button class="btn btn-gray" onclick="loadSiteConfig()" style="margin-left:0.5rem;">🔄 โหลดจาก Server</button>
       </div>
@@ -984,9 +991,30 @@ let _siteCfg = {
     { icon: '💳', label: 'ดาวน์ 0%' },
     { icon: '📞', label: 'ช่วยเหลือ 24ชม' }
   ],
-  categoryOverrides: {}  // { "<bike_type>": { icon, label } }
+  categoryOverrides: {},  // { "<bike_type>": { icon, label } }
+  faq: []  // [{ q, a }]
 };
 let _siteCatList = [];  // รายชื่อหมวด (bike_type) จาก catalog + default icon
+
+// ===== FAQ rows =====
+function _faqRowHtml(q, a) {
+  return '<div class="faq-edit-row" style="border:1px solid #e5e5e5;border-radius:8px;padding:0.7rem;margin-bottom:0.6rem;background:#fafafa;">' +
+    '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">' +
+      '<input type="text" class="faqQ" value="' + String(q||'').replace(/"/g,'&quot;') + '" placeholder="คำถาม เช่น ติดแบล็คลิสต์ผ่อนได้ไหม?" style="flex:1;padding:0.45rem 0.6rem;border:1px solid #ddd;border-radius:6px;font-size:0.85rem;font-weight:600;">' +
+      '<button type="button" onclick="this.closest(\'.faq-edit-row\').remove()" style="background:#eee;border:none;border-radius:6px;cursor:pointer;padding:5px 10px;color:#c62828;">✕</button>' +
+    '</div>' +
+    '<textarea class="faqA" rows="2" placeholder="คำตอบ..." style="width:100%;box-sizing:border-box;padding:0.45rem 0.6rem;border:1px solid #ddd;border-radius:6px;font-size:0.82rem;font-family:Sarabun,sans-serif;resize:vertical;">' + String(a||'') + '</textarea>' +
+  '</div>';
+}
+function _renderFaqRows() {
+  const wrap = document.getElementById('sc_faqRows');
+  if (!wrap) return;
+  const list = Array.isArray(_siteCfg.faq) ? _siteCfg.faq : [];
+  wrap.innerHTML = list.map(function(f){ return _faqRowHtml(f.q, f.a); }).join('');
+}
+function addFaqRow() {
+  document.getElementById('sc_faqRows').insertAdjacentHTML('beforeend', _faqRowHtml('', ''));
+}
 
 function _benefitIconPreview(ic) {
   if (/^https?:\/\//.test(ic || '')) {
@@ -1069,11 +1097,13 @@ async function loadSiteConfig() {
       if (d.heroImage) _siteCfg.heroImage = d.heroImage;
       if (Array.isArray(d.benefits) && d.benefits.length === 3) _siteCfg.benefits = d.benefits;
       _siteCfg.categoryOverrides = (d.categoryOverrides && typeof d.categoryOverrides === 'object') ? d.categoryOverrides : {};
+      _siteCfg.faq = Array.isArray(d.faq) ? d.faq : [];
     }
   } catch(e) { console.warn('loadSiteConfig', e.message); }
   document.getElementById('sc_heroImage').value = _siteCfg.heroImage;
   _updateHeroPreview();
   _renderBenefitsRows();
+  _renderFaqRows();
   await _loadCategoryList();
   _renderCategoryRows();
 }
@@ -1113,6 +1143,14 @@ async function saveSiteConfig() {
     newOv[key][fld] = val;
   });
   _siteCfg.categoryOverrides = newOv;
+  // ดึง FAQ — เก็บเฉพาะแถวที่มีคำถาม
+  const faq = [];
+  document.querySelectorAll('#sc_faqRows .faq-edit-row').forEach(function(row) {
+    const q = (row.querySelector('.faqQ')?.value || '').trim();
+    const a = (row.querySelector('.faqA')?.value || '').trim();
+    if (q) faq.push({ q: q, a: a });
+  });
+  _siteCfg.faq = faq;
   try {
     const res = await fetch('https://n8n-wt11.onrender.com/webhook/save-site-config', {
       method: 'POST',

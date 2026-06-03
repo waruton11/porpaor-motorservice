@@ -31,7 +31,7 @@
       ],
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT hero_image, benefits, category_overrides FROM site_config WHERE id = 1;",
+        "query": "SELECT hero_image, benefits, category_overrides, faq FROM site_config WHERE id = 1;",
         "options": {}
       },
       "credentials": {
@@ -51,7 +51,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const row = $input.first()?.json || {};\nreturn [{ json: { heroImage: row.hero_image || '', benefits: row.benefits || [], categoryOverrides: row.category_overrides || {} } }];"
+        "jsCode": "const row = $input.first()?.json || {};\nreturn [{ json: { heroImage: row.hero_image || '', benefits: row.benefits || [], categoryOverrides: row.category_overrides || {}, faq: row.faq || [] } }];"
       }
     },
     {
