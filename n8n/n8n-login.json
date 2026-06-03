@@ -41,6 +41,7 @@
         640,
         300
       ],
+      "alwaysOutputData": true,
       "parameters": {
         "operation": "executeQuery",
         "query": "={{ $json.sql }}",
