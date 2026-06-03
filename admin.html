@@ -202,9 +202,10 @@ tr:hover td { background: #fafafa; }
   <div class="login-box">
     <h1>🔐 Admin Panel</h1>
     <p>ป.เปา มอเตอร์เซอร์วิส</p>
-    <input type="password" id="pwInput" placeholder="รหัสผ่าน" onkeydown="if(event.key==='Enter')doLogin()">
+    <input type="text" id="userInput" placeholder="ชื่อผู้ใช้" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()" style="margin-bottom:0.6rem;">
+    <input type="password" id="pwInput" placeholder="รหัสผ่าน" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
     <button class="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
-    <div class="login-err" id="loginErr">รหัสผ่านไม่ถูกต้อง</div>
+    <div class="login-err" id="loginErr">ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</div>
   </div>
 </div>
 
@@ -212,7 +213,10 @@ tr:hover td { background: #fafafa; }
 <div id="adminPanel">
   <div class="top-bar">
     <h1>⚙️ Admin — <span>ป.เปา มอเตอร์เซอร์วิส</span></h1>
-    <button class="logout-btn" onclick="logout()">ออกจากระบบ</button>
+    <div style="display:flex;align-items:center;gap:1rem;">
+      <span id="userBadge" style="font-size:0.85rem;color:#fff;opacity:0.9;"></span>
+      <button class="logout-btn" onclick="logout()">ออกจากระบบ</button>
+    </div>
   </div>
   <div class="layout">
     <!-- SIDEBAR -->
@@ -226,6 +230,7 @@ tr:hover td { background: #fafafa; }
       <a class="sidebar-item" onclick="showPage('shop')">🏪 ข้อมูลร้าน</a>
       <a class="sidebar-item" onclick="showPage('catalog')">📋 แคตตาล็อกรถ</a>
       <div class="sidebar-section">ระบบ</div>
+      <a class="sidebar-item" id="sb-users" onclick="showPage('users')">👤 จัดการผู้ใช้/เซล</a>
       <a class="sidebar-item" onclick="showPage('export')">📤 Export HTML</a>
       <a class="sidebar-item" onclick="showPage('excel')">📊 อัพโหลดราคา Excel</a>
     </div>
@@ -250,6 +255,14 @@ tr:hover td { background: #fafafa; }
           <button class="btn btn-gray btn-sm" onclick="loadCrm()">🔄 รีเฟรช</button>
         </div>
         <div id="crmList"><div style="color:#999;padding:1rem;">กำลังโหลด...</div></div>
+      </div>
+
+      <!-- USERS PAGE (owner only) -->
+      <div class="page" id="page-users">
+        <div class="page-title">👤 จัดการผู้ใช้ / เซล</div>
+        <p class="page-sub">เพิ่ม/แก้/ลบ บัญชีเซล — เซลจะเห็นแค่หน้าลูกค้า (CRM) · ชื่อจะใช้เป็นผู้ดูแลเคส</p>
+        <button class="btn btn-primary" style="margin-bottom:1rem;" onclick="openUserForm()">+ เพิ่มเซล</button>
+        <div id="usersList"><div style="color:#999;padding:1rem;">กำลังโหลด...</div></div>
       </div>
 
       <!-- MODELS PAGE -->
@@ -725,25 +738,79 @@ tr:hover td { background: #fafafa; }
 
 <script>
 // ========== AUTH ==========
-const ADMIN_PASS = 'papao2569';
+let _currentUser = null;  // { role, name, username }
 
-function doLogin() {
+async function doLogin() {
+  const username = (document.getElementById('userInput').value || '').trim();
   const pw = document.getElementById('pwInput').value;
-  if (pw === ADMIN_PASS) {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('adminPanel').style.display = 'block';
-    initAdmin();
-    syncFromServer(true); // silent auto-sync ตอน login
+  const errEl = document.getElementById('loginErr');
+  if (!username || !pw) { errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+  let res = null;
+  try {
+    const r = await fetch('https://n8n-wt11.onrender.com/webhook/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: username, password: pw })
+    });
+    res = r.ok ? await r.json() : null;
+  } catch(e) { console.warn('login', e.message); }
+
+  if (res && res.ok) {
+    _currentUser = { role: res.role, name: res.name, username: res.username };
+    localStorage.setItem('papao_user', JSON.stringify(_currentUser));
+    localStorage.setItem('papao_sales_name', res.name); // ใช้เป็น assignee ตอนรับเคส
+    enterAdmin();
   } else {
-    document.getElementById('loginErr').style.display = 'block';
+    errEl.style.display = 'block';
     document.getElementById('pwInput').value = '';
   }
 }
 
+function enterAdmin() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminPanel').style.display = 'block';
+  applyRole();
+  initAdmin();
+  if (_currentUser && _currentUser.role !== 'sales') syncFromServer(true);
+}
+
+// แสดงเมนูตาม role: sales เห็นแค่ CRM, owner เห็นทุกอย่าง
+function applyRole() {
+  const isSales = _currentUser && _currentUser.role === 'sales';
+  document.querySelectorAll('.sidebar-item').forEach(function(a) {
+    const onc = a.getAttribute('onclick') || '';
+    const isCrm = onc.indexOf("'crm'") !== -1;
+    a.style.display = (isSales && !isCrm) ? 'none' : '';
+  });
+  // ซ่อนหัวข้อ section ที่ไม่ใช่ "ลูกค้า" สำหรับ sales
+  document.querySelectorAll('.sidebar-section').forEach(function(s) {
+    if (isSales) s.style.display = (s.textContent.trim() === 'ลูกค้า') ? '' : 'none';
+  });
+  // ปุ่มจัดการผู้ใช้ (owner เท่านั้น)
+  const usersLink = document.getElementById('sb-users');
+  if (usersLink) usersLink.style.display = (isSales) ? 'none' : '';
+  // แสดงชื่อผู้ใช้
+  const ub = document.getElementById('userBadge');
+  if (ub && _currentUser) ub.textContent = '👤 ' + _currentUser.name + (isSales ? ' (เซล)' : '');
+  // sales → เปิดหน้า CRM เลย
+  if (isSales) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+    const crmPage = document.getElementById('page-crm');
+    const crmLink = document.querySelector('.sidebar-item[onclick*="\'crm\'"]');
+    if (crmPage) crmPage.classList.add('active');
+    if (crmLink) crmLink.classList.add('active');
+    loadCrm();
+  }
+}
+
 function logout() {
+  _currentUser = null;
+  localStorage.removeItem('papao_user');
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('adminPanel').style.display = 'none';
   document.getElementById('pwInput').value = '';
+  document.getElementById('userInput').value = '';
 }
 
 // ========== DATA ==========
@@ -1003,6 +1070,61 @@ function showPage(id) {
   event.target.classList.add('active');
   if (id === 'sitepage') loadSiteConfig();
   if (id === 'crm') loadCrm();
+  if (id === 'users') loadUsers();
+}
+
+// ========== USERS (จัดการเซล) ==========
+let _usersData = [];
+async function loadUsers() {
+  const wrap = document.getElementById('usersList');
+  if (wrap) wrap.innerHTML = '<div style="color:#999;padding:1rem;">กำลังโหลด...</div>';
+  try {
+    const res = await fetch('https://n8n-wt11.onrender.com/webhook/users-list');
+    _usersData = res.ok ? await res.json() : [];
+    if (!Array.isArray(_usersData)) _usersData = [];
+  } catch(e) { _usersData = []; }
+  renderUsers();
+}
+function renderUsers() {
+  const wrap = document.getElementById('usersList');
+  if (!wrap) return;
+  if (!_usersData.length) { wrap.innerHTML = '<div style="color:#999;padding:1rem;">ยังไม่มีผู้ใช้</div>'; return; }
+  wrap.innerHTML = _usersData.map(function(u) {
+    const isOwner = u.role === 'owner';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;border:1px solid #e5e5e5;border-radius:8px;padding:0.7rem 1rem;margin-bottom:0.5rem;background:#fff;">' +
+      '<div>' +
+        '<b>' + (u.name || u.username) + '</b> ' +
+        '<span style="font-size:0.72rem;background:' + (isOwner?'#e7f0fd':'#fff3e0') + ';color:' + (isOwner?'#1e6fe0':'#e65100') + ';padding:2px 8px;border-radius:10px;">' + (isOwner?'เจ้าของ':'เซล') + '</span>' +
+        (u.active===false?' <span style="font-size:0.72rem;color:#c62828;">(ปิดใช้งาน)</span>':'') +
+        '<div style="font-size:0.78rem;color:#888;">ชื่อผู้ใช้: ' + u.username + '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:6px;">' +
+        '<button class="btn btn-sm btn-gray" onclick="openUserForm(' + u.id + ')">✏️ แก้</button>' +
+        (isOwner ? '' : '<button class="btn btn-sm" style="background:#ffebee;color:#c62828;border:1px solid #ef9a9a;" onclick="deleteUser(' + u.id + ',\'' + (u.name||u.username).replace(/'/g,"\\'") + '\')">🗑️</button>') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+function openUserForm(id) {
+  const u = id ? _usersData.find(x => x.id === id) : null;
+  const name = prompt('ชื่อที่แสดง (เช่น เซลเอ):', u ? (u.name||'') : '');
+  if (name === null) return;
+  const username = prompt('ชื่อผู้ใช้ (ภาษาอังกฤษ สำหรับ login):', u ? u.username : '');
+  if (username === null || !username.trim()) return;
+  const pw = prompt(id ? 'รหัสผ่านใหม่ (เว้นว่าง = ไม่เปลี่ยน):' : 'รหัสผ่าน:', '');
+  if (pw === null) return;
+  const payload = { username: username.trim(), name: name.trim(), role: 'sales', active: true };
+  if (id) payload.id = id;
+  if (pw.trim()) payload.password = pw.trim();
+  fetch('https://n8n-wt11.onrender.com/webhook/save-user', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+    .then(function(){ showToast('บันทึกเซลแล้ว ✅', 'success'); loadUsers(); })
+    .catch(function(e){ showToast('ผิดพลาด: ' + e.message, 'error'); });
+}
+function deleteUser(id, name) {
+  if (!confirm('ลบเซล "' + name + '" ?')) return;
+  fetch('https://n8n-wt11.onrender.com/webhook/delete-user', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id: id }) })
+    .then(function(){ showToast('ลบแล้ว', 'success'); loadUsers(); })
+    .catch(function(e){ showToast('ผิดพลาด: ' + e.message, 'error'); });
 }
 
 // ========== CRM (ลูกค้า) ==========
@@ -1014,8 +1136,8 @@ const CRM_STATUS = {
   rejected:  { label: 'ไม่ผ่าน',       dot: '#424242', bg: '#f0f0f0' },
   owner:     { label: 'ลูกค้าเก่า',    dot: '#1e6fe0', bg: '#e7f0fd' }
 };
-// เซลที่ login (ชั่วคราว — เฟส role login จะ set ของจริง)
-function crmCurrentSales() { return localStorage.getItem('papao_sales_name') || 'แอดมิน'; }
+// ชื่อเซลที่ login (ใช้เป็น assignee ตอนรับเคส)
+function crmCurrentSales() { return (_currentUser && _currentUser.name) || localStorage.getItem('papao_sales_name') || 'แอดมิน'; }
 
 async function loadCrm() {
   const wrap = document.getElementById('crmList');
