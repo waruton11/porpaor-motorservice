@@ -253,6 +253,7 @@ tr:hover td { background: #fafafa; }
             <option value="owner">🔵 ลูกค้าเก่า</option>
           </select>
           <button class="btn btn-gray btn-sm" onclick="loadCrm()">🔄 รีเฟรช</button>
+          <span id="crmAutoInfo" style="font-size:0.72rem;color:#16a34a;white-space:nowrap;">🟢 อัปเดตอัตโนมัติ</span>
         </div>
         <div id="crmList"><div style="color:#999;padding:1rem;">กำลังโหลด...</div></div>
       </div>
@@ -801,10 +802,12 @@ function applyRole() {
     if (crmPage) crmPage.classList.add('active');
     if (crmLink) crmLink.classList.add('active');
     loadCrm();
+    startCrmAutoRefresh();
   }
 }
 
 function logout() {
+  stopCrmAutoRefresh();
   _currentUser = null;
   localStorage.removeItem('papao_user');
   document.getElementById('loginScreen').style.display = 'flex';
@@ -1069,7 +1072,7 @@ function showPage(id) {
   document.getElementById('page-' + id).classList.add('active');
   event.target.classList.add('active');
   if (id === 'sitepage') loadSiteConfig();
-  if (id === 'crm') loadCrm();
+  if (id === 'crm') { loadCrm(); startCrmAutoRefresh(); } else { stopCrmAutoRefresh(); }
   if (id === 'users') loadUsers();
 }
 
@@ -1139,9 +1142,9 @@ const CRM_STATUS = {
 // ชื่อเซลที่ login (ใช้เป็น assignee ตอนรับเคส)
 function crmCurrentSales() { return (_currentUser && _currentUser.name) || localStorage.getItem('papao_sales_name') || 'แอดมิน'; }
 
-async function loadCrm() {
+async function loadCrm(silent) {
   const wrap = document.getElementById('crmList');
-  if (wrap) wrap.innerHTML = '<div style="color:#999;padding:1rem;">กำลังโหลด...</div>';
+  if (wrap && !silent) wrap.innerHTML = '<div style="color:#999;padding:1rem;">กำลังโหลด...</div>';
   try {
     const res = await fetch('https://n8n-wt11.onrender.com/webhook/customers');
     _crmData = res.ok ? await res.json() : [];
@@ -1152,7 +1155,23 @@ async function loadCrm() {
   const badge = document.getElementById('crmNewBadge');
   if (badge) { if (newCount > 0) { badge.textContent = newCount; badge.style.display = 'inline-block'; } else badge.style.display = 'none'; }
   renderCrm();
+  const info = document.getElementById('crmAutoInfo');
+  if (info) { const t = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); info.textContent = '🟢 อัปเดตอัตโนมัติ · ล่าสุด ' + t; }
 }
+
+// ===== Auto-refresh CRM ทุก 15 วิ (เฉพาะตอนอยู่หน้า CRM + แท็บเปิด + ไม่ได้พิมพ์ค้นหา) =====
+let _crmTimer = null;
+function startCrmAutoRefresh() {
+  if (_crmTimer) return;
+  _crmTimer = setInterval(function() {
+    if (document.hidden) return;
+    if (!document.getElementById('page-crm').classList.contains('active')) return;
+    const ae = document.activeElement;
+    if (ae && ['INPUT', 'SELECT', 'TEXTAREA'].includes(ae.tagName)) return; // ไม่กวนตอนพิมพ์/เลือก
+    loadCrm(true); // refresh เงียบ ไม่ขึ้น "กำลังโหลด"
+  }, 15000);
+}
+function stopCrmAutoRefresh() { if (_crmTimer) { clearInterval(_crmTimer); _crmTimer = null; } }
 
 function _custCode(id) { return 'PP-' + String(id).padStart(4, '0'); }
 
