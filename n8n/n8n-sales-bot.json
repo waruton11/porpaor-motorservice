@@ -1,0 +1,219 @@
+{
+  "name": "Sales Bot Webhook",
+  "nodes": [
+    {
+      "id": "sb-001",
+      "name": "Sales Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "sales-bot",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sales-bot",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "sb-002",
+      "name": "Parse Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// ====== CONFIG: เอา token ของ Sales Bot มาวาง ======\nconst TOKEN = 'SALES_TOKEN_HERE';\n\nconst body = $input.first().json.body || $input.first().json;\nconst events = body.events || [];\nconst out = [];\nfor (const ev of events) {\n  const src = ev.source || {};\n  const groupId = src.groupId || src.roomId || '';\n  const userId = src.userId || '';\n  const replyToken = ev.replyToken || '';\n  let kind = 'none', action = '', cid = '';\n  if (ev.type === 'postback') {\n    kind = 'postback';\n    const data = (ev.postback && ev.postback.data) || '';\n    const p = {}; data.split('&').forEach(kv => { const i = kv.indexOf('='); if (i > 0) p[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1)); });\n    action = p.action || '';\n    cid = p.cid || '';\n  } else if (ev.type === 'join') {\n    kind = 'setup';\n  } else if (ev.type === 'message' && ev.message && ev.message.type === 'text') {\n    const txt = (ev.message.text || '').trim().toLowerCase();\n    if (txt === 'id' || txt === 'groupid' || txt === '/id' || txt === 'group id') kind = 'setup';\n  }\n  out.push({ json: { token: TOKEN, groupId, userId, replyToken, kind, action, cid } });\n}\nif (out.length === 0) return [{ json: { token: TOKEN, kind: 'none', groupId: '', userId: '', replyToken: '', action: '', cid: '' } }];\nreturn out;"
+      }
+    },
+    {
+      "id": "sb-003",
+      "name": "Get Member",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        300
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.line.me/v2/bot/group/{{ $json.groupId }}/member/{{ $json.userId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $json.token }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "sb-004",
+      "name": "Build Action",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const j = $('Parse Event').item.json;\nlet name = 'เซล';\ntry { const prof = $('Get Member').item.json; if (prof && prof.displayName) name = prof.displayName; } catch (e) {}\nconst cur = $input.first().json || {};\nconst esc = (s) => String(s == null ? '' : s).replace(/'/g, \"''\");\n\nconst STLABEL = { new: '🔴 รอติดต่อ', following: '🟡 กำลังติดต่อ', approved: '🟢 อนุมัติแล้ว', rejected: '⚫ ไม่ผ่าน' };\n\nlet sql = 'SELECT 1;';\nlet reply = '';\n\nif (j.kind === 'postback' && j.cid) {\n  const code = cur.id ? ('PP-' + String(cur.id).padStart(4, '0')) : 'เคสนี้';\n  const owner = (cur.assignee || '').trim();\n  const status = cur.status || 'new';\n  const closed = (status === 'approved' || status === 'rejected');\n\n  if (j.action === 'claim') {\n    if (owner && owner !== name) {\n      reply = '⚠️ ' + code + ' มี ' + owner + ' รับไปแล้วครับ';\n    } else {\n      sql = `UPDATE customers SET status='following', assignee='${esc(name)}', updated_at=NOW() WHERE line_user_id='${esc(j.cid)}';`;\n      reply = '📞 ' + name + ' รับ ' + code + ' แล้ว — กำลังติดต่อลูกค้า ✅';\n    }\n  } else if (j.action === 'approve' || j.action === 'reject') {\n    if (owner && owner !== name) {\n      reply = '⚠️ ' + code + ' ' + owner + ' ดูแลอยู่ — ให้เจ้าของเคสอัปเดตนะครับ';\n    } else if (closed) {\n      reply = 'ℹ️ ' + code + ' ปิดแล้ว: ' + (STLABEL[status] || status);\n    } else {\n      const ns = j.action === 'approve' ? 'approved' : 'rejected';\n      sql = `UPDATE customers SET status='${ns}', assignee=COALESCE(NULLIF(assignee,''),'${esc(name)}'), updated_at=NOW() WHERE line_user_id='${esc(j.cid)}';`;\n      reply = (j.action === 'approve' ? '✅ ' : '❌ ') + name + ' อัปเดต ' + code + ': ' + STLABEL[ns];\n    }\n  }\n} else if (j.kind === 'setup') {\n  reply = '🆔 Group ID ของกลุ่มนี้คือ:\\n' + (j.groupId || '(ไม่พบ)') + '\\n\\nก๊อปไปวางใน n8n ครับ';\n}\n\nreturn [{ json: { sql, reply, token: j.token, replyToken: j.replyToken, groupId: j.groupId, hasReply: reply ? 'yes' : 'no' } }];"
+      }
+    },
+    {
+      "id": "sb-005",
+      "name": "Update DB",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1120,
+        300
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "sb-006",
+      "name": "Push Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1340,
+        300
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/push",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('Build Action').item.json.token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ to: $('Parse Event').item.json.groupId, messages: [{ type: 'text', text: $('Build Action').item.json.reply }] }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "sb-007",
+      "name": "Read Current",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        900,
+        460
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT id, status, assignee FROM customers WHERE line_user_id = '{{ $('Parse Event').item.json.cid }}'",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Sales Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Event": {
+      "main": [
+        [
+          {
+            "node": "Get Member",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Member": {
+      "main": [
+        [
+          {
+            "node": "Read Current",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Action": {
+      "main": [
+        [
+          {
+            "node": "Update DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update DB": {
+      "main": [
+        [
+          {
+            "node": "Push Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Current": {
+      "main": [
+        [
+          {
+            "node": "Build Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
