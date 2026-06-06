@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ป.เปา มอเตอร์เซอร์วิส | Honda วังน้อย</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Kanit:wght@400;500;600;700&family=Noto+Sans+Myanmar:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
+body.lang-my, body.lang-my button, body.lang-my input, body.lang-my select, body.lang-my textarea { font-family: 'Noto Sans Myanmar', 'Sarabun', sans-serif; }
 /* ===== CSS VARIABLES ===== */
 :root {
   --red: #cc0000;
@@ -1458,15 +1459,17 @@ footer .footer-brand {
 <header class="top-bar">
   <div class="top-bar-brand">ป.เปา มอเตอร์เซอร์วิส<small>ตัวแทนจำหน่าย Honda · วังน้อย</small></div>
   <ul class="desktop-nav">
-    <li><a href="#models">รุ่นรถ &amp; ราคา</a></li>
-    <li><a href="#social">โซเชียล</a></li>
-    <li><a href="https://line.me/R/ti/p/@975ltwhp" target="_blank">แชท LINE</a></li>
+    <li><a href="#models" data-i18n="nav_models">รุ่นรถ &amp; ราคา</a></li>
+    <li><a href="#social" data-i18n="nav_social">โซเชียล</a></li>
+    <li><a href="https://line.me/R/ti/p/@975ltwhp" target="_blank" data-i18n="nav_line">แชท LINE</a></li>
   </ul>
-  <div style="display:flex;gap:8px;">
+  <div style="display:flex;gap:8px;align-items:center;">
+    <button id="langToggle" onclick="toggleLang()" class="top-icon-btn" style="width:auto;padding:0 11px;font-size:.8rem;font-weight:700;white-space:nowrap;">🇲🇲 မြန်မာ</button>
     <a href="tel:0922499686" class="top-icon-btn">📞</a>
     <a href="https://lin.ee/wX63SBB" target="_blank" class="top-icon-btn">💬</a>
   </div>
 </header>
+<div id="myBanner" style="display:none;background:#fff8e1;border-bottom:1px solid #ffe082;padding:.55rem 1rem;font-size:.82rem;color:#8a6d00;text-align:center;line-height:1.65;">🇲🇲 မြန်မာဝန်ထမ်းများ ဝန်ဆောင်မှုပေးပါသည် · ဈေးနှုန်းတွင် ဝန်ဆောင်ခ ပါဝင်ပြီးဖြစ်ပါသည်</div>
 
 <!-- Hidden mobile menu element (kept for JS compatibility) -->
 <div id="mobileMenu"></div>
@@ -1487,7 +1490,7 @@ footer .footer-brand {
 
 <!-- ===== CTA WIDE ===== -->
 <div class="cta-wide-wrap">
-  <button class="cta-wide" onclick="scrollToModels()">ดูรุ่นรถทั้งหมด →</button>
+  <button class="cta-wide" onclick="scrollToModels()" data-i18n="cta_all">ดูรุ่นรถทั้งหมด →</button>
 </div>
 
 <!-- ===== SPECIAL SERVICES ===== -->
@@ -1761,8 +1764,8 @@ footer .footer-brand {
             ส่งข้อมูลนี้ให้ร้าน
           </button>
           <!-- ปุ่มปกติ: ซ่อนเมื่ออยู่ใน LINE -->
-          <button id="calcContactBtn" class="calc-primary-btn" onclick="sendToLineViaBrowser()" style="display:block;text-align:center;">💬 ส่งข้อมูลให้ร้านทาง LINE</button>
-          <button id="addInterestBtn" class="calc-secondary-btn" onclick="addToInterested()" style="border-color:#1eaa5c;color:#1eaa5c;">➕ เพิ่มในรายการเปรียบเทียบ</button>
+          <button id="calcContactBtn" class="calc-primary-btn" onclick="sendToLineViaBrowser()" style="display:block;text-align:center;" data-i18n="send_line">💬 ส่งข้อมูลให้ร้านทาง LINE</button>
+          <button id="addInterestBtn" class="calc-secondary-btn" onclick="addToInterested()" style="border-color:#1eaa5c;color:#1eaa5c;" data-i18n="add_compare">➕ เพิ่มในรายการเปรียบเทียบ</button>
           <button class="calc-secondary-btn" onclick="goBackToStep2()">← ปรับค่าใหม่</button>
         </div>
       </div>
@@ -1776,12 +1779,12 @@ footer .footer-brand {
 <div id="interestOverlay" style="display:none;position:fixed;inset:0;z-index:1600;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center;">
   <div style="background:#fff;width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:1rem 1.1rem 1.5rem;max-height:82vh;overflow:auto;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.2rem;">
-      <div style="font-weight:800;font-size:1.05rem;">🛒 รุ่นที่สนใจ</div>
+      <div style="font-weight:800;font-size:1.05rem;" data-i18n="interest_title">🛒 รุ่นที่สนใจ</div>
       <button onclick="closeInterestedModal()" style="background:none;border:none;font-size:1.5rem;line-height:1;cursor:pointer;color:#999;">×</button>
     </div>
-    <div style="font-size:.8rem;color:#888;margin-bottom:.9rem;">ส่งทุกรุ่นให้ทีมงานทีเดียว เปรียบเทียบง่าย ไม่ต้องส่งทีละคัน</div>
+    <div style="font-size:.8rem;color:#888;margin-bottom:.9rem;" data-i18n="interest_sub">ส่งทุกรุ่นให้ทีมงานทีเดียว เปรียบเทียบง่าย ไม่ต้องส่งทีละคัน</div>
     <div id="interestListBody"></div>
-    <button onclick="sendAllInterested()" class="calc-primary-btn" style="margin-top:.7rem;width:100%;text-align:center;">💬 สนใจหลายรุ่น ให้เซลล์ช่วยแนะนำ</button>
+    <button onclick="sendAllInterested()" class="calc-primary-btn" style="margin-top:.7rem;width:100%;text-align:center;" data-i18n="send_all">💬 สนใจหลายรุ่น ให้เซลล์ช่วยแนะนำ</button>
   </div>
 </div>
 
@@ -2546,6 +2549,80 @@ function updateCalcCarThumb() {
   thumb.innerHTML = img ? '<img src="' + img + '" style="width:100%;height:100%;object-fit:contain;">' : '🏍️';
 }
 
+// ===== โหมดภาษา/ราคา (พม่า) =====
+// langMode 'th' = ปกติ · 'my' = ลูกค้าพม่า (บวกค่าธรรมเนียมตาม CC จากยอดจัดไฟแนนส์)
+let langMode = (function(){
+  try {
+    // 1) ลิงก์ ?lang=my (ช่องทางหลักของลูกค้าพม่า) — บันทึกไว้เลย
+    const u = new URLSearchParams(location.search).get('lang');
+    if (u === 'my' || u === 'th') { localStorage.setItem('papao_lang', u); return u; }
+    // 2) เคยเลือกไว้
+    const saved = localStorage.getItem('papao_lang');
+    if (saved === 'my' || saved === 'th') return saved;
+    // 3) ภาษามือถือเป็นพม่า → โหมดพม่า
+    const langs = navigator.languages || [navigator.language || ''];
+    if (langs.some(function(l){ return String(l).toLowerCase().indexOf('my') === 0; })) return 'my';
+  } catch(e) {}
+  return 'th';
+})();
+
+// ค่าธรรมเนียมลูกค้าพม่า (บวกที่ยอดจัด) — แก้ตรงนี้ได้ถ้าเงื่อนไขเปลี่ยน
+function myFeeByCc(cc) {
+  cc = parseInt(cc) || 0;
+  if (cc >= 110 && cc <= 125) return 3700;
+  if (cc >= 150 && cc <= 160) return 3200;
+  return 0; // บิ๊กไบค์ 300+, EV(0), อื่นๆ
+}
+function mySurcharge() {
+  if (langMode !== 'my' || !calcModel) return 0;
+  const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
+  return v ? myFeeByCc(v.engineCc) : 0;
+}
+
+// ===== i18n ไทย/พม่า =====
+const I18N = {
+  th: {
+    nav_models: 'รุ่นรถ & ราคา', nav_social: 'โซเชียล', nav_line: 'แชท LINE',
+    cta_all: 'ดูรุ่นรถทั้งหมด →',
+    svc_tradein_t: 'เทิร์นรถเก่า', svc_tradein_s: 'รับเทิร์นทุกรุ่น · ตีราคาที่ร้าน',
+    svc_testride_t: 'ทดลองขับขี่ฟรี', svc_testride_s: 'PCX160 & UC3 · ที่วังน้อย',
+    faq_t: 'คำถามที่พบบ่อย', faq_s: 'ผ่อนไม่ผ่าน? ติดแบล็คลิสต์? ดาวน์เท่าไหร่? — อ่านคำตอบ',
+    add_compare: '➕ เพิ่มในรายการเปรียบเทียบ',
+    send_all: '💬 สนใจหลายรุ่น ให้เซลล์ช่วยแนะนำ',
+    send_line: '💬 ส่งข้อมูลให้ร้านทาง LINE',
+    interest_title: '🛒 รุ่นที่สนใจ', interest_sub: 'ส่งทุกรุ่นให้ทีมงานทีเดียว เปรียบเทียบง่าย ไม่ต้องส่งทีละคัน'
+  },
+  my: {
+    nav_models: 'ဆိုင်ကယ်နှင့် ဈေး', nav_social: 'Social', nav_line: 'LINE ချတ်',
+    cta_all: 'ဆိုင်ကယ်အားလုံး ကြည့်ရန် →',
+    svc_tradein_t: 'ဆိုင်ကယ်အဟောင်း လဲရန်', svc_tradein_s: 'အမျိုးအစားအားလုံး · ဆိုင်တွင်တန်ဖိုးဖြတ်',
+    svc_testride_t: 'အခမဲ့ စမ်းသပ်စီးနင်း', svc_testride_s: 'PCX160 & UC3 · ဝမ်ညွိုင်',
+    faq_t: 'မေးလေ့ရှိသောမေးခွန်းများ', faq_s: 'အရစ်ကျမအောင်? Blacklist? စရံဘယ်လောက်? — အဖြေဖတ်ရန်',
+    add_compare: '➕ နှိုင်းယှဉ်ရန် စာရင်းထည့်ရန်',
+    send_all: '💬 မော်ဒယ်များစွာ စိတ်ဝင်စား · ဝန်ထမ်းအကြံပြုပေးပါမည်',
+    send_line: '💬 ဆိုင်သို့ အချက်အလက်ပို့ရန် (LINE)',
+    interest_title: '🛒 စိတ်ဝင်စားသော မော်ဒယ်များ', interest_sub: 'မော်ဒယ်အားလုံးကို တစ်ကြိမ်တည်းပို့ပြီး လွယ်ကူစွာ နှိုင်းယှဉ်နိုင်သည်'
+  }
+};
+function t(k) { return (I18N[langMode] && I18N[langMode][k]) || I18N.th[k] || k; }
+function applyLang() {
+  document.documentElement.lang = (langMode === 'my') ? 'my' : 'th';
+  document.body.classList.toggle('lang-my', langMode === 'my');
+  document.querySelectorAll('[data-i18n]').forEach(function(el) { const s = t(el.getAttribute('data-i18n')); if (s) el.textContent = s; });
+  // ซ่อนปุ่มสลับในโหมดพม่า (กันลูกค้าพม่าเทียบราคาไทย) · โหมดไทยโชว์ปุ่มไป 🇲🇲
+  const lt = document.getElementById('langToggle');
+  if (lt) { if (langMode === 'my') { lt.style.display = 'none'; } else { lt.style.display = ''; lt.textContent = '🇲🇲 မြန်မာ'; } }
+  const mb = document.getElementById('myBanner'); if (mb) mb.style.display = (langMode === 'my') ? 'block' : 'none';
+}
+function toggleLang() {
+  langMode = (langMode === 'my') ? 'th' : 'my';
+  try { localStorage.setItem('papao_lang', langMode); } catch (e) {}
+  applyLang();
+  if (typeof updateCalcLive === 'function' && calcModel) updateCalcLive();
+  if (typeof updateCashPreview === 'function' && calcModel) updateCashPreview();
+}
+window.addEventListener('DOMContentLoaded', applyLang);
+
 function getCalcInstallment() {
   if (!calcModel) return 0;
   const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
@@ -2553,7 +2630,7 @@ function getCalcInstallment() {
   if (!cashPrice) return 0;
   const calcBase = (v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
   const { dn, pct } = getCalcDown();
-  const financed = calcBase - dn;
+  const financed = calcBase - dn + mySurcharge();
   const {rate, rate2, rate2MinDown, isAnnual} = getAutoRate(v);
   if (rate > 0) {
     const er = (rate2 > 0 && rate2MinDown > 0 && pct >= rate2MinDown) ? rate2 : rate;
@@ -2588,7 +2665,7 @@ function updateCalcLive() {
     // แสดง pct (ปัด 1 ทศนิยม)
     document.getElementById('sDownPct').textContent = (pct % 1 === 0) ? pct : pct.toFixed(1);
     document.getElementById('sDownAmt').textContent = dn > 0 ? '฿' + fmt(dn) : 'ฟรีดาวน์';
-    const financed = base - dn;
+    const financed = base - dn + mySurcharge();
     const inst = getCalcInstallment();
     document.getElementById('calcLiveResult').textContent = inst > 0 ? '฿' + fmt(inst) + ' / เดือน' : '—';
     const lpF = document.getElementById('lpFinanced');
@@ -2723,7 +2800,7 @@ function goCalcStep3() {
     const calcBase = (v && v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
     const { dn, pct } = getCalcDown();
     const pctLabel = (pct % 1 === 0) ? pct : pct.toFixed(1);
-    const financed = calcBase - dn;
+    const financed = calcBase - dn + mySurcharge();
     const inst = getCalcInstallment();
     const {rate, rate2, rate2MinDown, isAnnual} = getAutoRate(v);
     const effRate = (rate2 > 0 && rate2MinDown > 0 && pct >= rate2MinDown) ? rate2 : rate;
@@ -2811,6 +2888,7 @@ function buildCategoriesFromAPI(rows) {
       if (!Array.isArray(fb)) fb = [];
       bike.variants.push({
         name: variantName, price: price, financePrice: financePrice, downs: downs, _sortOrder: row.sort_order || 0,
+        engineCc: parseInt(row.engine_cc) || 0,
         autoRate: parseFloat(row.auto_rate) || 0,
         autoRateUnit: row.auto_rate_unit || 'month',
         autoDownPcts: autoDownPcts.length ? autoDownPcts : null,
