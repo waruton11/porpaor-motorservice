@@ -3059,6 +3059,9 @@ async function initLiff() {
 function handleAutoSend() {
   const params = new URLSearchParams(window.location.search);
   const mode = params.get('autoSend');
+  if (!mode) return;
+  // กันยิงซ้ำข้าม reload — LIFF โหลดหน้า 2 รอบตอน login → ส่งครั้งเดียวต่อ session
+  try { if (sessionStorage.getItem('_autoSentOnce')) return; sessionStorage.setItem('_autoSentOnce', '1'); } catch(e) {}
   // เทิร์นรถ (มาจาก browser → LIFF)
   if (mode === 'tradein') {
     const d = {
@@ -3366,6 +3369,7 @@ function renderInterestedList() {
 
 async function sendAllInterested() {
   if (!interestedList.length) return;
+  const _n = Date.now(); if (_n - _lastDeliverTs < 4000) return; _lastDeliverTs = _n; // กันส่งซ้ำ
   const bubbles = interestedList.slice(0, 12).map(function(it) { return it.flexMsg.contents; });
   const carousel = { type: 'flex', altText: 'สนใจ ' + interestedList.length + ' รุ่น', contents: { type: 'carousel', contents: bubbles } };
   let userId = null, displayName = '';
@@ -3391,8 +3395,13 @@ async function sendAllInterested() {
 
 // ===== ส่ง Flex card เข้าแชท (ใช้ร่วมกัน: lead card + เทิร์นรถ) =====
 // opts.ack = true → ยิงข้อความตอบรับ (ack-lead) หลังส่ง
+let _lastDeliverTs = 0;
 async function deliverFlexToLine(flexMsg, fallbackText, opts) {
   opts = opts || {};
+  // กันส่งซ้ำ: ดับเบิลแทป / autoSend ยิงซ้ำในหน้าเดียว (เว้น 4 วิ)
+  const _nowTs = Date.now();
+  if (_nowTs - _lastDeliverTs < 4000) return;
+  _lastDeliverTs = _nowTs;
   let userId = null;
   let displayName = '';
   try { const p = await liff.getProfile(); userId = p.userId; displayName = p.displayName || ''; } catch(_) {}
