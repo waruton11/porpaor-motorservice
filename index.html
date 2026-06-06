@@ -1762,6 +1762,7 @@ footer .footer-brand {
           </button>
           <!-- ปุ่มปกติ: ซ่อนเมื่ออยู่ใน LINE -->
           <button id="calcContactBtn" class="calc-primary-btn" onclick="sendToLineViaBrowser()" style="display:block;text-align:center;">💬 ส่งข้อมูลให้ร้านทาง LINE</button>
+          <button id="addInterestBtn" class="calc-secondary-btn" onclick="addToInterested()" style="border-color:#1eaa5c;color:#1eaa5c;">➕ เพิ่มในรายการเปรียบเทียบ</button>
           <button class="calc-secondary-btn" onclick="goBackToStep2()">← ปรับค่าใหม่</button>
         </div>
       </div>
@@ -1769,6 +1770,20 @@ footer .footer-brand {
     </div><!-- end .calc-inner -->
   </div><!-- end .calc-sheet -->
 </div><!-- end .calc-overlay -->
+
+<!-- ===== รายการสนใจ (เปรียบเทียบหลายรุ่น) ===== -->
+<button id="interestFab" onclick="openInterestedModal()" style="display:none;position:fixed;right:14px;bottom:84px;z-index:1500;background:#1eaa5c;color:#fff;border:none;border-radius:30px;padding:.7rem 1.1rem;box-shadow:0 4px 14px rgba(0,0,0,.28);font-size:.9rem;font-weight:700;align-items:center;gap:6px;cursor:pointer;">🛒 รุ่นที่สนใจ (<span id="interestFabCount">0</span>)</button>
+<div id="interestOverlay" style="display:none;position:fixed;inset:0;z-index:1600;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center;">
+  <div style="background:#fff;width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:1rem 1.1rem 1.5rem;max-height:82vh;overflow:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.2rem;">
+      <div style="font-weight:800;font-size:1.05rem;">🛒 รุ่นที่สนใจ</div>
+      <button onclick="closeInterestedModal()" style="background:none;border:none;font-size:1.5rem;line-height:1;cursor:pointer;color:#999;">×</button>
+    </div>
+    <div style="font-size:.8rem;color:#888;margin-bottom:.9rem;">ส่งทุกรุ่นให้ทีมงานทีเดียว เปรียบเทียบง่าย ไม่ต้องส่งทีละคัน</div>
+    <div id="interestListBody"></div>
+    <button onclick="sendAllInterested()" class="calc-primary-btn" style="margin-top:.7rem;width:100%;text-align:center;">💬 สนใจหลายรุ่น ให้เซลล์ช่วยแนะนำ</button>
+  </div>
+</div>
 
 <!-- ===== TRADE-IN OVERLAY ===== -->
 <div class="calc-overlay" id="tradeOverlay">
@@ -3082,8 +3097,9 @@ function cardBanner(text, color) {
   };
 }
 
-async function sendToLine() {
-  if (!calcModel || !isInLiff) return;
+// สร้าง bubble + lead จาก state ของ calculator ปัจจุบัน (ใช้ร่วม: ส่งเดี่ยว + รายการสนใจ)
+function buildCalcCard() {
+  if (!calcModel) return null;
   const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
   const cashPrice = v ? (parseInt(v.price) || 0) : 0;
   const variantName = (v && v.name) ? v.name : '';
@@ -3213,7 +3229,86 @@ async function sendToLine() {
     cust_phone: custPhone
   };
 
-  await deliverFlexToLine(flexMsg, fallbackText, { ack: true, lead: leadObj });
+  return { flexMsg: flexMsg, fallbackText: fallbackText, leadObj: leadObj, label: calcModel.name + (variantName ? ' ' + variantName : '') };
+}
+
+async function sendToLine() {
+  if (!calcModel || !isInLiff) return;
+  const card = buildCalcCard();
+  if (!card) return;
+  await deliverFlexToLine(card.flexMsg, card.fallbackText, { ack: true, lead: card.leadObj });
+}
+
+// ===== รายการสนใจ (เลือกหลายรุ่น → ส่งรวดเป็น carousel) =====
+let interestedList = [];
+const SAVE_LEADS_URL = 'https://n8n-wt11.onrender.com/webhook/save-leads';
+
+function addToInterested() {
+  const card = buildCalcCard();
+  if (!card) return;
+  if (interestedList.length >= 12) { alert('เพิ่มได้สูงสุด 12 รุ่นครับ'); return; }
+  // กันซ้ำรุ่น+variant+สี+ชนิดจ่าย เดียวกัน
+  const key = (c) => c.leadObj.model + '|' + c.leadObj.variant + '|' + c.leadObj.color + '|' + c.leadObj.pay_type;
+  if (interestedList.some(it => key(it) === key(card))) { alert('รุ่นนี้อยู่ในรายการแล้วครับ'); return; }
+  interestedList.push(card);
+  updateInterestedFab();
+  const btn = document.getElementById('addInterestBtn');
+  if (btn) { const o = btn.innerHTML; btn.innerHTML = '✓ เพิ่มในรายการแล้ว'; setTimeout(function(){ btn.innerHTML = o; }, 1300); }
+}
+
+function updateInterestedFab() {
+  const fab = document.getElementById('interestFab');
+  if (!fab) return;
+  const n = interestedList.length;
+  fab.style.display = n > 0 ? 'inline-flex' : 'none';
+  const c = document.getElementById('interestFabCount');
+  if (c) c.textContent = n;
+}
+
+function openInterestedModal() { renderInterestedList(); document.getElementById('interestOverlay').style.display = 'flex'; }
+function closeInterestedModal() { document.getElementById('interestOverlay').style.display = 'none'; }
+function removeInterested(i) { interestedList.splice(i, 1); updateInterestedFab(); renderInterestedList(); }
+
+function renderInterestedList() {
+  const wrap = document.getElementById('interestListBody');
+  if (!wrap) return;
+  if (!interestedList.length) { wrap.innerHTML = '<div style="color:#999;padding:1rem;text-align:center;">ยังไม่มีรุ่นที่เลือก</div>'; return; }
+  wrap.innerHTML = interestedList.map(function(it, i) {
+    const L = it.leadObj;
+    const price = L.pay_type === 'cash' ? ('เงินสด ฿' + fmt(L.price || 0)) : ('ค่างวด ฿' + fmt(L.installment || 0) + '/' + (L.period || '-') + 'ด.');
+    const sub = [L.variant, L.color].filter(Boolean).join(' · ');
+    return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid #e5e5e5;border-radius:8px;padding:.6rem .8rem;margin-bottom:.5rem;">' +
+      '<div style="min-width:0;"><div style="font-weight:700;font-size:.92rem;">' + L.model + '</div>' +
+      (sub ? '<div style="font-size:.78rem;color:#888;">' + sub + '</div>' : '') +
+      '<div style="font-size:.82rem;color:#1eaa5c;font-weight:600;">' + price + '</div></div>' +
+      '<button onclick="removeInterested(' + i + ')" style="background:#fee;color:#c33;border:none;border-radius:6px;padding:.4rem .7rem;cursor:pointer;font-size:.8rem;flex-shrink:0;">ลบ</button>' +
+      '</div>';
+  }).join('');
+}
+
+async function sendAllInterested() {
+  if (!interestedList.length) return;
+  const bubbles = interestedList.slice(0, 12).map(function(it) { return it.flexMsg.contents; });
+  const carousel = { type: 'flex', altText: 'สนใจ ' + interestedList.length + ' รุ่น', contents: { type: 'carousel', contents: bubbles } };
+  let userId = null, displayName = '';
+  try { const p = await liff.getProfile(); userId = p.userId; displayName = p.displayName || ''; } catch (_) {}
+  const phone = (document.getElementById('custPhone')?.value || '').trim();
+  const cname = (document.getElementById('custName')?.value || '').trim();
+  // batch save → n8n รวมเป็นการ์ดสรุปเข้ากลุ่มเซล
+  fetch(SAVE_LEADS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ line_user_id: userId || '', line_name: displayName, cust_name: cname, cust_phone: phone, leads: interestedList.map(function(it){ return it.leadObj; }) }) }).catch(function(){});
+  if (userId) fetch('https://n8n-wt11.onrender.com/webhook/ack-lead', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: userId }) }).catch(function(){});
+  try {
+    await liff.sendMessages([carousel]);
+    interestedList = []; updateInterestedFab(); closeInterestedModal();
+    setTimeout(function(){ try { liff.closeWindow(); } catch (_) {} }, 800);
+  } catch (e) {
+    try {
+      if (!userId) { const p = await liff.getProfile(); userId = p.userId; }
+      const ok = await pushCardWithRetry(userId, carousel);
+      if (!ok) throw new Error('push failed');
+      interestedList = []; updateInterestedFab(); closeInterestedModal();
+    } catch (e2) { alert('ส่งไม่สำเร็จ ลองใหม่อีกครั้งครับ 🙏'); }
+  }
 }
 
 // ===== ส่ง Flex card เข้าแชท (ใช้ร่วมกัน: lead card + เทิร์นรถ) =====
@@ -3221,10 +3316,11 @@ async function sendToLine() {
 async function deliverFlexToLine(flexMsg, fallbackText, opts) {
   opts = opts || {};
   let userId = null;
-  try { const p = await liff.getProfile(); userId = p.userId; } catch(_) {}
+  let displayName = '';
+  try { const p = await liff.getProfile(); userId = p.userId; displayName = p.displayName || ''; } catch(_) {}
 
-  // บันทึก lead ลง DB (แนบ userId)
-  if (opts.lead) { opts.lead.line_user_id = userId || ''; saveLead(opts.lead); }
+  // บันทึก lead ลง DB (แนบ userId + ชื่อไลน์ลูกค้า)
+  if (opts.lead) { opts.lead.line_user_id = userId || ''; opts.lead.line_name = displayName; saveLead(opts.lead); }
 
   function fireAck() {
     if (!userId || !opts.ack) return;
