@@ -3085,14 +3085,18 @@ function handleAutoSend() {
   // เปรียบเทียบหลายรุ่น (มาจาก browser → LIFF)
   if (mode === 'compare') {
     let payload;
-    try { payload = JSON.parse(decodeURIComponent(escape(atob(params.get('d') || '')))); } catch (e) { return; }
-    const leads = (payload && payload.leads) || [];
-    if (!leads.length) return;
+    try {
+      let b64 = (params.get('d') || '').replace(/-/g, '+').replace(/_/g, '/');
+      payload = JSON.parse(decodeURIComponent(escape(atob(b64))));
+    } catch (e) { return; }
+    const arr = (payload && payload.L) || [];
+    if (!arr.length) return;
     const nameEl = document.getElementById('custName');
     const phoneEl = document.getElementById('custPhone');
-    if (payload.name && nameEl) nameEl.value = payload.name;
-    if (payload.phone && phoneEl) phoneEl.value = payload.phone;
-    interestedList = leads.slice(0, 12).map(function(L){ return { leadObj: L, flexMsg: { contents: buildBubbleFromLead(L) } }; });
+    if (payload.n && nameEl) nameEl.value = payload.n;
+    if (payload.p && phoneEl) phoneEl.value = payload.p;
+    const leads = arr.slice(0, 12).map(function(a){ return { lead_type: a[3], model: a[0], variant: a[1], color: a[2], pay_type: a[3], down_pct: a[4], installment: a[5], price: a[6], period: a[7] }; });
+    interestedList = leads.map(function(L){ return { leadObj: L, flexMsg: { contents: buildBubbleFromLead(L) } }; });
     setTimeout(function(){ sendAllInterested(); }, 300);
     return;
   }
@@ -3417,9 +3421,12 @@ async function sendAllInterested() {
   if (!isInLiff) {
     const cname = (document.getElementById('custName')?.value || '').trim();
     const phone = (document.getElementById('custPhone')?.value || '').trim();
-    const payload = { leads: interestedList.map(function(it){ return it.leadObj; }), name: cname, phone: phone };
-    const d = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-    window.location.href = 'https://liff.line.me/' + LIFF_ID + '?autoSend=compare&d=' + encodeURIComponent(d);
+    // ย่อ: แต่ละรุ่นเก็บเป็น array สั้นๆ [model,variant,color,pay,down,installment,price,period]
+    const mini = interestedList.map(function(it){ const L = it.leadObj; return [L.model, L.variant || '', L.color || '', L.pay_type, L.down_pct || 0, L.installment || 0, L.price || 0, L.period || 0]; });
+    const payload = { L: mini, n: cname, p: phone };
+    // base64 URL-safe (เลี่ยง + / = ที่ LINE ทำเพี้ยน)
+    const d = btoa(unescape(encodeURIComponent(JSON.stringify(payload)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    window.location.href = 'https://liff.line.me/' + LIFF_ID + '?autoSend=compare&d=' + d;
     return;
   }
   const _n = Date.now(); if (_n - _lastDeliverTs < 4000) return; _lastDeliverTs = _n; // กันส่งซ้ำ
