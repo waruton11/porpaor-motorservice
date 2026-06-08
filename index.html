@@ -3403,9 +3403,7 @@ function buildBubbleFromLead(L) {
   } else {
     const pctLabel = (L.down_pct % 1 === 0) ? L.down_pct : Number(L.down_pct).toFixed(1);
     body.push(
-      { type: 'box', layout: 'horizontal', margin: 'md', contents: [
-        { type: 'text', text: 'เงินดาวน์ (' + pctLabel + '%)', size: 'sm', color: '#888888', flex: 3 },
-        { type: 'text', text: '', size: 'sm', align: 'end', flex: 2 } ] },
+      { type: 'text', text: 'เงินดาวน์ ' + (L.down_pct > 0 ? pctLabel + '%' : 'ฟรีดาวน์'), size: 'sm', color: '#888888', margin: 'md' },
       { type: 'box', layout: 'horizontal', contents: [
         { type: 'text', text: 'ค่างวด/เดือน', size: 'sm', weight: 'bold', flex: 3 },
         { type: 'text', text: '฿' + fmt(L.installment), size: 'sm', weight: 'bold', color: CARD_GREEN, align: 'end', flex: 2 } ] },
