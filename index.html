@@ -3081,6 +3081,20 @@ function handleAutoSend() {
     setTimeout(function() { deliverFlexToLine(flexMsg, parts.join('\n'), { lead: tradeInLead(d) }); }, 300);
     return;
   }
+  // เปรียบเทียบหลายรุ่น (มาจาก browser → LIFF)
+  if (mode === 'compare') {
+    let payload;
+    try { payload = JSON.parse(decodeURIComponent(escape(atob(params.get('d') || '')))); } catch (e) { return; }
+    const leads = (payload && payload.leads) || [];
+    if (!leads.length) return;
+    const nameEl = document.getElementById('custName');
+    const phoneEl = document.getElementById('custPhone');
+    if (payload.name && nameEl) nameEl.value = payload.name;
+    if (payload.phone && phoneEl) phoneEl.value = payload.phone;
+    interestedList = leads.slice(0, 12).map(function(L){ return { leadObj: L, flexMsg: { contents: buildBubbleFromLead(L) } }; });
+    setTimeout(function(){ sendAllInterested(); }, 300);
+    return;
+  }
   // นัดทดลองขับ
   if (mode === 'testride') {
     const d = {
@@ -3367,8 +3381,46 @@ function renderInterestedList() {
   }).join('');
 }
 
+// สร้าง bubble จาก leadObj (ใช้ตอน rebuild หลัง redirect browser→LIFF)
+function buildBubbleFromLead(L) {
+  const body = [
+    cardBanner(L.pay_type === 'cash' ? '💵 สนใจซื้อเงินสด' : '💳 สนใจผ่อน', CARD_GREEN),
+    { type: 'text', text: L.model || '-', weight: 'bold', size: 'xl', color: CARD_GREEN, wrap: true, margin: 'md' },
+    { type: 'text', text: L.variant || '-', size: 'sm', color: '#666666', wrap: true }
+  ];
+  if (L.color) body.push({ type: 'box', layout: 'horizontal', margin: 'sm', contents: [
+    { type: 'text', text: 'สี', size: 'sm', color: '#888888', flex: 2 },
+    { type: 'text', text: L.color, size: 'sm', align: 'end', flex: 3, wrap: true, weight: 'bold' } ] });
+  if (L.pay_type === 'cash') {
+    body.push({ type: 'box', layout: 'horizontal', margin: 'md', contents: [
+      { type: 'text', text: 'ราคาเงินสด', size: 'sm', weight: 'bold', flex: 3 },
+      { type: 'text', text: L.price > 0 ? '฿' + fmt(L.price) : 'สอบถาม', size: 'lg', weight: 'bold', color: CARD_GREEN, align: 'end', flex: 2 } ] });
+  } else {
+    const pctLabel = (L.down_pct % 1 === 0) ? L.down_pct : Number(L.down_pct).toFixed(1);
+    body.push(
+      { type: 'box', layout: 'horizontal', margin: 'md', contents: [
+        { type: 'text', text: 'เงินดาวน์ (' + pctLabel + '%)', size: 'sm', color: '#888888', flex: 3 },
+        { type: 'text', text: '', size: 'sm', align: 'end', flex: 2 } ] },
+      { type: 'box', layout: 'horizontal', contents: [
+        { type: 'text', text: 'ค่างวด/เดือน', size: 'sm', weight: 'bold', flex: 3 },
+        { type: 'text', text: '฿' + fmt(L.installment), size: 'sm', weight: 'bold', color: CARD_GREEN, align: 'end', flex: 2 } ] },
+      { type: 'text', text: 'ผ่อน ' + L.period + ' เดือน', size: 'xs', color: '#aaaaaa', align: 'end' }
+    );
+  }
+  return { type: 'bubble', body: { type: 'box', layout: 'vertical', spacing: 'md', contents: body } };
+}
+
 async function sendAllInterested() {
   if (!interestedList.length) return;
+  // เปิดนอกแอป LINE (เบราว์เซอร์/TikTok/Facebook) → redirect ไป LIFF แล้วให้ LINE ยิงการ์ดเอง (วิธีเดียวกับส่งเดี่ยว)
+  if (!isInLiff) {
+    const cname = (document.getElementById('custName')?.value || '').trim();
+    const phone = (document.getElementById('custPhone')?.value || '').trim();
+    const payload = { leads: interestedList.map(function(it){ return it.leadObj; }), name: cname, phone: phone };
+    const d = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    window.open('https://liff.line.me/' + LIFF_ID + '?autoSend=compare&d=' + encodeURIComponent(d), '_blank');
+    return;
+  }
   const _n = Date.now(); if (_n - _lastDeliverTs < 4000) return; _lastDeliverTs = _n; // กันส่งซ้ำ
   const bubbles = interestedList.slice(0, 12).map(function(it) { return it.flexMsg.contents; });
   const carousel = { type: 'flex', altText: 'สนใจ ' + interestedList.length + ' รุ่น', contents: { type: 'carousel', contents: bubbles } };
