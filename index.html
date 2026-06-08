@@ -3175,7 +3175,7 @@ function sendToLineViaBrowser() {
   if (custName) params.set('name', custName);
   if (custPhone) params.set('phone', custPhone);
   const url = 'https://liff.line.me/' + LIFF_ID + '?' + params.toString();
-  window.open(url, '_blank');
+  window.location.href = url;
 }
 
 // สีประจำการ์ดแต่ละประเภท (จิตวิทยาสี — แยกประเภทชัดเจน)
@@ -3418,7 +3418,7 @@ async function sendAllInterested() {
     const phone = (document.getElementById('custPhone')?.value || '').trim();
     const payload = { leads: interestedList.map(function(it){ return it.leadObj; }), name: cname, phone: phone };
     const d = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-    window.open('https://liff.line.me/' + LIFF_ID + '?autoSend=compare&d=' + encodeURIComponent(d), '_blank');
+    window.location.href = 'https://liff.line.me/' + LIFF_ID + '?autoSend=compare&d=' + encodeURIComponent(d);
     return;
   }
   const _n = Date.now(); if (_n - _lastDeliverTs < 4000) return; _lastDeliverTs = _n; // กันส่งซ้ำ
