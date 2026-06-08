@@ -3060,8 +3060,9 @@ function handleAutoSend() {
   const params = new URLSearchParams(window.location.search);
   const mode = params.get('autoSend');
   if (!mode) return;
-  // กันยิงซ้ำข้าม reload — LIFF โหลดหน้า 2 รอบตอน login → ส่งครั้งเดียวต่อ session
-  try { if (sessionStorage.getItem('_autoSentOnce')) return; sessionStorage.setItem('_autoSentOnce', '1'); } catch(e) {}
+  // กันยิงซ้ำเฉพาะ payload เดิม (LIFF โหลด 2 รอบตอน login) — payload ใหม่ส่งได้ปกติ
+  const _sk = '_autoSent_' + (params.get('d') || params.toString()).slice(0, 60);
+  try { if (sessionStorage.getItem(_sk)) return; sessionStorage.setItem(_sk, '1'); } catch(e) {}
   // เทิร์นรถ (มาจาก browser → LIFF)
   if (mode === 'tradein') {
     const d = {
