@@ -1483,6 +1483,9 @@ footer .footer-brand {
   </div>
 </div>
 
+<!-- แคปชันพม่าใต้ Hero (โหมด MY เท่านั้น — รูปปกเป็นตัวอักษรไทย) -->
+<div id="heroMyCaption" style="display:none;background:#cc0000;color:#fff;text-align:center;padding:.75rem 1rem;font-size:.98rem;font-weight:700;line-height:1.6;">🏍️ ကြိုက်နှစ်သက်ရာ ဆိုင်ကယ်ရွေး · အရစ်ကျတွက် · ဆိုင်သို့ပို့လိုက်ပါ ❤️</div>
+
 <!-- ===== TRUST STRIP ===== -->
 <div class="trust-strip" id="trustStrip">
   <!-- JS render จาก siteConfig.benefits -->
@@ -1498,16 +1501,16 @@ footer .footer-brand {
   <a class="svc-card" href="javascript:void(0)" onclick="openTradeIn()">
     <div class="svc-ico">🔄</div>
     <div class="svc-body">
-      <div class="svc-title">เทิร์นรถเก่า</div>
-      <div class="svc-sub">รับเทิร์นทุกรุ่น · ตีราคาที่ร้าน</div>
+      <div class="svc-title" data-i18n="svc_tradein_t">เทิร์นรถเก่า</div>
+      <div class="svc-sub" data-i18n="svc_tradein_s">รับเทิร์นทุกรุ่น · ตีราคาที่ร้าน</div>
     </div>
   </a>
   <a class="svc-card" href="javascript:void(0)" onclick="openTestRide()" style="position:relative;">
-    <span style="position:absolute;top:-7px;right:8px;background:#22aa55;color:#fff;font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:10px;box-shadow:0 2px 6px rgba(34,170,85,.3);">ฟรี!</span>
+    <span data-i18n="free_badge" style="position:absolute;top:-7px;right:8px;background:#22aa55;color:#fff;font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:10px;box-shadow:0 2px 6px rgba(34,170,85,.3);">ฟรี!</span>
     <div class="svc-ico">🏍️</div>
     <div class="svc-body">
-      <div class="svc-title">ทดลองขับขี่ฟรี</div>
-      <div class="svc-sub">PCX160 & UC3 · ที่วังน้อย</div>
+      <div class="svc-title" data-i18n="svc_testride_t">ทดลองขับขี่ฟรี</div>
+      <div class="svc-sub" data-i18n="svc_testride_s">PCX160 & UC3 · ที่วังน้อย</div>
     </div>
   </a>
 </div>
@@ -1516,22 +1519,22 @@ footer .footer-brand {
 <div class="faq-bar-wrap">
   <button class="faq-bar" onclick="openFAQ()">
     <span class="faq-bar-ico">❓</span>
-    <span class="faq-bar-text"><b>คำถามที่พบบ่อย</b><br><span class="faq-bar-sub">ผ่อนไม่ผ่าน? ติดแบล็คลิสต์? ดาวน์เท่าไหร่? — อ่านคำตอบ</span></span>
+    <span class="faq-bar-text"><b data-i18n="faq_t">คำถามที่พบบ่อย</b><br><span class="faq-bar-sub" data-i18n="faq_s">ผ่อนไม่ผ่าน? ติดแบล็คลิสต์? ดาวน์เท่าไหร่? — อ่านคำตอบ</span></span>
     <span class="faq-bar-arrow">›</span>
   </button>
 </div>
 
 <!-- ===== CATEGORY ICONS (mobile only) ===== -->
 <div class="cat-icons-wrap" id="catIconsWrap">
-  <div class="cat-icons-header"><span class="section-title-sm">เลือกตามประเภท</span></div>
+  <div class="cat-icons-header"><span class="section-title-sm" data-i18n="cat_pick">เลือกตามประเภท</span></div>
   <div class="cat-icons-scroll" id="catIconsRow"><!-- JS renders --></div>
 </div>
 
 <!-- ===== MODELS SECTION ===== -->
 <section id="models">
   <div class="models-header">
-    <h2 class="section-title">รุ่นรถฮอนด้า</h2>
-    <p class="section-sub">กดรถที่สนใจเพื่อดูสีและรุ่นย่อย · สอบถามราคาและตารางผ่อนได้ที่ร้าน</p>
+    <h2 class="section-title" data-i18n="models_title">รุ่นรถฮอนด้า</h2>
+    <p class="section-sub" data-i18n="models_sub">กดรถที่สนใจเพื่อดูสีและรุ่นย่อย · สอบถามราคาและตารางผ่อนได้ที่ร้าน</p>
   </div>
   <div id="catRows"></div>
 </section>
@@ -1595,7 +1598,7 @@ footer .footer-brand {
     <div class="calc-handle"></div>
     <div class="calc-topbar">
       <button class="calc-close-btn" onclick="closeCalc()">✕</button>
-      <h3>คำนวณค่างวด</h3>
+      <h3 data-i18n="calc_title">คำนวณค่างวด</h3>
       <div style="width:32px;"></div>
     </div>
     <div class="calc-inner">
@@ -1604,17 +1607,17 @@ footer .footer-brand {
       <div class="steps-row" id="calcStepsRow">
         <div class="step-wrap">
           <div class="step-circle active" id="stepC1">1</div>
-          <div class="step-label">เลือกรุ่น</div>
+          <div class="step-label" data-i18n="step_choose">เลือกรุ่น</div>
         </div>
         <div class="step-line"></div>
         <div class="step-wrap">
           <div class="step-circle idle" id="stepC2">2</div>
-          <div class="step-label">ตั้งค่า</div>
+          <div class="step-label" data-i18n="step_setup">ตั้งค่า</div>
         </div>
         <div class="step-line"></div>
         <div class="step-wrap">
           <div class="step-circle idle" id="stepC3">3</div>
-          <div class="step-label">ผลลัพธ์</div>
+          <div class="step-label" data-i18n="step_result">ผลลัพธ์</div>
         </div>
       </div>
 
@@ -1633,21 +1636,21 @@ footer .footer-brand {
         <select class="calc-model-select" id="calcModelSelect" onchange="onCalcModelChange()">
           <option value="">-- เลือกรุ่น --</option>
         </select>
-        <button class="calc-primary-btn" onclick="goCalcStep2()">ถัดไป →</button>
+        <button class="calc-primary-btn" onclick="goCalcStep2()" data-i18n="calc_next">ถัดไป →</button>
       </div>
 
       <!-- Step 2: sliders -->
       <div id="calcStep2" style="display:none;">
         <!-- Color picker (แสดงทั้งเงินผ่อน/เงินสด) -->
         <div id="calcColorSection" style="margin-bottom:1rem;">
-          <div class="slbl" style="margin-bottom:8px;">เลือกสี <span id="calcColorName" style="color:#888;font-weight:400;"></span></div>
+          <div class="slbl" style="margin-bottom:8px;"><span data-i18n="calc_color">เลือกสี</span> <span id="calcColorName" style="color:#888;font-weight:400;"></span></div>
           <div id="calcColorSwatches" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
         </div>
 
         <!-- Payment type toggle -->
         <div class="pay-toggle">
-          <button class="pay-opt active" data-pay="installment" onclick="setPayType('installment')">💳 เงินผ่อน</button>
-          <button class="pay-opt" data-pay="cash" onclick="setPayType('cash')">💵 เงินสด</button>
+          <button class="pay-opt active" data-pay="installment" onclick="setPayType('installment')" data-i18n="pay_install">💳 เงินผ่อน</button>
+          <button class="pay-opt" data-pay="cash" onclick="setPayType('cash')" data-i18n="pay_cash">💵 เงินสด</button>
         </div>
 
         <!-- Installment-only section -->
@@ -1655,12 +1658,12 @@ footer .footer-brand {
           <!-- Live preview (ขึ้นบนเพื่อให้ลูกค้าเห็นทันที) -->
           <div class="live-preview">
             <div class="lp-col">
-              <div class="lp-label">ยอดจัดไฟแนนซ์</div>
+              <div class="lp-label" data-i18n="lbl_financed">ยอดจัดไฟแนนซ์</div>
               <div class="lp-val" id="lpFinanced">—</div>
               <div class="lp-note" id="lpRate">—</div>
             </div>
             <div class="lp-col">
-              <div class="lp-label">ค่างวดโดยประมาณ</div>
+              <div class="lp-label" data-i18n="lbl_est_install">ค่างวดโดยประมาณ</div>
               <div class="live-amt" id="calcLiveResult">—</div>
             </div>
           </div>
@@ -1668,21 +1671,21 @@ footer .footer-brand {
           <!-- Down % slider -->
           <div class="slider-section">
             <div class="slider-top">
-              <span class="slbl">เงินดาวน์</span>
+              <span class="slbl" data-i18n="lbl_down">เงินดาวน์</span>
               <span><b id="sDownPct">15</b>% &nbsp;<span class="samt" id="sDownAmt"></span></span>
             </div>
             <input type="range" id="sliderDown" min="0" max="50" step="5" value="15" oninput="onSliderChange()">
             <div class="slider-ticks"><span>0% ฟรีดาวน์</span><span>25%</span><span>50%</span></div>
             <div class="custom-down-row">
-              <label>หรือกำหนดเงินดาวน์เอง</label>
+              <label data-i18n="lbl_custom_down">หรือกำหนดเงินดาวน์เอง</label>
               <input type="text" inputmode="numeric" id="customDown" placeholder="0" oninput="onCustomDownInput(event)" onfocus="this.select()">
-              <span class="unit">บาท</span>
+              <span class="unit" data-i18n="unit_baht">บาท</span>
             </div>
           </div>
 
           <!-- Period pills -->
           <div class="slider-section">
-            <div class="slbl" style="margin-bottom:8px;">ระยะเวลาผ่อน</div>
+            <div class="slbl" style="margin-bottom:8px;" data-i18n="lbl_period">ระยะเวลาผ่อน</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
               <button class="period-pill" data-mo="24" onclick="selectPeriod(24)">24 เดือน</button>
               <button class="period-pill" data-mo="30" onclick="selectPeriod(30)">30 เดือน</button>
@@ -1697,23 +1700,22 @@ footer .footer-brand {
         <div id="cashOnly" style="display:none;">
           <div class="cash-preview">
             <div class="cash-preview-icon">💵</div>
-            <div class="cash-preview-label">ราคาเงินสด</div>
+            <div class="cash-preview-label" data-i18n="lbl_cash_price">ราคาเงินสด</div>
             <div class="cash-preview-amt" id="cashPriceDisplay">—</div>
-            <div class="cash-preview-sub">รับสิทธิพิเศษเมื่อซื้อสด</div>
+            <div class="cash-preview-sub" data-i18n="cash_perk">รับสิทธิพิเศษเมื่อซื้อสด</div>
           </div>
           <div class="cash-benefits">
-            <div class="cash-benefit-item">✓ ฟรีทะเบียน</div>
-            <div class="cash-benefit-item">✓ ฟรี พ.ร.บ.</div>
-            <div class="cash-benefit-item">✓ ฟรีประกันรถหาย</div>
-            <div class="cash-benefit-item">✓ ฟรีประกันอุบัติเหตุ</div>
+            <div class="cash-benefit-item" data-i18n="cash_b1">✓ ฟรีทะเบียน</div>
+            <div class="cash-benefit-item" data-i18n="cash_b2">✓ ฟรี พ.ร.บ.</div>
+            <div class="cash-benefit-item" data-i18n="cash_b3">✓ ฟรีประกันรถหาย</div>
+            <div class="cash-benefit-item" data-i18n="cash_b4">✓ ฟรีประกันอุบัติเหตุ</div>
           </div>
-          <div style="font-size:0.78rem;color:#888;text-align:center;padding:0 0.5rem 0.75rem;line-height:1.5;">
-            * ติดต่อร้านเพื่อยืนยันราคาและโปรโมชั่นล่าสุด<br>
-            อาจมีส่วนลดเพิ่มเติมสำหรับลูกค้าเงินสด
+          <div style="font-size:0.78rem;color:#888;text-align:center;padding:0 0.5rem 0.75rem;line-height:1.5;" data-i18n="cash_note">
+            * ติดต่อร้านเพื่อยืนยันราคาและโปรโมชั่นล่าสุด อาจมีส่วนลดเพิ่มเติมสำหรับลูกค้าเงินสด
           </div>
         </div>
 
-        <button class="calc-primary-btn" onclick="goCalcStep3()">ดูผลลัพธ์ →</button>
+        <button class="calc-primary-btn" onclick="goCalcStep3()" data-i18n="calc_see_result">ดูผลลัพธ์ →</button>
       </div>
 
       <!-- Step 3: result -->
@@ -1721,47 +1723,47 @@ footer .footer-brand {
         <!-- Installment result (shown when payType=installment) -->
         <div id="resultInstallment">
           <div class="result-box">
-            <div class="rlabel">ค่างวดต่อเดือน (ประมาณ)</div>
+            <div class="rlabel" data-i18n="res_install_label">ค่างวดต่อเดือน (ประมาณ)</div>
             <div class="ramt" id="resultAmt">—</div>
             <div class="rperiod" id="resultPeriod"></div>
           </div>
           <div class="breakdown-table">
-            <div class="bdr"><span>ราคารถ</span><span id="bdPrice">—</span></div>
-            <div class="bdr"><span id="bdDownLabel">เงินดาวน์</span><span id="bdDown" style="color:#22aa55;">—</span></div>
-            <div class="bdr"><span>ยอดจัดไฟแนนซ์</span><span id="bdFinanced">—</span></div>
+            <div class="bdr"><span data-i18n="bd_price">ราคารถ</span><span id="bdPrice">—</span></div>
+            <div class="bdr"><span id="bdDownLabel" data-i18n="lbl_down">เงินดาวน์</span><span id="bdDown" style="color:#22aa55;">—</span></div>
+            <div class="bdr"><span data-i18n="lbl_financed">ยอดจัดไฟแนนซ์</span><span id="bdFinanced">—</span></div>
           </div>
-          <div class="bd-note">* ตัวเลขเป็นการประมาณการเบื้องต้น เงื่อนไขตามบริษัทไฟแนนซ์กำหนด</div>
+          <div class="bd-note" data-i18n="bd_note">* ตัวเลขเป็นการประมาณการเบื้องต้น เงื่อนไขตามบริษัทไฟแนนซ์กำหนด</div>
         </div>
 
         <!-- Cash result (shown when payType=cash) -->
         <div id="resultCash" style="display:none;">
           <div class="result-box">
-            <div class="rlabel">ราคาเงินสด</div>
+            <div class="rlabel" data-i18n="lbl_cash_price">ราคาเงินสด</div>
             <div class="ramt" id="resultCashAmt">—</div>
             <div class="rperiod" id="resultCashSub"></div>
           </div>
-          <div class="bd-note">* ติดต่อร้านเพื่อยืนยันราคาและโปรโมชั่นล่าสุด</div>
+          <div class="bd-note" data-i18n="bd_note_cash">* ติดต่อร้านเพื่อยืนยันราคาและโปรโมชั่นล่าสุด</div>
         </div>
 
         <!-- Customer info (แสดงเสมอ ทั้ง LIFF และ browser) -->
         <div id="customerInfoBox" class="customer-info">
-          <div class="customer-info-title">📝 ข้อมูลติดต่อ (ไม่บังคับ)</div>
-          <div class="customer-info-note">ใส่เบอร์ไว้ ให้เจ้าหน้าที่โทรช่วยจัดไฟแนนซ์ให้ผ่านง่ายขึ้น 😊</div>
-          <input type="text" id="custName" class="customer-input" placeholder="ชื่อ-นามสกุล (ถ้าสะดวก)">
-          <input type="tel" id="custPhone" class="customer-input" placeholder="เบอร์โทร — ให้เจ้าหน้าที่โทรช่วยจัดไฟแนนซ์">
+          <div class="customer-info-title" data-i18n="ci_title">📝 ข้อมูลติดต่อ (ไม่บังคับ)</div>
+          <div class="customer-info-note" data-i18n="ci_note">ใส่เบอร์ไว้ ให้เจ้าหน้าที่โทรช่วยจัดไฟแนนซ์ให้ผ่านง่ายขึ้น 😊</div>
+          <input type="text" id="custName" class="customer-input" placeholder="ชื่อ-นามสกุล (ถ้าสะดวก)" data-i18n-ph="ph_name">
+          <input type="tel" id="custPhone" class="customer-input" placeholder="เบอร์โทร — ให้เจ้าหน้าที่โทรช่วยจัดไฟแนนซ์" data-i18n-ph="ph_phone">
         </div>
 
         <!-- ปลอบใจเครดิต ลดความกังวลตรงจุดตัดสินใจ -->
         <div style="background:#e9f9ef;border:1px solid #b6e6c6;border-radius:10px;padding:.8rem .95rem;margin-bottom:.85rem;display:flex;gap:.55rem;align-items:flex-start;">
           <span style="font-size:1.3rem;flex-shrink:0;line-height:1.3;">💬</span>
-          <div style="font-size:.82rem;color:#1a8c47;line-height:1.55;"><b>กังวลเรื่องการอนุมัติ หรือไม่แน่ใจว่าผ่อนได้ไหม?</b><br>ส่งข้อมูลนี้ให้ทีมงานช่วยตรวจสอบและแนะนำแนวทางได้ฟรี ไม่มีค่าใช้จ่าย และไม่มีข้อผูกมัดในการออกรถ</div>
+          <div style="font-size:.82rem;color:#1a8c47;line-height:1.55;"><b data-i18n="reassure_t">กังวลเรื่องการอนุมัติ หรือไม่แน่ใจว่าผ่อนได้ไหม?</b><br><span data-i18n="reassure_s">ส่งข้อมูลนี้ให้ทีมงานช่วยตรวจสอบและแนะนำแนวทางได้ฟรี ไม่มีค่าใช้จ่าย และไม่มีข้อผูกมัดในการออกรถ</span></div>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:8px;">
           <!-- ปุ่ม LIFF: แสดงเฉพาะเมื่อเปิดในแอป LINE -->
           <button id="liffSendBtn" class="calc-primary-btn liff-send-btn" style="display:none;" onclick="sendToLine()">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
-            ส่งข้อมูลนี้ให้ร้าน
+            <span data-i18n="send_shop_liff">ส่งข้อมูลนี้ให้ร้าน</span>
           </button>
           <!-- ปุ่มปกติ: ซ่อนเมื่ออยู่ใน LINE -->
           <button id="calcContactBtn" class="calc-primary-btn" onclick="sendToLineViaBrowser()" style="display:block;text-align:center;" data-i18n="send_line">💬 ส่งข้อมูลให้ร้านทาง LINE</button>
@@ -1793,28 +1795,28 @@ footer .footer-brand {
   <div class="calc-sheet">
     <div class="calc-head">
       <button class="calc-close" onclick="closeTradeIn()">✕</button>
-      <div class="calc-title">🔄 เทิร์นรถเก่า</div>
+      <div class="calc-title" data-i18n="ti_title">🔄 เทิร์นรถเก่า</div>
     </div>
     <div class="calc-inner">
       <div style="background:#eef6ff;border:1px solid #cfe3ff;border-radius:10px;padding:.7rem .9rem;margin-bottom:1rem;font-size:.84rem;color:#1a5298;line-height:1.5;">
-        รับเทิร์นทุกรุ่นครับ 🔄 กรอกข้อมูลรถเก่า เดี๋ยวเจ้าหน้าที่โทรนัดเอารถมาตีราคาที่ร้าน
-        <div style="font-size:.76rem;color:#5b7fb4;margin-top:4px;">* การตีราคาต้องดูสภาพรถจริงที่ร้าน</div>
+        <span data-i18n="ti_info">รับเทิร์นทุกรุ่นครับ 🔄 กรอกข้อมูลรถเก่า เดี๋ยวเจ้าหน้าที่โทรนัดเอารถมาตีราคาที่ร้าน</span>
+        <div style="font-size:.76rem;color:#5b7fb4;margin-top:4px;" data-i18n="ti_info_sub">* การตีราคาต้องดูสภาพรถจริงที่ร้าน</div>
       </div>
       <div class="customer-info" style="margin-bottom:1rem;">
-        <div class="customer-info-title">🏍️ รถเก่าที่จะเทิร์น</div>
-        <div class="customer-info-note">ดูรุ่นรถได้ที่เล่มทะเบียนรถ (สมุดคู่มือจดทะเบียน)</div>
-        <input type="text" id="tiOldBike" class="customer-input" placeholder="รุ่นรถเก่า * เช่น Honda Wave110i">
-        <input type="text" id="tiOldYear" class="customer-input" placeholder="ปีที่จดทะเบียน (ถ้าทราบ) เช่น 2563">
+        <div class="customer-info-title" data-i18n="ti_old_title">🏍️ รถเก่าที่จะเทิร์น</div>
+        <div class="customer-info-note" data-i18n="ti_old_note">ดูรุ่นรถได้ที่เล่มทะเบียนรถ (สมุดคู่มือจดทะเบียน)</div>
+        <input type="text" id="tiOldBike" class="customer-input" placeholder="รุ่นรถเก่า * เช่น Honda Wave110i" data-i18n-ph="ph_oldbike">
+        <input type="text" id="tiOldYear" class="customer-input" placeholder="ปีที่จดทะเบียน (ถ้าทราบ) เช่น 2563" data-i18n-ph="ph_oldyear">
       </div>
       <div class="customer-info" style="margin-bottom:1rem;">
-        <div class="customer-info-title">📝 ข้อมูลติดต่อ</div>
-        <input type="text" id="tiNewModel" class="customer-input" placeholder="สนใจรุ่นใหม่รุ่นไหน (ถ้ามี)">
-        <input type="text" id="tiName" class="customer-input" placeholder="ชื่อ-นามสกุล (ถ้าสะดวก)">
-        <input type="tel" id="tiPhone" class="customer-input" placeholder="เบอร์โทร — ให้เจ้าหน้าที่โทรนัดตีราคา">
+        <div class="customer-info-title" data-i18n="ti_contact">📝 ข้อมูลติดต่อ</div>
+        <input type="text" id="tiNewModel" class="customer-input" placeholder="สนใจรุ่นใหม่รุ่นไหน (ถ้ามี)" data-i18n-ph="ph_newmodel">
+        <input type="text" id="tiName" class="customer-input" placeholder="ชื่อ-นามสกุล (ถ้าสะดวก)" data-i18n-ph="ph_name">
+        <input type="tel" id="tiPhone" class="customer-input" placeholder="เบอร์โทร — ให้เจ้าหน้าที่โทรนัดตีราคา" data-i18n-ph="ph_phone2">
       </div>
       <button class="calc-primary-btn liff-send-btn" onclick="submitTradeIn()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
-        ส่งข้อมูลเทิร์นให้ร้าน
+        <span data-i18n="ti_submit">ส่งข้อมูลเทิร์นให้ร้าน</span>
       </button>
     </div>
   </div>
@@ -1825,32 +1827,32 @@ footer .footer-brand {
   <div class="calc-sheet">
     <div class="calc-head">
       <button class="calc-close" onclick="closeTestRide()">✕</button>
-      <div class="calc-title">🏍️ ทดลองขับขี่ฟรี</div>
+      <div class="calc-title" data-i18n="tr_title">🏍️ ทดลองขับขี่ฟรี</div>
     </div>
     <div class="calc-inner">
       <div style="background:linear-gradient(180deg,#e9f9ef 0%,#fff 100%);border:1.5px solid #b6e6c6;border-radius:10px;padding:.85rem 1rem;margin-bottom:1rem;text-align:center;">
-        <div style="font-size:1.05rem;font-weight:700;color:#1a8c47;">🎉 ทดลองขับขี่ ฟรี! ไม่มีค่าใช้จ่าย</div>
-        <div style="font-size:.82rem;color:#3a7d56;margin-top:3px;">ที่สาขาวังน้อย · เลือกรุ่นและวันที่สะดวก เดี๋ยวเจ้าหน้าที่เตรียมรถให้ครับ</div>
+        <div style="font-size:1.05rem;font-weight:700;color:#1a8c47;" data-i18n="tr_hero">🎉 ทดลองขับขี่ ฟรี! ไม่มีค่าใช้จ่าย</div>
+        <div style="font-size:.82rem;color:#3a7d56;margin-top:3px;" data-i18n="tr_hero_sub">ที่สาขาวังน้อย · เลือกรุ่นและวันที่สะดวก เดี๋ยวเจ้าหน้าที่เตรียมรถให้ครับ</div>
       </div>
-      <div class="slbl" style="margin-bottom:8px;">เลือกรุ่นที่อยากลอง</div>
+      <div class="slbl" style="margin-bottom:8px;" data-i18n="tr_pick_bike">เลือกรุ่นที่อยากลอง</div>
       <div class="pay-toggle" id="testBikeToggle" style="margin-bottom:1rem;">
         <button class="pay-opt active" data-bike="Honda PCX160 Roadsync (สีน้ำเงิน)" onclick="selectTestBike(this)">PCX160 Roadsync<br><span style="font-size:.72rem;font-weight:400;">สีน้ำเงิน</span></button>
         <button class="pay-opt" data-bike="Honda UC3 ไฟฟ้า (สีดำ)" onclick="selectTestBike(this)">UC3 ไฟฟ้า<br><span style="font-size:.72rem;font-weight:400;">สีดำ</span></button>
       </div>
       <div class="customer-info" style="margin-bottom:1rem;">
-        <div class="customer-info-title">📅 เลือกวันที่สะดวก</div>
+        <div class="customer-info-title" data-i18n="tr_pick_date">📅 เลือกวันที่สะดวก</div>
         <input type="date" id="trDate" class="customer-input" style="color-scheme:light;">
-        <div class="customer-info-title" style="margin-top:.6rem;">⏰ ช่วงเวลา</div>
+        <div class="customer-info-title" style="margin-top:.6rem;" data-i18n="tr_time">⏰ ช่วงเวลา</div>
         <div id="trPeriodRow" style="display:flex;gap:8px;margin-top:4px;">
-          <button class="period-pill active" data-period="ช่วงเช้า (9:00-12:00 น.)" onclick="selectTestPeriod(this)" style="flex:1;">🌅 ช่วงเช้า</button>
-          <button class="period-pill" data-period="ช่วงบ่าย (13:00-17:00 น.)" onclick="selectTestPeriod(this)" style="flex:1;">🌇 ช่วงบ่าย</button>
+          <button class="period-pill active" data-period="ช่วงเช้า (9:00-12:00 น.)" onclick="selectTestPeriod(this)" style="flex:1;" data-i18n="tr_morning">🌅 ช่วงเช้า</button>
+          <button class="period-pill" data-period="ช่วงบ่าย (13:00-17:00 น.)" onclick="selectTestPeriod(this)" style="flex:1;" data-i18n="tr_afternoon">🌇 ช่วงบ่าย</button>
         </div>
-        <input type="text" id="trName" class="customer-input" style="margin-top:.7rem;" placeholder="ชื่อ-นามสกุล (ถ้าสะดวก)">
-        <input type="tel" id="trPhone" class="customer-input" placeholder="เบอร์โทร — ให้เจ้าหน้าที่ยืนยันนัด">
+        <input type="text" id="trName" class="customer-input" style="margin-top:.7rem;" placeholder="ชื่อ-นามสกุล (ถ้าสะดวก)" data-i18n-ph="ph_name">
+        <input type="tel" id="trPhone" class="customer-input" placeholder="เบอร์โทร — ให้เจ้าหน้าที่ยืนยันนัด" data-i18n-ph="ph_phone3">
       </div>
       <button class="calc-primary-btn liff-send-btn" onclick="submitTestRide()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
-        ส่งนัดทดลองขับให้ร้าน
+        <span data-i18n="tr_submit">ส่งนัดทดลองขับให้ร้าน</span>
       </button>
     </div>
   </div>
@@ -1861,13 +1863,13 @@ footer .footer-brand {
   <div class="calc-sheet">
     <div class="calc-head">
       <button class="calc-close" onclick="closeFAQ()">✕</button>
-      <div class="calc-title">❓ คำถามที่พบบ่อย</div>
+      <div class="calc-title" data-i18n="faq_overlay_title">❓ คำถามที่พบบ่อย</div>
     </div>
     <div class="calc-inner">
       <div id="faqList"></div>
       <div style="background:#e9f9ef;border:1px solid #b6e6c6;border-radius:10px;padding:.85rem 1rem;margin-top:1rem;text-align:center;">
-        <div style="font-size:.88rem;color:#1a8c47;font-weight:600;margin-bottom:.5rem;">ยังไม่หายสงสัย? ทักถามเจ้าหน้าที่ได้เลยครับ 😊</div>
-        <a href="https://line.me/R/ti/p/@975ltwhp" target="_blank" class="calc-primary-btn liff-send-btn" style="display:inline-flex;text-decoration:none;padding:0.6rem 1.5rem;">💬 แชทถามเจ้าหน้าที่</a>
+        <div style="font-size:.88rem;color:#1a8c47;font-weight:600;margin-bottom:.5rem;" data-i18n="faq_more">ยังไม่หายสงสัย? ทักถามเจ้าหน้าที่ได้เลยครับ 😊</div>
+        <a href="https://line.me/R/ti/p/@975ltwhp" target="_blank" class="calc-primary-btn liff-send-btn" style="display:inline-flex;text-decoration:none;padding:0.6rem 1.5rem;" data-i18n="faq_chat_btn">💬 แชทถามเจ้าหน้าที่</a>
       </div>
     </div>
   </div>
@@ -1903,11 +1905,11 @@ footer .footer-brand {
 
 <!-- ===== BOTTOM NAV ===== -->
 <nav class="bottom-nav">
-  <button class="bottom-nav-item active" id="bnHome" onclick="bottomNav('Home')"><div class="nav-ico">🏠</div><div class="nav-lbl">หน้าหลัก</div></button>
-  <button class="bottom-nav-item" id="bnModels" onclick="bottomNav('Models')"><div class="nav-ico">🏍️</div><div class="nav-lbl">รุ่นรถ</div></button>
-  <button class="bottom-nav-item" id="bnCalc" onclick="bottomNav('Calc')"><div class="nav-ico">🧮</div><div class="nav-lbl">ค่างวด</div></button>
-  <a class="bottom-nav-item" id="bnContact" href="https://line.me/R/ti/p/@975ltwhp" target="_blank" style="text-decoration:none;color:inherit;"><div class="nav-ico">💬</div><div class="nav-lbl">แชท LINE</div></a>
-  <button class="bottom-nav-item" id="bnSocial" onclick="bottomNav('Social')"><div class="nav-ico">📱</div><div class="nav-lbl">โซเชียล</div></button>
+  <button class="bottom-nav-item active" id="bnHome" onclick="bottomNav('Home')"><div class="nav-ico">🏠</div><div class="nav-lbl" data-i18n="nav_home">หน้าหลัก</div></button>
+  <button class="bottom-nav-item" id="bnModels" onclick="bottomNav('Models')"><div class="nav-ico">🏍️</div><div class="nav-lbl" data-i18n="nav_bikes">รุ่นรถ</div></button>
+  <button class="bottom-nav-item" id="bnCalc" onclick="bottomNav('Calc')"><div class="nav-ico">🧮</div><div class="nav-lbl" data-i18n="nav_calc">ค่างวด</div></button>
+  <a class="bottom-nav-item" id="bnContact" href="https://line.me/R/ti/p/@975ltwhp" target="_blank" style="text-decoration:none;color:inherit;"><div class="nav-ico">💬</div><div class="nav-lbl" data-i18n="nav_chat">แชท LINE</div></a>
+  <button class="bottom-nav-item" id="bnSocial" onclick="bottomNav('Social')"><div class="nav-ico">📱</div><div class="nav-lbl" data-i18n="nav_social2">โซเชียล</div></button>
 </nav>
 
 <script>
@@ -2348,7 +2350,9 @@ const FAQ_DATA = [
 function renderFAQ() {
   const el = document.getElementById('faqList');
   if (!el) return;
-  const list = (siteConfig.faq && siteConfig.faq.length) ? siteConfig.faq : FAQ_DATA;
+  // โหมดพม่า: ใช้ชุดคำถามพม่า (คนละชุดกับไทย) ถ้ามี · ไม่มี → ใช้ชุดไทย
+  const useMy = (langMode === 'my' && Array.isArray(siteConfig.faq_my) && siteConfig.faq_my.length);
+  const list = useMy ? siteConfig.faq_my : ((siteConfig.faq && siteConfig.faq.length) ? siteConfig.faq : FAQ_DATA);
   el.innerHTML = list.map(function(f, i) {
     return '<div class="faq-item" id="faqItem' + i + '">' +
       '<div class="faq-q" onclick="toggleFaq(' + i + ')">' +
@@ -2590,7 +2594,29 @@ const I18N = {
     add_compare: '➕ เพิ่มในรายการเปรียบเทียบ',
     send_all: '💬 สนใจหลายรุ่น ให้เซลล์ช่วยแนะนำ',
     send_line: '💬 ส่งข้อมูลให้ร้านทาง LINE',
-    interest_title: '🛒 รุ่นที่สนใจ', interest_sub: 'ส่งทุกรุ่นให้ทีมงานทีเดียว เปรียบเทียบง่าย ไม่ต้องส่งทีละคัน'
+    interest_title: '🛒 รุ่นที่สนใจ', interest_sub: 'ส่งทุกรุ่นให้ทีมงานทีเดียว เปรียบเทียบง่าย ไม่ต้องส่งทีละคัน',
+    free_badge: 'ฟรี!', cat_pick: 'เลือกตามประเภท',
+    models_title: 'รุ่นรถฮอนด้า', models_sub: 'กดรถที่สนใจเพื่อดูสีและรุ่นย่อย · สอบถามราคาและตารางผ่อนได้ที่ร้าน',
+    nav_home: 'หน้าหลัก', nav_bikes: 'รุ่นรถ', nav_calc: 'ค่างวด', nav_chat: 'แชท LINE', nav_social2: 'โซเชียล',
+    calc_title: 'คำนวณค่างวด', step_choose: 'เลือกรุ่น', step_setup: 'ตั้งค่า', step_result: 'ผลลัพธ์',
+    calc_next: 'ถัดไป →', calc_color: 'เลือกสี', pay_install: '💳 เงินผ่อน', pay_cash: '💵 เงินสด',
+    lbl_financed: 'ยอดจัดไฟแนนซ์', lbl_est_install: 'ค่างวดโดยประมาณ', lbl_down: 'เงินดาวน์',
+    lbl_custom_down: 'หรือกำหนดเงินดาวน์เอง', unit_baht: 'บาท', lbl_period: 'ระยะเวลาผ่อน',
+    lbl_cash_price: 'ราคาเงินสด', cash_perk: 'รับสิทธิพิเศษเมื่อซื้อสด',
+    cash_b1: '✓ ฟรีทะเบียน', cash_b2: '✓ ฟรี พ.ร.บ.', cash_b3: '✓ ฟรีประกันรถหาย', cash_b4: '✓ ฟรีประกันอุบัติเหตุ',
+    cash_note: '* ติดต่อร้านเพื่อยืนยันราคาและโปรโมชั่นล่าสุด อาจมีส่วนลดเพิ่มเติมสำหรับลูกค้าเงินสด',
+    calc_see_result: 'ดูผลลัพธ์ →', res_install_label: 'ค่างวดต่อเดือน (ประมาณ)', bd_price: 'ราคารถ',
+    bd_note: '* ตัวเลขเป็นการประมาณการเบื้องต้น เงื่อนไขตามบริษัทไฟแนนซ์กำหนด', bd_note_cash: '* ติดต่อร้านเพื่อยืนยันราคาและโปรโมชั่นล่าสุด',
+    ci_title: '📝 ข้อมูลติดต่อ (ไม่บังคับ)', ci_note: 'ใส่เบอร์ไว้ ให้เจ้าหน้าที่โทรช่วยจัดไฟแนนซ์ให้ผ่านง่ายขึ้น 😊',
+    ph_name: 'ชื่อ-นามสกุล (ถ้าสะดวก)', ph_phone: 'เบอร์โทร — ให้เจ้าหน้าที่โทรช่วยจัดไฟแนนซ์',
+    reassure_t: 'กังวลเรื่องการอนุมัติ หรือไม่แน่ใจว่าผ่อนได้ไหม?', reassure_s: 'ส่งข้อมูลนี้ให้ทีมงานช่วยตรวจสอบและแนะนำแนวทางได้ฟรี ไม่มีค่าใช้จ่าย และไม่มีข้อผูกมัดในการออกรถ',
+    send_shop_liff: 'ส่งข้อมูลนี้ให้ร้าน',
+    ti_title: '🔄 เทิร์นรถเก่า', ti_info: 'รับเทิร์นทุกรุ่นครับ 🔄 กรอกข้อมูลรถเก่า เดี๋ยวเจ้าหน้าที่โทรนัดเอารถมาตีราคาที่ร้าน', ti_info_sub: '* การตีราคาต้องดูสภาพรถจริงที่ร้าน',
+    ti_old_title: '🏍️ รถเก่าที่จะเทิร์น', ti_old_note: 'ดูรุ่นรถได้ที่เล่มทะเบียนรถ (สมุดคู่มือจดทะเบียน)', ti_contact: '📝 ข้อมูลติดต่อ', ti_submit: 'ส่งข้อมูลเทิร์นให้ร้าน',
+    ph_oldbike: 'รุ่นรถเก่า * เช่น Honda Wave110i', ph_oldyear: 'ปีที่จดทะเบียน (ถ้าทราบ) เช่น 2563', ph_newmodel: 'สนใจรุ่นใหม่รุ่นไหน (ถ้ามี)', ph_phone2: 'เบอร์โทร — ให้เจ้าหน้าที่โทรนัดตีราคา',
+    tr_title: '🏍️ ทดลองขับขี่ฟรี', tr_hero: '🎉 ทดลองขับขี่ ฟรี! ไม่มีค่าใช้จ่าย', tr_hero_sub: 'ที่สาขาวังน้อย · เลือกรุ่นและวันที่สะดวก เดี๋ยวเจ้าหน้าที่เตรียมรถให้ครับ',
+    tr_pick_bike: 'เลือกรุ่นที่อยากลอง', tr_pick_date: '📅 เลือกวันที่สะดวก', tr_time: '⏰ ช่วงเวลา', tr_morning: '🌅 ช่วงเช้า', tr_afternoon: '🌇 ช่วงบ่าย', ph_phone3: 'เบอร์โทร — ให้เจ้าหน้าที่ยืนยันนัด', tr_submit: 'ส่งนัดทดลองขับให้ร้าน',
+    faq_overlay_title: '❓ คำถามที่พบบ่อย', faq_more: 'ยังไม่หายสงสัย? ทักถามเจ้าหน้าที่ได้เลยครับ 😊', faq_chat_btn: '💬 แชทถามเจ้าหน้าที่'
   },
   my: {
     nav_models: 'ဆိုင်ကယ်နှင့် ဈေး', nav_social: 'Social', nav_line: 'LINE ချတ်',
@@ -2601,7 +2627,29 @@ const I18N = {
     add_compare: '➕ နှိုင်းယှဉ်ရန် စာရင်းထည့်ရန်',
     send_all: '💬 မော်ဒယ်များစွာ စိတ်ဝင်စား · ဝန်ထမ်းအကြံပြုပေးပါမည်',
     send_line: '💬 ဆိုင်သို့ အချက်အလက်ပို့ရန် (LINE)',
-    interest_title: '🛒 စိတ်ဝင်စားသော မော်ဒယ်များ', interest_sub: 'မော်ဒယ်အားလုံးကို တစ်ကြိမ်တည်းပို့ပြီး လွယ်ကူစွာ နှိုင်းယှဉ်နိုင်သည်'
+    interest_title: '🛒 စိတ်ဝင်စားသော မော်ဒယ်များ', interest_sub: 'မော်ဒယ်အားလုံးကို တစ်ကြိမ်တည်းပို့ပြီး လွယ်ကူစွာ နှိုင်းယှဉ်နိုင်သည်',
+    free_badge: 'အခမဲ့!', cat_pick: 'အမျိုးအစားအလိုက် ရွေးရန်',
+    models_title: 'Honda ဆိုင်ကယ်များ', models_sub: 'စိတ်ဝင်စားသော ဆိုင်ကယ်ကိုနှိပ်၍ အရောင်/မော်ဒယ်ခွဲ ကြည့်ရန် · ဈေးနှင့် အရစ်ကျဇယား ဆိုင်တွင်မေးနိုင်သည်',
+    nav_home: 'ပင်မ', nav_bikes: 'ဆိုင်ကယ်', nav_calc: 'အရစ်ကျ', nav_chat: 'LINE ချတ်', nav_social2: 'Social',
+    calc_title: 'အရစ်ကျ တွက်ချက်ရန်', step_choose: 'မော်ဒယ်ရွေး', step_setup: 'သတ်မှတ်', step_result: 'ရလဒ်',
+    calc_next: 'ဆက်သွား →', calc_color: 'အရောင်ရွေး', pay_install: '💳 အရစ်ကျ', pay_cash: '💵 ေငြသား',
+    lbl_financed: 'ချေးငွေပမာဏ', lbl_est_install: 'ခန့်မှန်း လစဉ်ပေးချေ', lbl_down: 'စရံ',
+    lbl_custom_down: 'သို့မဟုတ် စရံ ကိုယ်တိုင်သတ်မှတ်', unit_baht: 'ဘတ်', lbl_period: 'အရစ်ကျ ကာလ',
+    lbl_cash_price: 'ေငြသားဈေး', cash_perk: 'ေငြသားဝယ်လျှင် အထူးအခွင့်အရေး',
+    cash_b1: '✓ မှတ်ပုံတင် အခမဲ့', cash_b2: '✓ พ.ร.บ. အာမခံ အခမဲ့', cash_b3: '✓ ဆိုင်ကယ်ပျောက်အာမခံ အခမဲ့', cash_b4: '✓ မတော်တဆအာမခံ အခမဲ့',
+    cash_note: '* နောက်ဆုံးဈေးနှင့် ပရိုမိုးရှင်းအတွက် ဆိုင်သို့ဆက်သွယ်ပါ · ေငြသားဝယ်သူအတွက် လျှော့ဈေးထပ်ရှိနိုင်သည်',
+    calc_see_result: 'ရလဒ်ကြည့်ရန် →', res_install_label: 'လစဉ်ပေးချေငွေ (ခန့်မှန်း)', bd_price: 'ဆိုင်ကယ်ဈေး',
+    bd_note: '* ဂဏန်းများသည် ခန့်မှန်းခြေဖြစ်ပြီး ဖိုင်နန့်စ်ကုမ္ပဏီ စည်းကမ်းအတိုင်းဖြစ်သည်', bd_note_cash: '* နောက်ဆုံးဈေးနှင့် ပရိုမိုးရှင်းအတွက် ဆိုင်သို့ဆက်သွယ်ပါ',
+    ci_title: '📝 ဆက်သွယ်ရန်အချက်အလက် (မဖြစ်မနေမဟုတ်)', ci_note: 'ဖုန်းနံပါတ်ထည့်ထားပါ ဝန်ထမ်းက ဖိုင်နန့်စ်အဆင်ပြေအောင် ကူညီပေးပါမည် 😊',
+    ph_name: 'အမည် (အဆင်ပြေလျှင်)', ph_phone: 'ဖုန်းနံပါတ် — ဖိုင်နန့်စ်ကူညီရန်',
+    reassure_t: 'အတည်ပြုခြင်း စိုးရိမ်ပါသလား? အရစ်ကျနိုင်မလား မသေချာဘူးလား?', reassure_s: 'ဤအချက်အလက်ကို ဝန်ထမ်းထံပို့ပါ စစ်ဆေးပြီးလမ်းညွှန်ပေးပါမည် အခမဲ့ ကုန်ကျစရိတ်မရှိ ဝယ်ရန်တာဝန်မရှိ',
+    send_shop_liff: 'ဤအချက်အလက်ကို ဆိုင်သို့ပို့ရန်',
+    ti_title: '🔄 ဆိုင်ကယ်အဟောင်း လဲရန်', ti_info: 'အမျိုးအစားအားလုံး လဲပေးပါသည် 🔄 ဆိုင်ကယ်အဟောင်းအချက်အလက်ဖြည့်ပါ ဝန်ထမ်းကဆိုင်သို့ယူလာတန်ဖိုးဖြတ်ရန် ဖုန်းဆက်ပါမည်', ti_info_sub: '* တန်ဖိုးဖြတ်ရန် ဆိုင်ကယ်အခြေအနေအစစ်ကို ဆိုင်တွင်ကြည့်ရပါသည်',
+    ti_old_title: '🏍️ လဲမည့် ဆိုင်ကယ်အဟောင်း', ti_old_note: 'ဆိုင်ကယ်မော်ဒယ်ကို မှတ်ပုံတင်စာအုပ်တွင်ကြည့်နိုင်သည်', ti_contact: '📝 ဆက်သွယ်ရန်အချက်အလက်', ti_submit: 'လဲလှယ်အချက်အလက် ဆိုင်သို့ပို့ရန်',
+    ph_oldbike: 'ဆိုင်ကယ်အဟောင်း * ဥပမာ Honda Wave110i', ph_oldyear: 'မှတ်ပုံတင်နှစ် (သိလျှင်) ဥပမာ 2563', ph_newmodel: 'စိတ်ဝင်စားသော မော်ဒယ်အသစ် (ရှိလျှင်)', ph_phone2: 'ဖုန်းနံပါတ် — တန်ဖိုးဖြတ်ချိန်းဆိုရန်',
+    tr_title: '🏍️ အခမဲ့ စမ်းသပ်စီးနင်း', tr_hero: '🎉 စမ်းသပ်စီးနင်း အခမဲ့! ကုန်ကျစရိတ်မရှိ', tr_hero_sub: 'ဝမ်ညွိုင်ဆိုင်တွင် · မော်ဒယ်နှင့်အဆင်ပြေသည့်ရက်ရွေးပါ ဝန်ထမ်းကဆိုင်ကယ်ပြင်ဆင်ပေးပါမည်',
+    tr_pick_bike: 'စမ်းချင်သော မော်ဒယ်ရွေးပါ', tr_pick_date: '📅 အဆင်ပြေသည့်ရက်ရွေးပါ', tr_time: '⏰ အချိန်ပိုင်း', tr_morning: '🌅 မနက်ပိုင်း', tr_afternoon: '🌇 နေ့လယ်ပိုင်း', ph_phone3: 'ဖုန်းနံပါတ် — ချိန်းဆိုအတည်ပြုရန်', tr_submit: 'စမ်းသပ်စီးနင်းချိန်းဆိုမှု ဆိုင်သို့ပို့ရန်',
+    faq_overlay_title: '❓ မေးလေ့ရှိသောမေးခွန်းများ', faq_more: 'သေချာမသိသေးဘူးလား? ဝန်ထမ်းကိုမေးနိုင်သည် 😊', faq_chat_btn: '💬 ဝန်ထမ်းကိုချတ်မေးရန်'
   }
 };
 function t(k) { return (I18N[langMode] && I18N[langMode][k]) || I18N.th[k] || k; }
@@ -2609,15 +2657,22 @@ function applyLang() {
   document.documentElement.lang = (langMode === 'my') ? 'my' : 'th';
   document.body.classList.toggle('lang-my', langMode === 'my');
   document.querySelectorAll('[data-i18n]').forEach(function(el) { const s = t(el.getAttribute('data-i18n')); if (s) el.textContent = s; });
+  document.querySelectorAll('[data-i18n-ph]').forEach(function(el) { const s = t(el.getAttribute('data-i18n-ph')); if (s) el.placeholder = s; });
   // ซ่อนปุ่มสลับในโหมดพม่า (กันลูกค้าพม่าเทียบราคาไทย) · โหมดไทยโชว์ปุ่มไป 🇲🇲
   const lt = document.getElementById('langToggle');
   if (lt) { if (langMode === 'my') { lt.style.display = 'none'; } else { lt.style.display = ''; lt.textContent = '🇲🇲 မြန်မာ'; } }
   const mb = document.getElementById('myBanner'); if (mb) mb.style.display = (langMode === 'my') ? 'block' : 'none';
+  const hc = document.getElementById('heroMyCaption'); if (hc) hc.style.display = (langMode === 'my') ? 'block' : 'none';
 }
 function toggleLang() {
   langMode = (langMode === 'my') ? 'th' : 'my';
   try { localStorage.setItem('papao_lang', langMode); } catch (e) {}
   applyLang();
+  // re-render ส่วนที่ JS สร้าง (ชื่อหมวดเปลี่ยนภาษา)
+  try { if (typeof renderAllRows === 'function') renderAllRows(); } catch (e) {}
+  try { if (typeof renderCatIcons === 'function') renderCatIcons(); } catch (e) {}
+  try { if (typeof renderTrustStrip === 'function') renderTrustStrip(); } catch (e) {}
+  try { if (typeof populateCalcModels === 'function') populateCalcModels(); } catch (e) {}
   if (typeof updateCalcLive === 'function' && calcModel) updateCalcLive();
   if (typeof updateCashPreview === 'function' && calcModel) updateCashPreview();
 }
@@ -2953,7 +3008,8 @@ const DEFAULT_SITE_CONFIG = {
   ],
   // override icon/ชื่อหมวด — key = bike_type เดิม (ไม่กระทบข้อมูลรถ)
   categoryOverrides: {},
-  faq: []  // คำถามที่พบบ่อย — แก้ใน admin (ว่าง = ใช้ค่าเริ่มต้น FAQ_DATA)
+  faq: [],   // คำถามที่พบบ่อย ไทย — แก้ใน admin (ว่าง = ใช้ค่าเริ่มต้น FAQ_DATA)
+  faq_my: [] // คำถามที่พบบ่อย พม่า (คนละชุด)
 };
 let siteConfig = JSON.parse(JSON.stringify(DEFAULT_SITE_CONFIG));
 
@@ -2967,6 +3023,7 @@ async function fetchSiteConfig() {
       if (Array.isArray(d.benefits) && d.benefits.length) siteConfig.benefits = d.benefits;
       if (d.categoryOverrides && typeof d.categoryOverrides === 'object') siteConfig.categoryOverrides = d.categoryOverrides;
       if (Array.isArray(d.faq)) siteConfig.faq = d.faq;
+      if (Array.isArray(d.faq_my)) siteConfig.faq_my = d.faq_my;
     }
   } catch(e) { console.log('site-config unavailable, using defaults', e.message); }
 }
@@ -2981,11 +3038,22 @@ function iconToHtml(ic, cls) {
 }
 
 // คืน { icon, label } ของหมวด — ใช้ override ถ้ามี ไม่งั้นใช้ค่า default
+// ชื่อหมวดภาษาพม่า (ตาม bike_type) — ใช้เมื่อโหมด MY
+const CAT_MY = {
+  'ครอบครัว (Family)': 'မိသားစု (Family)',
+  'สกู๊ตเตอร์ออโตเมติก': 'အော်တို စကုတ်တာ',
+  'สปอร์ต (Sport)': 'စပို့ (Sport)',
+  'บ๊อบเบอร์ & นีโอสปอร์ตคาเฟ่': 'Bobber & Neo Sports Cafe',
+  'ผจญภัย (Adventure)': 'စွန့်စားခရီး (Adventure)',
+  'รถไฟฟ้า (EV)': 'လျှပ်စစ်ဆိုင်ကယ် (EV)'
+};
 function catDisplay(cat) {
   const ov = (siteConfig.categoryOverrides || {})[cat.name] || {};
+  let label = (ov.label && ov.label.trim()) ? ov.label : cat.name;
+  if (langMode === 'my' && CAT_MY[cat.name]) label = CAT_MY[cat.name];
   return {
     icon: (ov.icon && ov.icon.trim()) ? ov.icon : cat.icon,
-    label: (ov.label && ov.label.trim()) ? ov.label : cat.name
+    label: label
   };
 }
 
@@ -3010,7 +3078,8 @@ function renderTrustStrip() {
     const iconHtml = /^https?:\/\//.test(ic)
       ? '<img src="' + ic + '" alt="">'
       : ic;
-    return '<div class="trust-item"><div class="trust-icon">' + iconHtml + '</div><div class="trust-label">' + (b.label || '') + '</div></div>';
+    const lbl = (langMode === 'my' && b.label_my) ? b.label_my : (b.label || '');
+    return '<div class="trust-item"><div class="trust-icon">' + iconHtml + '</div><div class="trust-label">' + lbl + '</div></div>';
   }).join('');
 }
 

@@ -330,10 +330,17 @@ tr:hover td { background: #fafafa; }
         </div>
 
         <div class="card" style="margin-bottom:1.5rem;">
-          <h3 style="margin-top:0;">❓ คำถามที่พบบ่อย (FAQ)</h3>
+          <h3 style="margin-top:0;">❓ คำถามที่พบบ่อย (FAQ) — 🇹🇭 ไทย</h3>
           <p style="font-size:0.85rem;color:#888;margin-top:0;">เพิ่ม/แก้/ลบ คำถาม-คำตอบ ที่แสดงบนเว็บลูกค้า · เว้นว่างทั้งหมด = ใช้ชุดเริ่มต้น</p>
           <div id="sc_faqRows"></div>
           <button type="button" class="btn btn-gray btn-sm" onclick="addFaqRow()" style="margin-top:0.25rem;">+ เพิ่มคำถาม</button>
+        </div>
+
+        <div class="card" style="margin-bottom:1.5rem;border:1.5px solid #cfe3ff;background:#f5faff;">
+          <h3 style="margin-top:0;">❓ FAQ — 🇲🇲 ภาษาพม่า (คนละชุดกับไทย)</h3>
+          <p style="font-size:0.85rem;color:#5b7fb4;margin-top:0;">ชุดคำถามสำหรับลูกค้าพม่าโดยเฉพาะ (ไม่ใช่คำแปลของไทย) · เว้นว่าง = เว็บโหมดพม่าจะใช้ชุดไทยแทน</p>
+          <div id="sc_faqRowsMy"></div>
+          <button type="button" class="btn btn-gray btn-sm" onclick="addFaqRowMy()" style="margin-top:0.25rem;">+ เพิ่มคำถาม (พม่า)</button>
         </div>
 
         <button class="btn btn-success" onclick="saveSiteConfig()" style="font-size:1rem;padding:0.75rem 2rem;">💾 บันทึก</button>
@@ -1273,12 +1280,15 @@ function _faqRowHtml(q, a) {
 }
 function _renderFaqRows() {
   const wrap = document.getElementById('sc_faqRows');
-  if (!wrap) return;
-  const list = Array.isArray(_siteCfg.faq) ? _siteCfg.faq : [];
-  wrap.innerHTML = list.map(function(f){ return _faqRowHtml(f.q, f.a); }).join('');
+  if (wrap) wrap.innerHTML = (Array.isArray(_siteCfg.faq) ? _siteCfg.faq : []).map(function(f){ return _faqRowHtml(f.q, f.a); }).join('');
+  const wrapMy = document.getElementById('sc_faqRowsMy');
+  if (wrapMy) wrapMy.innerHTML = (Array.isArray(_siteCfg.faq_my) ? _siteCfg.faq_my : []).map(function(f){ return _faqRowHtml(f.q, f.a); }).join('');
 }
 function addFaqRow() {
   document.getElementById('sc_faqRows').insertAdjacentHTML('beforeend', _faqRowHtml('', ''));
+}
+function addFaqRowMy() {
+  document.getElementById('sc_faqRowsMy').insertAdjacentHTML('beforeend', _faqRowHtml('', ''));
 }
 
 function _benefitIconPreview(ic) {
@@ -1295,7 +1305,8 @@ function _renderBenefitsRows() {
       '<span style="color:#888;font-weight:600;width:20px;">' + (i+1) + '.</span>' +
       '<span id="sc_iconPrev' + i + '">' + _benefitIconPreview(b.icon) + '</span>' +
       '<input type="text" value="' + (b.icon || '').replace(/"/g, '&quot;') + '" placeholder="URL รูป หรือ emoji" style="flex:1.2;padding:0.5rem 0.7rem;border:1px solid #ddd;border-radius:6px;font-size:0.82rem;font-family:monospace;" oninput="_siteCfg.benefits[' + i + '].icon = this.value; document.getElementById(\'sc_iconPrev' + i + '\').innerHTML = _benefitIconPreview(this.value);">' +
-      '<input type="text" value="' + (b.label || '').replace(/"/g, '&quot;') + '" placeholder="ข้อความ" style="flex:1.5;padding:0.5rem 0.7rem;border:1px solid #ddd;border-radius:6px;" oninput="_siteCfg.benefits[' + i + '].label = this.value">' +
+      '<input type="text" value="' + (b.label || '').replace(/"/g, '&quot;') + '" placeholder="🇹🇭 ข้อความ" style="flex:1.5;padding:0.5rem 0.7rem;border:1px solid #ddd;border-radius:6px;" oninput="_siteCfg.benefits[' + i + '].label = this.value">' +
+      '<input type="text" value="' + (b.label_my || '').replace(/"/g, '&quot;') + '" placeholder="🇲🇲 ข้อความ (พม่า)" style="flex:1.5;padding:0.5rem 0.7rem;border:1px solid #cfe3ff;border-radius:6px;background:#f5faff;" oninput="_siteCfg.benefits[' + i + '].label_my = this.value">' +
     '</div>';
   }).join('');
 }
@@ -1363,6 +1374,7 @@ async function loadSiteConfig() {
       if (Array.isArray(d.benefits) && d.benefits.length === 3) _siteCfg.benefits = d.benefits;
       _siteCfg.categoryOverrides = (d.categoryOverrides && typeof d.categoryOverrides === 'object') ? d.categoryOverrides : {};
       _siteCfg.faq = (Array.isArray(d.faq) && d.faq.length) ? d.faq : JSON.parse(JSON.stringify(DEFAULT_FAQ));
+      _siteCfg.faq_my = Array.isArray(d.faq_my) ? d.faq_my : [];
     }
   } catch(e) { console.warn('loadSiteConfig', e.message); }
   document.getElementById('sc_heroImage').value = _siteCfg.heroImage;
@@ -1394,7 +1406,7 @@ async function saveSiteConfig() {
   rows.forEach(function(row, i) {
     const inputs = row.querySelectorAll('input');
     if (inputs.length >= 2) {
-      _siteCfg.benefits[i] = { icon: inputs[0].value, label: inputs[1].value };
+      _siteCfg.benefits[i] = { icon: inputs[0].value, label: inputs[1].value, label_my: inputs[2] ? inputs[2].value : '' };
     }
   });
   // ดึงค่า category overrides — เก็บเฉพาะที่กรอก (เว้นว่าง = ไม่ override)
@@ -1409,13 +1421,17 @@ async function saveSiteConfig() {
   });
   _siteCfg.categoryOverrides = newOv;
   // ดึง FAQ — เก็บเฉพาะแถวที่มีคำถาม
-  const faq = [];
-  document.querySelectorAll('#sc_faqRows .faq-edit-row').forEach(function(row) {
-    const q = (row.querySelector('.faqQ')?.value || '').trim();
-    const a = (row.querySelector('.faqA')?.value || '').trim();
-    if (q) faq.push({ q: q, a: a });
-  });
-  _siteCfg.faq = faq;
+  const collectFaq = function(sel) {
+    const out = [];
+    document.querySelectorAll(sel + ' .faq-edit-row').forEach(function(row) {
+      const q = (row.querySelector('.faqQ')?.value || '').trim();
+      const a = (row.querySelector('.faqA')?.value || '').trim();
+      if (q) out.push({ q: q, a: a });
+    });
+    return out;
+  };
+  _siteCfg.faq = collectFaq('#sc_faqRows');         // 🇹🇭 ไทย
+  _siteCfg.faq_my = collectFaq('#sc_faqRowsMy');     // 🇲🇲 พม่า (คนละชุด)
   try {
     const res = await fetch('https://n8n-wt11.onrender.com/webhook/save-site-config', {
       method: 'POST',
