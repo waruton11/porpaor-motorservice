@@ -312,6 +312,13 @@ tr:hover td { background: #fafafa; }
             <img id="sc_heroPreview" src="" style="max-width:100%;max-height:200px;border-radius:4px;display:none;">
             <div id="sc_heroPlaceholder" style="color:#999;font-size:0.85rem;padding:1.5rem;">วาง URL รูปด้านบนเพื่อดูตัวอย่าง</div>
           </div>
+
+          <label style="display:block;font-size:.9rem;color:#1a5298;margin:1rem 0 0.4rem;font-weight:600;">🇲🇲 URL รูป Hero ภาษาพม่า (เว้นว่าง = โหมดพม่าใช้รูปไทย)</label>
+          <input type="text" id="sc_heroImageMy" class="form-input" placeholder="https://... (รูปปกภาษาพม่า)" style="width:100%;padding:0.6rem;border:1px solid #cfe3ff;border-radius:6px;font-family:monospace;font-size:0.85rem;background:#f5faff;">
+          <div style="margin-top:0.75rem;padding:0.75rem;background:#f5faff;border-radius:6px;text-align:center;min-height:80px;">
+            <img id="sc_heroPreviewMy" src="" style="max-width:100%;max-height:200px;border-radius:4px;display:none;">
+            <div id="sc_heroPlaceholderMy" style="color:#999;font-size:0.85rem;padding:1.5rem;">วาง URL รูปพม่าด้านบนเพื่อดูตัวอย่าง</div>
+          </div>
         </div>
 
         <div class="card" style="margin-bottom:1.5rem;">
@@ -1248,6 +1255,7 @@ function crmEditName(uid) {
 // ========== SITE CONFIG (Hero + Trust Strip) ==========
 let _siteCfg = {
   heroImage: '',
+  heroImage_my: '',
   benefits: [
     { icon: '🏅', label: 'รับประกัน Honda' },
     { icon: '💳', label: 'ดาวน์ 0%' },
@@ -1371,6 +1379,7 @@ async function loadSiteConfig() {
     if (res.ok) {
       const d = await res.json();
       if (d.heroImage) _siteCfg.heroImage = d.heroImage;
+      _siteCfg.heroImage_my = d.heroImage_my || '';
       if (Array.isArray(d.benefits) && d.benefits.length === 3) _siteCfg.benefits = d.benefits;
       _siteCfg.categoryOverrides = (d.categoryOverrides && typeof d.categoryOverrides === 'object') ? d.categoryOverrides : {};
       _siteCfg.faq = (Array.isArray(d.faq) && d.faq.length) ? d.faq : JSON.parse(JSON.stringify(DEFAULT_FAQ));
@@ -1378,6 +1387,7 @@ async function loadSiteConfig() {
     }
   } catch(e) { console.warn('loadSiteConfig', e.message); }
   document.getElementById('sc_heroImage').value = _siteCfg.heroImage;
+  const hiMy = document.getElementById('sc_heroImageMy'); if (hiMy) hiMy.value = _siteCfg.heroImage_my || '';
   _updateHeroPreview();
   _renderBenefitsRows();
   _renderFaqRows();
@@ -1386,21 +1396,20 @@ async function loadSiteConfig() {
 }
 
 function _updateHeroPreview() {
-  const url = document.getElementById('sc_heroImage').value.trim();
-  const img = document.getElementById('sc_heroPreview');
-  const ph = document.getElementById('sc_heroPlaceholder');
-  if (url) {
-    img.src = url;
-    img.style.display = 'block';
-    ph.style.display = 'none';
-  } else {
-    img.style.display = 'none';
-    ph.style.display = 'block';
-  }
+  const set = function(inputId, imgId, phId) {
+    const el = document.getElementById(inputId); if (!el) return;
+    const url = (el.value || '').trim();
+    const img = document.getElementById(imgId), ph = document.getElementById(phId);
+    if (url) { img.src = url; img.style.display = 'block'; ph.style.display = 'none'; }
+    else { img.style.display = 'none'; ph.style.display = 'block'; }
+  };
+  set('sc_heroImage', 'sc_heroPreview', 'sc_heroPlaceholder');
+  set('sc_heroImageMy', 'sc_heroPreviewMy', 'sc_heroPlaceholderMy');
 }
 
 async function saveSiteConfig() {
   _siteCfg.heroImage = document.getElementById('sc_heroImage').value.trim();
+  _siteCfg.heroImage_my = (document.getElementById('sc_heroImageMy')?.value || '').trim();
   // ดึงค่า benefit ล่าสุด
   const rows = document.querySelectorAll('#sc_benefitsRows > div');
   rows.forEach(function(row, i) {
@@ -1449,6 +1458,8 @@ async function saveSiteConfig() {
 document.addEventListener('DOMContentLoaded', function() {
   const hi = document.getElementById('sc_heroImage');
   if (hi) hi.addEventListener('input', _updateHeroPreview);
+  const hiMy = document.getElementById('sc_heroImageMy');
+  if (hiMy) hiMy.addEventListener('input', _updateHeroPreview);
 });
 
 // ========== MODELS ==========

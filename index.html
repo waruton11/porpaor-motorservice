@@ -2658,11 +2658,11 @@ function applyLang() {
   document.body.classList.toggle('lang-my', langMode === 'my');
   document.querySelectorAll('[data-i18n]').forEach(function(el) { const s = t(el.getAttribute('data-i18n')); if (s) el.textContent = s; });
   document.querySelectorAll('[data-i18n-ph]').forEach(function(el) { const s = t(el.getAttribute('data-i18n-ph')); if (s) el.placeholder = s; });
-  // ซ่อนปุ่มสลับในโหมดพม่า (กันลูกค้าพม่าเทียบราคาไทย) · โหมดไทยโชว์ปุ่มไป 🇲🇲
+  // โชว์ปุ่มสลับทั้ง 2 โหมด — โหมดไทยกดไป 🇲🇲, โหมดพม่ากดกลับ 🇹🇭 (กันคนไทยเผลอเข้าแล้วติด)
   const lt = document.getElementById('langToggle');
-  if (lt) { if (langMode === 'my') { lt.style.display = 'none'; } else { lt.style.display = ''; lt.textContent = '🇲🇲 မြန်မာ'; } }
+  if (lt) { lt.style.display = ''; lt.textContent = (langMode === 'my') ? '🇹🇭 ภาษาไทย' : '🇲🇲 မြန်မာ'; }
   const mb = document.getElementById('myBanner'); if (mb) mb.style.display = (langMode === 'my') ? 'block' : 'none';
-  const hc = document.getElementById('heroMyCaption'); if (hc) hc.style.display = (langMode === 'my') ? 'block' : 'none';
+  const hc = document.getElementById('heroMyCaption'); if (hc) hc.style.display = (langMode === 'my' && !(typeof siteConfig !== 'undefined' && siteConfig.heroImage_my)) ? 'block' : 'none';
 }
 function toggleLang() {
   langMode = (langMode === 'my') ? 'th' : 'my';
@@ -2672,6 +2672,7 @@ function toggleLang() {
   try { if (typeof renderAllRows === 'function') renderAllRows(); } catch (e) {}
   try { if (typeof renderCatIcons === 'function') renderCatIcons(); } catch (e) {}
   try { if (typeof renderTrustStrip === 'function') renderTrustStrip(); } catch (e) {}
+  try { if (typeof renderHero === 'function') renderHero(); } catch (e) {}
   try { if (typeof populateCalcModels === 'function') populateCalcModels(); } catch (e) {}
   if (typeof updateCalcLive === 'function' && calcModel) updateCalcLive();
   if (typeof updateCashPreview === 'function' && calcModel) updateCashPreview();
@@ -3009,7 +3010,8 @@ const DEFAULT_SITE_CONFIG = {
   // override icon/ชื่อหมวด — key = bike_type เดิม (ไม่กระทบข้อมูลรถ)
   categoryOverrides: {},
   faq: [],   // คำถามที่พบบ่อย ไทย — แก้ใน admin (ว่าง = ใช้ค่าเริ่มต้น FAQ_DATA)
-  faq_my: [] // คำถามที่พบบ่อย พม่า (คนละชุด)
+  faq_my: [], // คำถามที่พบบ่อย พม่า (คนละชุด)
+  heroImage_my: '' // รูป Hero พม่า (ว่าง = ใช้รูปไทย)
 };
 let siteConfig = JSON.parse(JSON.stringify(DEFAULT_SITE_CONFIG));
 
@@ -3020,6 +3022,7 @@ async function fetchSiteConfig() {
     const d = await res.json();
     if (d) {
       if (d.heroImage) siteConfig.heroImage = d.heroImage;
+      if (typeof d.heroImage_my === 'string') siteConfig.heroImage_my = d.heroImage_my;
       if (Array.isArray(d.benefits) && d.benefits.length) siteConfig.benefits = d.benefits;
       if (d.categoryOverrides && typeof d.categoryOverrides === 'object') siteConfig.categoryOverrides = d.categoryOverrides;
       if (Array.isArray(d.faq)) siteConfig.faq = d.faq;
@@ -3060,14 +3063,19 @@ function catDisplay(cat) {
 function renderHero() {
   const img = document.getElementById('heroImage');
   const fb = document.getElementById('heroFallback');
-  if (siteConfig.heroImage) {
-    img.src = siteConfig.heroImage;
+  // โหมดพม่า: ใช้รูป Hero พม่า ถ้ามี · ไม่มี → ใช้รูปไทย
+  const src = (langMode === 'my' && siteConfig.heroImage_my) ? siteConfig.heroImage_my : siteConfig.heroImage;
+  if (src) {
+    img.src = src;
     img.style.display = 'block';
     if (fb) fb.style.display = 'none';
   } else {
     img.style.display = 'none';
     if (fb) fb.style.display = 'block';
   }
+  // แคปชันพม่า: โชว์เฉพาะตอนยังไม่มีรูปพม่า (รูปพม่ามีข้อความอยู่แล้ว)
+  const hc = document.getElementById('heroMyCaption');
+  if (hc) hc.style.display = (langMode === 'my' && !siteConfig.heroImage_my) ? 'block' : 'none';
 }
 
 function renderTrustStrip() {
