@@ -1510,7 +1510,7 @@ footer .footer-brand {
     <a href="https://lin.ee/wX63SBB" target="_blank" class="top-icon-btn">💬</a>
   </div>
 </header>
-<div id="myBanner" style="display:none;background:#fff8e1;border-bottom:1px solid #ffe082;padding:.55rem 1rem;font-size:.82rem;color:#8a6d00;text-align:center;line-height:1.65;">🇲🇲 မြန်မာဝန်ထမ်းများ ဝန်ဆောင်မှုပေးပါသည် · ဈေးနှုန်းတွင် ဝန်ဆောင်ခ ပါဝင်ပြီးဖြစ်ပါသည်</div>
+<div id="myBanner" style="display:none;background:#fff8e1;border-bottom:1px solid #ffe082;padding:.55rem 1rem;font-size:.82rem;color:#8a6d00;text-align:center;line-height:1.65;">🇲🇲 မြန်မာဝန်ထမ်းများမှ ကူညီဝန်ဆောင်မှုပေးပါသည်</div>
 
 <!-- Hidden mobile menu element (kept for JS compatibility) -->
 <div id="mobileMenu"></div>
@@ -1595,20 +1595,20 @@ footer .footer-brand {
 
       <!-- Variants -->
       <div id="mVariants" style="display:none;margin-bottom:1rem;">
-        <div style="font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:.5rem;">เลือกรุ่นย่อย</div>
+        <div style="font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:.5rem;" data-i18n="pick_variant">เลือกรุ่นย่อย</div>
         <div id="mVariantBtns" style="display:flex;gap:.5rem;flex-wrap:wrap;"></div>
       </div>
 
       <!-- Colors -->
       <div id="mColors" style="display:none;margin-bottom:1.1rem;">
-        <div style="font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:.5rem;">เลือกสี</div>
+        <div style="font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:.5rem;" data-i18n="calc_color">เลือกสี</div>
         <div id="mColorSwatches" style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;"></div>
         <div id="mColorName" style="margin-top:.45rem;font-size:.82rem;color:var(--text2);"></div>
       </div>
 
       <!-- Freebies (ของแถม) -->
       <div id="mFreebies" style="display:none;margin-bottom:1.1rem;background:linear-gradient(180deg,#fffbe6 0%,#fff 100%);border:1.5px solid #ffe08a;border-radius:10px;padding:.85rem 1rem;">
-        <div style="font-size:.9rem;font-weight:700;color:#b8860b;margin-bottom:.5rem;">🎁 ของแถมรุ่นนี้</div>
+        <div style="font-size:.9rem;font-weight:700;color:#b8860b;margin-bottom:.5rem;" data-i18n="gifts_title">🎁 ของแถมรุ่นนี้</div>
         <div id="mFreebiesList" style="display:flex;flex-direction:column;gap:.35rem;"></div>
       </div>
 
@@ -1616,18 +1616,18 @@ footer .footer-brand {
       <div class="modal-price" id="mPrice" style="display:none;"></div>
 
       <!-- Price placeholder -->
-      <div id="mPricePlaceholder" style="background:#f5f5f5;border:1.5px dashed #ccc;border-radius:8px;padding:1.1rem;text-align:center;margin-bottom:1.1rem;color:#888;font-size:.88rem;">
-        💬 กดปุ่ม <strong>คำนวณค่างวด</strong> ด้านล่าง เพื่อดูตารางผ่อนและสอบถามราคา
+      <div id="mPricePlaceholder" style="background:#f5f5f5;border:1.5px dashed #ccc;border-radius:8px;padding:1.1rem;text-align:center;margin-bottom:1.1rem;color:#888;font-size:.88rem;" data-i18n="price_hint">
+        💬 กดปุ่มคำนวณค่างวดด้านล่าง เพื่อดูตารางผ่อนและสอบถามราคา
       </div>
     </div><!-- end .modal-body -->
 
     <!-- Sticky bottom bar -->
     <div class="modal-sticky">
       <div id="mStickyPriceWrap">
-        <div class="slabel">ราคาเงินสด</div>
+        <div class="slabel" data-i18n="lbl_cash_price">ราคาเงินสด</div>
         <div class="sval" id="mStickyPrice">—</div>
       </div>
-      <button class="modal-cta-btn" onclick="openCalcFromModal()">คำนวณค่างวด →</button>
+      <button class="modal-cta-btn" onclick="openCalcFromModal()" data-i18n="cta_calc">คำนวณค่างวด →</button>
     </div>
   </div>
 </div>
@@ -2062,6 +2062,43 @@ function oM(ci, mi) {
   document.body.style.overflow = 'hidden';
 }
 
+// คำแปลของแถมเป็นภาษาพม่า (ตรงกับชุดของแถมใน DB) — ถ้าไม่เจอใช้ข้อความเดิม
+const FREEBIE_MY = {
+  'หมวกกันน็อค': 'ဦးထုပ်',
+  'เสื้อแจ็คเก็ต': 'ဂျာကင်အင်္ကျီ',
+  'จดทะเบียน': 'မှတ်ပုံတင်ပေးခြင်း',
+  'พ.ร.บ.': 'မဖြစ်မနေအာမခံ (พ.ร.บ.)',
+  'ประกันรถหาย': 'ဆိုင်ကယ်ပျောက်အာမခံ',
+  'ประกันชีวิต': 'အသက်အာမခံ',
+  'ประกันช่วยเหลือฉุกเฉิน': 'အရေးပေါ်ကူညီမှုအာမခံ',
+  'ประกันซ่อมศูนย์ 3Plus (กรณีรถชนรถ)': '3Plus ဆားဗစ်စင်တာပြင်အာမခံ (ကားချင်းတိုက်)'
+};
+// คำแปลรุ่นย่อยเป็นพม่า (เฉพาะที่มีคำไทย — ชื่ออังกฤษล้วนปล่อยไว้)
+const VARIANT_MY = {
+  'ล้อซี่ลวด (ดรัมเบรก)': 'ဝါယာဘီး (ဒရမ်ဘရိတ်)',
+  'ล้อซี่ลวด (ดิสก์เบรก)': 'ဝါယာဘီး (ဒစ်ဘရိတ်)',
+  'ล้อลวด': 'ဝါယာဘီး',
+  'ล้อแม็ก': 'သတ္တုဘီး',
+  'ล้อแม็ก (รีโมท)': 'သတ္တုဘီး (ရီမုတ်)',
+  'ล้อแม็ก (สเปเชียล)': 'သတ္တုဘီး (Special)',
+  'มาตรฐาน': 'Standard',
+  'URBAN (ล้อลวด)': 'URBAN (ဝါယာဘီး)',
+  'CLUB12 (ล้อแม็ก รีโมท)': 'CLUB12 (သတ္တုဘီး ရီမုတ်)',
+  'ABS ชุดแต่ง H2C': 'ABS (H2C အလှဆင်)',
+  'CBS ชุดแต่ง H2C': 'CBS (H2C အလှဆင်)',
+  'PRESTIGE (ล้อแม็ก)': 'PRESTIGE (သတ္တုဘီး)'
+};
+function variantMY(name) { return (langMode === 'my' && VARIANT_MY[name]) ? VARIANT_MY[name] : name; }
+// คำสีพื้นฐาน → พม่า (สีผสมคั่นด้วย "-" แปลทีละคำ)
+const COLOR_WORD_MY = {
+  'ขาว': 'အဖြူ', 'ดำ': 'အနက်', 'แดง': 'အနီ', 'น้ำเงิน': 'အပြာ', 'ฟ้า': 'အပြာဖျော့',
+  'เขียว': 'အစိမ်း', 'เหลือง': 'အဝါ', 'ส้ม': 'လိမ္မော်', 'ชมพู': 'ပန်းရောင်',
+  'น้ำตาล': 'အညို', 'เทา': 'မီးခိုး'
+};
+function colorMY(name) {
+  if (langMode !== 'my' || !name) return name;
+  return String(name).split('-').map(function(p) { p = p.trim(); return COLOR_WORD_MY[p] || p; }).join('-');
+}
 // แสดงของแถมของรุ่นย่อยที่เลือก
 function rFreebies() {
   const box = document.getElementById('mFreebies');
@@ -2072,8 +2109,9 @@ function rFreebies() {
   if (!fb.length) { box.style.display = 'none'; return; }
   box.style.display = 'block';
   list.innerHTML = fb.map(function(g) {
+    var label = (langMode === 'my' && FREEBIE_MY[g]) ? FREEBIE_MY[g] : g;
     return '<div style="display:flex;align-items:center;gap:6px;font-size:.86rem;color:#444;">' +
-      '<span style="color:#22aa55;font-weight:700;">✓</span> ' + g + '</div>';
+      '<span style="color:#22aa55;font-weight:700;">✓</span> ' + label + '</div>';
   }).join('');
 }
 
@@ -2083,7 +2121,7 @@ function rV() {
   if (!modalModel.variants || modalModel.variants.length <= 1) { w.style.display = 'none'; return; }
   w.style.display = 'block';
   b.innerHTML = modalModel.variants.map((v, i) =>
-    '<button class="variant-btn' + (i === 0 ? ' active' : '') + '" onclick="sV(' + i + ')">' + v.name + '</button>'
+    '<button class="variant-btn' + (i === 0 ? ' active' : '') + '" onclick="sV(' + i + ')">' + variantMY(v.name) + '</button>'
   ).join('');
 }
 
@@ -2111,10 +2149,10 @@ function rC() {
     const bg = c.hex2
       ? 'conic-gradient(' + c.hex + ' 0deg 180deg,' + c.hex2 + ' 180deg 360deg)'
       : c.hex;
-    return '<div class="color-swatch' + (i === 0 ? ' active' : '') + '" style="background:' + bg + ';' + (c.border ? 'border:2px solid #bbb;' : '') + '" title="' + c.name + '" onclick="sC(' + i + ',' + JSON.stringify(display).replace(/"/g, '&quot;') + ')"></div>';
+    return '<div class="color-swatch' + (i === 0 ? ' active' : '') + '" style="background:' + bg + ';' + (c.border ? 'border:2px solid #bbb;' : '') + '" title="' + colorMY(c.name) + '" onclick="sC(' + i + ',' + JSON.stringify(display).replace(/"/g, '&quot;') + ')"></div>';
   }).join('');
   window._curColors = display;
-  n.textContent = 'สี: ' + display[0].name;
+  n.textContent = t('color_prefix') + colorMY(display[0].name);
   updCarImg2(display[0]);
 }
 
@@ -2122,7 +2160,7 @@ function sC(i, colors) {
   if (colors) { window._curColors = typeof colors === 'string' ? JSON.parse(colors.replace(/&quot;/g, '"')) : colors; }
   modalColorIdx = i;
   document.querySelectorAll('.color-swatch').forEach((s, j) => s.classList.toggle('active', j === i));
-  document.getElementById('mColorName').textContent = 'สี: ' + window._curColors[i].name;
+  document.getElementById('mColorName').textContent = t('color_prefix') + colorMY(window._curColors[i].name);
   updCarImg2(window._curColors[i]);
   // อัปเดตราคาและตารางผ่อนตามสีที่เลือก
   const colorPrice = (window._curColors[i]._price) || 0;
@@ -2639,8 +2677,8 @@ const I18N = {
     free_badge: 'ฟรี!', cat_pick: 'เลือกตามประเภท',
     models_title: 'รุ่นรถฮอนด้า', models_sub: 'กดรถที่สนใจเพื่อดูสีและรุ่นย่อย · สอบถามราคาและตารางผ่อนได้ที่ร้าน',
     nav_home: 'หน้าหลัก', nav_bikes: 'รุ่นรถ', nav_calc: 'ค่างวด', nav_chat: 'แชท LINE', nav_social2: 'โซเชียล',
-    calc_title: 'คำนวณค่างวด', step_choose: 'เลือกรุ่น', step_setup: 'ตั้งค่า', step_result: 'ผลลัพธ์',
-    calc_next: 'ถัดไป →', calc_color: 'เลือกสี', pay_install: '💳 เงินผ่อน', pay_cash: '💵 เงินสด',
+    calc_title: 'คำนวณค่างวด', cta_calc: 'คำนวณค่างวด →', gifts_title: '🎁 ของแถมรุ่นนี้', price_hint: '💬 กดปุ่มคำนวณค่างวดด้านล่าง เพื่อดูตารางผ่อนและสอบถามราคา', step_choose: 'เลือกรุ่น', step_setup: 'ตั้งค่า', step_result: 'ผลลัพธ์',
+    calc_next: 'ถัดไป →', calc_color: 'เลือกสี', pick_variant: 'เลือกรุ่นย่อย', color_prefix: 'สี: ', pay_install: '💳 เงินผ่อน', pay_cash: '💵 เงินสด',
     lbl_financed: 'ยอดจัดไฟแนนซ์', lbl_est_install: 'ค่างวดโดยประมาณ', lbl_down: 'เงินดาวน์',
     lbl_custom_down: 'หรือกำหนดเงินดาวน์เอง', unit_baht: 'บาท', lbl_period: 'ระยะเวลาผ่อน',
     lbl_cash_price: 'ราคาเงินสด', cash_perk: 'รับสิทธิพิเศษเมื่อซื้อสด',
@@ -2672,8 +2710,8 @@ const I18N = {
     free_badge: 'အခမဲ့!', cat_pick: 'အမျိုးအစားအလိုက် ရွေးရန်',
     models_title: 'Honda ဆိုင်ကယ်များ', models_sub: 'စိတ်ဝင်စားသော ဆိုင်ကယ်ကိုနှိပ်၍ အရောင်/မော်ဒယ်ခွဲ ကြည့်ရန် · ဈေးနှင့် အရစ်ကျဇယား ဆိုင်တွင်မေးနိုင်သည်',
     nav_home: 'ပင်မ', nav_bikes: 'ဆိုင်ကယ်', nav_calc: 'အရစ်ကျ', nav_chat: 'LINE ချတ်', nav_social2: 'Social',
-    calc_title: 'အရစ်ကျ တွက်ချက်ရန်', step_choose: 'မော်ဒယ်ရွေး', step_setup: 'သတ်မှတ်', step_result: 'ရလဒ်',
-    calc_next: 'ဆက်သွား →', calc_color: 'အရောင်ရွေး', pay_install: '💳 အရစ်ကျ', pay_cash: '💵 ေငြသား',
+    calc_title: 'အရစ်ကျ တွက်ချက်ရန်', cta_calc: 'အရစ်ကျ တွက်ချက်ရန် →', gifts_title: '🎁 ဤမော်ဒယ်အတွက် လက်ဆောင်များ', price_hint: '💬 အောက်ရှိ အရစ်ကျတွက်ချက်ရန် ခလုတ်ကိုနှိပ်၍ အရစ်ကျဇယားနှင့် ဈေးကြည့်ရှုနိုင်သည်', step_choose: 'မော်ဒယ်ရွေး', step_setup: 'သတ်မှတ်', step_result: 'ရလဒ်',
+    calc_next: 'ဆက်သွား →', calc_color: 'အရောင်ရွေး', pick_variant: 'မော်ဒယ်ခွဲ ရွေးပါ', color_prefix: 'အရောင်: ', pay_install: '💳 အရစ်ကျ', pay_cash: '💵 ေငြသား',
     lbl_financed: 'ချေးငွေပမာဏ', lbl_est_install: 'ခန့်မှန်း လစဉ်ပေးချေ', lbl_down: 'စရံ',
     lbl_custom_down: 'သို့မဟုတ် စရံ ကိုယ်တိုင်သတ်မှတ်', unit_baht: 'ဘတ်', lbl_period: 'အရစ်ကျ ကာလ',
     lbl_cash_price: 'ေငြသားဈေး', cash_perk: 'ေငြသားဝယ်လျှင် အထူးအခွင့်အရေး',
