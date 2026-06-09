@@ -1666,7 +1666,7 @@ footer .footer-brand {
       <div class="calc-car-strip" id="calcCarStrip">
         <div class="calc-car-thumb" id="calcCarThumb">🏍️</div>
         <div class="calc-car-info">
-          <div class="cname" id="calcCarName">เลือกรุ่นรถ</div>
+          <div class="cname" id="calcCarName" data-i18n="strip_pick">เลือกรุ่นรถ</div>
           <div class="csub" id="calcCarSub"></div>
           <div class="cprice" id="calcCarPrice"></div>
         </div>
@@ -1716,7 +1716,7 @@ footer .footer-brand {
               <span><b id="sDownPct">15</b>% &nbsp;<span class="samt" id="sDownAmt"></span></span>
             </div>
             <input type="range" id="sliderDown" min="0" max="50" step="5" value="15" oninput="onSliderChange()">
-            <div class="slider-ticks"><span>0% ฟรีดาวน์</span><span>25%</span><span>50%</span></div>
+            <div class="slider-ticks"><span>0% <span data-i18n="free_down">ฟรีดาวน์</span></span><span>25%</span><span>50%</span></div>
             <div class="custom-down-row">
               <label data-i18n="lbl_custom_down">หรือกำหนดเงินดาวน์เอง</label>
               <input type="text" inputmode="numeric" id="customDown" placeholder="0" oninput="onCustomDownInput(event)" onfocus="this.select()">
@@ -1728,11 +1728,11 @@ footer .footer-brand {
           <div class="slider-section">
             <div class="slbl" style="margin-bottom:8px;" data-i18n="lbl_period">ระยะเวลาผ่อน</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              <button class="period-pill" data-mo="24" onclick="selectPeriod(24)">24 เดือน</button>
-              <button class="period-pill" data-mo="30" onclick="selectPeriod(30)">30 เดือน</button>
-              <button class="period-pill active" data-mo="36" onclick="selectPeriod(36)">36 เดือน</button>
-              <button class="period-pill" data-mo="42" onclick="selectPeriod(42)">42 เดือน</button>
-              <button class="period-pill" data-mo="48" onclick="selectPeriod(48)">48 เดือน</button>
+              <button class="period-pill" data-mo="24" onclick="selectPeriod(24)">24 <span data-i18n="unit_month">เดือน</span></button>
+              <button class="period-pill" data-mo="30" onclick="selectPeriod(30)">30 <span data-i18n="unit_month">เดือน</span></button>
+              <button class="period-pill active" data-mo="36" onclick="selectPeriod(36)">36 <span data-i18n="unit_month">เดือน</span></button>
+              <button class="period-pill" data-mo="42" onclick="selectPeriod(42)">42 <span data-i18n="unit_month">เดือน</span></button>
+              <button class="period-pill" data-mo="48" onclick="selectPeriod(48)">48 <span data-i18n="unit_month">เดือน</span></button>
             </div>
           </div>
         </div>
@@ -1991,7 +1991,7 @@ function renderAllRows() {
     const d = catDisplay(cat);
     return '<button class="cat-tab' + (ci === 0 ? ' active' : '') + '" onclick="switchCat(' + ci + ')">' +
     '<span class="cat-tab-icon">' + iconToHtml(d.icon, 'cat-tab-img') + '</span>' +
-    '<span class="cat-tab-info"><span class="cat-tab-name">' + d.label + '</span><span class="cat-tab-count">' + cat.models.length + ' รุ่น</span></span>' +
+    '<span class="cat-tab-info"><span class="cat-tab-name">' + d.label + '</span><span class="cat-tab-count">' + cat.models.length + ' ' + t('unit_models') + '</span></span>' +
     '</button>';
   }).join('');
   const panels = categories.map((cat, ci) =>
@@ -2005,7 +2005,7 @@ function renderAllRows() {
       const price = m.variants && m.variants[0] && m.variants[0].price
         ? '฿' + fmt(m.variants[0].price)
         : '';
-      const typeCC = m.variants && m.variants[0] ? m.variants.map(v => v.name).join(' / ') : '';
+      const typeCC = m.variants && m.variants[0] ? m.variants.map(v => variantMY(v.name)).join(' / ') : '';
       return '<div class="mcard" onclick="oM(' + ci + ',' + mi + ')">' +
         '<div class="mcard-img-wrap">' +
         (m.badge ? '<div class="mcard-badge">' + m.badge + '</div>' : '') +
@@ -2014,8 +2014,8 @@ function renderAllRows() {
         '<div class="mcard-body">' +
         '<div class="mcard-name">' + m.name + '</div>' +
         (typeCC ? '<div class="mcard-sub">' + typeCC + '</div>' : '') +
-        (price ? '<div class="mcard-price">เริ่มต้น ' + price + '</div>' : '<div class="mcard-price" style="color:#888;font-size:.72rem;">สอบถามราคา</div>') +
-        '<button class="mcard-cta" onclick="event.stopPropagation();oM(' + ci + ',' + mi + ')">ดูรายละเอียด →</button>' +
+        (price ? '<div class="mcard-price">' + t('price_from') + price + '</div>' : '<div class="mcard-price" style="color:#888;font-size:.72rem;">' + t('ask_price') + '</div>') +
+        '<button class="mcard-cta" onclick="event.stopPropagation();oM(' + ci + ',' + mi + ')">' + t('view_detail') + '</button>' +
         '</div>' +
         '</div>';
     }).join('') +
@@ -2118,7 +2118,7 @@ function rFreebies() {
 function rV() {
   const w = document.getElementById('mVariants');
   const b = document.getElementById('mVariantBtns');
-  if (!modalModel.variants || modalModel.variants.length <= 1) { w.style.display = 'none'; return; }
+  if (!modalModel.variants || modalModel.variants.length <= 1) { w.style.display = 'none'; b.innerHTML = ''; return; }
   w.style.display = 'block';
   b.innerHTML = modalModel.variants.map((v, i) =>
     '<button class="variant-btn' + (i === 0 ? ' active' : '') + '" onclick="sV(' + i + ')">' + variantMY(v.name) + '</button>'
@@ -2295,9 +2295,9 @@ function renderCalcColors() {
     const bg = c.hex2
       ? 'conic-gradient(' + c.hex + ' 0deg 180deg,' + c.hex2 + ' 180deg 360deg)'
       : (c.hex || '#ccc');
-    return '<div class="color-swatch' + (i === calcColorIdx ? ' active' : '') + '" style="background:' + bg + ';" title="' + (c.name || '') + '" onclick="selectCalcColor(' + i + ')"></div>';
+    return '<div class="color-swatch' + (i === calcColorIdx ? ' active' : '') + '" style="background:' + bg + ';" title="' + colorMY(c.name || '') + '" onclick="selectCalcColor(' + i + ')"></div>';
   }).join('');
-  if (nameEl) nameEl.textContent = colors[calcColorIdx] ? '· ' + colors[calcColorIdx].name : '';
+  if (nameEl) nameEl.textContent = colors[calcColorIdx] ? '· ' + colorMY(colors[calcColorIdx].name) : '';
 }
 
 function selectCalcColor(i) {
@@ -2575,7 +2575,7 @@ function openCalcFromModal() {
 
 function populateCalcModels() {
   const sel = document.getElementById('calcModelSelect');
-  sel.innerHTML = '<option value="">-- เลือกรุ่น --</option>';
+  sel.innerHTML = '<option value="">' + t('opt_pick') + '</option>';
   // จัดกลุ่มตามประเภท (optgroup) — หารุ่นง่ายขึ้น
   categories.forEach((cat, ci) => {
     if (!cat.models || !cat.models.length) return;
@@ -2617,8 +2617,8 @@ function updateCalcCarStrip() {
   const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
   const price = v ? (parseInt(v.price) || 0) : 0;
   document.getElementById('calcCarName').textContent = calcModel.name;
-  document.getElementById('calcCarSub').textContent = v ? v.name : '';
-  document.getElementById('calcCarPrice').textContent = price > 0 ? '฿' + fmt(price) : 'ติดต่อสอบถามราคา';
+  document.getElementById('calcCarSub').textContent = v ? variantMY(v.name) : '';
+  document.getElementById('calcCarPrice').textContent = price > 0 ? '฿' + fmt(price) : t('ask_price2');
   updateCalcCarThumb();
 }
 
@@ -2678,7 +2678,9 @@ const I18N = {
     models_title: 'รุ่นรถฮอนด้า', models_sub: 'กดรถที่สนใจเพื่อดูสีและรุ่นย่อย · สอบถามราคาและตารางผ่อนได้ที่ร้าน',
     nav_home: 'หน้าหลัก', nav_bikes: 'รุ่นรถ', nav_calc: 'ค่างวด', nav_chat: 'แชท LINE', nav_social2: 'โซเชียล',
     calc_title: 'คำนวณค่างวด', cta_calc: 'คำนวณค่างวด →', gifts_title: '🎁 ของแถมรุ่นนี้', price_hint: '💬 กดปุ่มคำนวณค่างวดด้านล่าง เพื่อดูตารางผ่อนและสอบถามราคา', step_choose: 'เลือกรุ่น', step_setup: 'ตั้งค่า', step_result: 'ผลลัพธ์',
-    calc_next: 'ถัดไป →', calc_color: 'เลือกสี', pick_variant: 'เลือกรุ่นย่อย', color_prefix: 'สี: ', pay_install: '💳 เงินผ่อน', pay_cash: '💵 เงินสด',
+    calc_next: 'ถัดไป →', calc_color: 'เลือกสี', pick_variant: 'เลือกรุ่นย่อย', color_prefix: 'สี: ', unit_models: 'รุ่น', price_from: 'เริ่มต้น ', ask_price: 'สอบถามราคา', view_detail: 'ดูรายละเอียด →',
+    unit_month: 'เดือน', free_down: 'ฟรีดาวน์', rate_prefix: 'ดอกเบี้ย ', pct_per_year: '%/ปี', pct_per_month: '%/เดือน', no_rate: 'ไม่มีข้อมูลดอกเบี้ย', min_suffix: '% ขั้นต่ำ', ask_price2: 'ติดต่อสอบถามราคา', opt_pick: '-- เลือกรุ่น --', strip_pick: 'เลือกรุ่นรถ',
+    pay_install: '💳 เงินผ่อน', pay_cash: '💵 เงินสด',
     lbl_financed: 'ยอดจัดไฟแนนซ์', lbl_est_install: 'ค่างวดโดยประมาณ', lbl_down: 'เงินดาวน์',
     lbl_custom_down: 'หรือกำหนดเงินดาวน์เอง', unit_baht: 'บาท', lbl_period: 'ระยะเวลาผ่อน',
     lbl_cash_price: 'ราคาเงินสด', cash_perk: 'รับสิทธิพิเศษเมื่อซื้อสด',
@@ -2711,7 +2713,9 @@ const I18N = {
     models_title: 'Honda ဆိုင်ကယ်များ', models_sub: 'စိတ်ဝင်စားသော ဆိုင်ကယ်ကိုနှိပ်၍ အရောင်/မော်ဒယ်ခွဲ ကြည့်ရန် · ဈေးနှင့် အရစ်ကျဇယား ဆိုင်တွင်မေးနိုင်သည်',
     nav_home: 'ပင်မ', nav_bikes: 'ဆိုင်ကယ်', nav_calc: 'အရစ်ကျ', nav_chat: 'LINE ချတ်', nav_social2: 'Social',
     calc_title: 'အရစ်ကျ တွက်ချက်ရန်', cta_calc: 'အရစ်ကျ တွက်ချက်ရန် →', gifts_title: '🎁 ဤမော်ဒယ်အတွက် လက်ဆောင်များ', price_hint: '💬 အောက်ရှိ အရစ်ကျတွက်ချက်ရန် ခလုတ်ကိုနှိပ်၍ အရစ်ကျဇယားနှင့် ဈေးကြည့်ရှုနိုင်သည်', step_choose: 'မော်ဒယ်ရွေး', step_setup: 'သတ်မှတ်', step_result: 'ရလဒ်',
-    calc_next: 'ဆက်သွား →', calc_color: 'အရောင်ရွေး', pick_variant: 'မော်ဒယ်ခွဲ ရွေးပါ', color_prefix: 'အရောင်: ', pay_install: '💳 အရစ်ကျ', pay_cash: '💵 ေငြသား',
+    calc_next: 'ဆက်သွား →', calc_color: 'အရောင်ရွေး', pick_variant: 'မော်ဒယ်ခွဲ ရွေးပါ', color_prefix: 'အရောင်: ', unit_models: 'မော်ဒယ်', price_from: 'စတင်ဈေး ', ask_price: 'ဈေးမေးရန်', view_detail: 'အသေးစိတ်ကြည့်ရန် →',
+    unit_month: 'လ', free_down: 'အခမဲ့စရံ', rate_prefix: 'အတိုး ', pct_per_year: '%/နှစ်', pct_per_month: '%/လ', no_rate: 'အတိုးအချက်အလက် မရှိ', min_suffix: '% အနည်းဆုံး', ask_price2: 'ဈေးမေးမြန်းရန် ဆက်သွယ်ပါ', opt_pick: '-- မော်ဒယ်ရွေးပါ --', strip_pick: 'ဆိုင်ကယ်ရွေးပါ',
+    pay_install: '💳 အရစ်ကျ', pay_cash: '💵 ေငြသား',
     lbl_financed: 'ချေးငွေပမာဏ', lbl_est_install: 'ခန့်မှန်း လစဉ်ပေးချေ', lbl_down: 'စရံ',
     lbl_custom_down: 'သို့မဟုတ် စရံ ကိုယ်တိုင်သတ်မှတ်', unit_baht: 'ဘတ်', lbl_period: 'အရစ်ကျ ကာလ',
     lbl_cash_price: 'ေငြသားဈေး', cash_perk: 'ေငြသားဝယ်လျှင် အထူးအခွင့်အရေး',
@@ -2799,17 +2803,17 @@ function updateCalcLive() {
     const { dn, pct } = getCalcDown();
     // แสดง pct (ปัด 1 ทศนิยม)
     document.getElementById('sDownPct').textContent = (pct % 1 === 0) ? pct : pct.toFixed(1);
-    document.getElementById('sDownAmt').textContent = dn > 0 ? '฿' + fmt(dn) : 'ฟรีดาวน์';
+    document.getElementById('sDownAmt').textContent = dn > 0 ? '฿' + fmt(dn) : t('free_down');
     const financed = base - dn + mySurcharge();
     const inst = getCalcInstallment();
-    document.getElementById('calcLiveResult').textContent = inst > 0 ? '฿' + fmt(inst) + ' / เดือน' : '—';
+    document.getElementById('calcLiveResult').textContent = inst > 0 ? '฿' + fmt(inst) + ' / ' + t('unit_month') : '—';
     const lpF = document.getElementById('lpFinanced');
     const lpR = document.getElementById('lpRate');
     if (lpF) lpF.textContent = financed > 0 ? '฿' + fmt(financed) : '—';
     if (lpR && v) {
       const {rate, rate2, rate2MinDown, isAnnual} = getAutoRate(v);
       const effRate = (rate2 > 0 && rate2MinDown > 0 && pct >= rate2MinDown) ? rate2 : rate;
-      lpR.textContent = effRate > 0 ? 'ดอกเบี้ย ' + effRate + (isAnnual ? '%/ปี' : '%/เดือน') : 'ไม่มีข้อมูลดอกเบี้ย';
+      lpR.textContent = effRate > 0 ? t('rate_prefix') + effRate + (isAnnual ? t('pct_per_year') : t('pct_per_month')) : t('no_rate');
     }
   } else {
     document.getElementById('sDownAmt').textContent = '';
@@ -2897,7 +2901,7 @@ function updateSliderRange() {
   // อัพเดท tick labels
   const ticks = document.querySelector('.slider-ticks');
   if (ticks) {
-    const minLabel = minDown === 0 ? '0% ฟรีดาวน์' : minDown + '% ขั้นต่ำ';
+    const minLabel = minDown === 0 ? '0% ' + t('free_down') : minDown + t('min_suffix');
     ticks.innerHTML = '<span>' + minLabel + '</span><span>25%</span><span>50%</span>';
   }
 }
@@ -2918,7 +2922,7 @@ function updateCashPreview() {
   const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
   const cashPrice = v ? (parseInt(v.price) || 0) : 0;
   const el = document.getElementById('cashPriceDisplay');
-  if (el) el.textContent = cashPrice > 0 ? '฿' + fmt(cashPrice) : 'ติดต่อสอบถามราคา';
+  if (el) el.textContent = cashPrice > 0 ? '฿' + fmt(cashPrice) : t('ask_price2');
 }
 
 function goCalcStep3() {
@@ -2929,8 +2933,8 @@ function goCalcStep3() {
   if (calcPayType === 'cash') {
     document.getElementById('resultInstallment').style.display = 'none';
     document.getElementById('resultCash').style.display = 'block';
-    document.getElementById('resultCashAmt').textContent = cashPrice > 0 ? '฿' + fmt(cashPrice) : 'ติดต่อสอบถามราคา';
-    document.getElementById('resultCashSub').textContent = calcModel.name + (v && v.name ? ' · ' + v.name : '');
+    document.getElementById('resultCashAmt').textContent = cashPrice > 0 ? '฿' + fmt(cashPrice) : t('ask_price2');
+    document.getElementById('resultCashSub').textContent = calcModel.name + (v && v.name ? ' · ' + variantMY(v.name) : '');
   } else {
     const calcBase = (v && v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
     const { dn, pct } = getCalcDown();
@@ -2943,10 +2947,10 @@ function goCalcStep3() {
     document.getElementById('resultInstallment').style.display = 'block';
     document.getElementById('resultCash').style.display = 'none';
     document.getElementById('resultAmt').textContent = '฿' + fmt(inst);
-    document.getElementById('resultPeriod').textContent = calcPeriod + ' เดือน · ดาวน์ ' + pctLabel + '%' + (effRate > 0 ? ' · ดอกเบี้ย ' + effRate + (isAnnual ? '%/ปี' : '%/เดือน') : '');
+    document.getElementById('resultPeriod').textContent = calcPeriod + ' ' + t('unit_month') + ' · ' + t('lbl_down') + ' ' + pctLabel + '%' + (effRate > 0 ? ' · ' + t('rate_prefix') + effRate + (isAnnual ? t('pct_per_year') : t('pct_per_month')) : '');
     document.getElementById('bdPrice').textContent = '฿' + fmt(cashPrice);
-    document.getElementById('bdDownLabel').textContent = 'เงินดาวน์ (' + pctLabel + '%)';
-    document.getElementById('bdDown').textContent = dn > 0 ? '-฿' + fmt(dn) : 'ฟรีดาวน์';
+    document.getElementById('bdDownLabel').textContent = t('lbl_down') + ' (' + pctLabel + '%)';
+    document.getElementById('bdDown').textContent = dn > 0 ? '-฿' + fmt(dn) : t('free_down');
     document.getElementById('bdFinanced').textContent = '฿' + fmt(financed);
   }
 
@@ -3185,6 +3189,7 @@ let isInLiff = false;
 function saveLead(lead) {
   if (!lead) return;
   try {
+    lead.lang = langMode; // 'my' = ลูกค้าพม่า → ใส่โน้ตบนการ์ดเซลล์
     fetch('https://n8n-wt11.onrender.com/webhook/save-lead', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(lead)
@@ -3591,7 +3596,7 @@ async function sendAllInterested() {
   const phone = (document.getElementById('custPhone')?.value || '').trim();
   const cname = (document.getElementById('custName')?.value || '').trim();
   // batch save → n8n รวมเป็นการ์ดสรุปเข้ากลุ่มเซล
-  fetch(SAVE_LEADS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ line_user_id: userId || '', line_name: displayName, cust_name: cname, cust_phone: phone, leads: interestedList.map(function(it){ return it.leadObj; }) }) }).catch(function(){});
+  fetch(SAVE_LEADS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ line_user_id: userId || '', line_name: displayName, cust_name: cname, cust_phone: phone, lang: langMode, leads: interestedList.map(function(it){ return it.leadObj; }) }) }).catch(function(){});
   if (userId) fetch('https://n8n-wt11.onrender.com/webhook/ack-lead', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: userId }) }).catch(function(){});
   try {
     await liff.sendMessages([carousel]);
