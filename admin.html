@@ -336,6 +336,21 @@ tr:hover td { background: #fafafa; }
         </div>
 
         <div class="card" style="margin-bottom:1.5rem;">
+          <h3 style="margin-top:0;">🛠️ ไอคอนการ์ดบริการ (เทิร์น / ทดลองขับ)</h3>
+          <p style="font-size:0.85rem;color:#888;margin-top:0;">ใส่ <b>URL รูป</b> (แนะนำ PNG โปร่งใส) หรือ emoji ก็ได้ · เว้นว่าง = ใช้ค่าเริ่มต้น</p>
+          <label style="display:block;font-size:.9rem;color:#555;margin-bottom:0.3rem;">🔄 ไอคอน "เทิร์นรถเก่า" (ค่าเริ่มต้น: 🔄)</label>
+          <div style="display:flex;gap:0.6rem;align-items:center;margin-bottom:0.9rem;">
+            <div id="sc_svcTradeinPrev" style="width:44px;height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.6rem;background:#f5f5f5;border-radius:8px;"></div>
+            <input type="text" id="sc_svcTradeinIcon" class="form-input" placeholder="https://... หรือ emoji" style="flex:1;padding:0.6rem;border:1px solid #ddd;border-radius:6px;font-family:monospace;font-size:0.85rem;">
+          </div>
+          <label style="display:block;font-size:.9rem;color:#555;margin-bottom:0.3rem;">🏍️ ไอคอน "ทดลองขับขี่ฟรี" (ค่าเริ่มต้น: 🏍️)</label>
+          <div style="display:flex;gap:0.6rem;align-items:center;">
+            <div id="sc_svcTestridePrev" style="width:44px;height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.6rem;background:#f5f5f5;border-radius:8px;"></div>
+            <input type="text" id="sc_svcTestrideIcon" class="form-input" placeholder="https://... หรือ emoji" style="flex:1;padding:0.6rem;border:1px solid #ddd;border-radius:6px;font-family:monospace;font-size:0.85rem;">
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:1.5rem;">
           <h3 style="margin-top:0;">❓ คำถามที่พบบ่อย (FAQ) — 🇹🇭 ไทย</h3>
           <p style="font-size:0.85rem;color:#888;margin-top:0;">เพิ่ม/แก้/ลบ คำถาม-คำตอบ ที่แสดงบนเว็บลูกค้า · เว้นว่างทั้งหมด = ใช้ชุดเริ่มต้น</p>
           <div id="sc_faqRows"></div>
@@ -1255,6 +1270,8 @@ function crmEditName(uid) {
 let _siteCfg = {
   heroImage: '',
   heroImage_my: '',
+  svcTradeinIcon: '',
+  svcTestrideIcon: '',
   benefits: [
     { icon: '🏅', label: 'รับประกัน Honda' },
     { icon: '💳', label: 'ดาวน์ 0%' },
@@ -1379,6 +1396,8 @@ async function loadSiteConfig() {
       const d = await res.json();
       if (d.heroImage) _siteCfg.heroImage = d.heroImage;
       _siteCfg.heroImage_my = d.heroImage_my || '';
+      _siteCfg.svcTradeinIcon = d.svcTradeinIcon || '';
+      _siteCfg.svcTestrideIcon = d.svcTestrideIcon || '';
       if (Array.isArray(d.benefits) && d.benefits.length === 3) _siteCfg.benefits = d.benefits;
       _siteCfg.categoryOverrides = (d.categoryOverrides && typeof d.categoryOverrides === 'object') ? d.categoryOverrides : {};
       _siteCfg.faq = (Array.isArray(d.faq) && d.faq.length) ? d.faq : JSON.parse(JSON.stringify(DEFAULT_FAQ));
@@ -1387,7 +1406,10 @@ async function loadSiteConfig() {
   } catch(e) { console.warn('loadSiteConfig', e.message); }
   document.getElementById('sc_heroImage').value = _siteCfg.heroImage;
   const hiMy = document.getElementById('sc_heroImageMy'); if (hiMy) hiMy.value = _siteCfg.heroImage_my || '';
+  const sti = document.getElementById('sc_svcTradeinIcon'); if (sti) sti.value = _siteCfg.svcTradeinIcon || '';
+  const ste = document.getElementById('sc_svcTestrideIcon'); if (ste) ste.value = _siteCfg.svcTestrideIcon || '';
   _updateHeroPreview();
+  _updateSvcIconPreview();
   _renderBenefitsRows();
   _renderFaqRows();
   await _loadCategoryList();
@@ -1406,9 +1428,25 @@ function _updateHeroPreview() {
   set('sc_heroImageMy', 'sc_heroPreviewMy', 'sc_heroPlaceholderMy');
 }
 
+// พรีวิวไอคอนการ์ดบริการ (รูป = แสดง img · ไม่ใช่ = แสดง emoji/ข้อความ)
+function _updateSvcIconPreview() {
+  const one = function(inputId, prevId, def) {
+    const inp = document.getElementById(inputId), prev = document.getElementById(prevId);
+    if (!inp || !prev) return;
+    const v = (inp.value || '').trim() || def;
+    if (/^https?:\/\//.test(v) || /^\//.test(v)) {
+      prev.innerHTML = '<img src="' + v + '" style="max-width:100%;max-height:100%;object-fit:contain;">';
+    } else { prev.textContent = v; }
+  };
+  one('sc_svcTradeinIcon', 'sc_svcTradeinPrev', '🔄');
+  one('sc_svcTestrideIcon', 'sc_svcTestridePrev', '🏍️');
+}
+
 async function saveSiteConfig() {
   _siteCfg.heroImage = document.getElementById('sc_heroImage').value.trim();
   _siteCfg.heroImage_my = (document.getElementById('sc_heroImageMy')?.value || '').trim();
+  _siteCfg.svcTradeinIcon = (document.getElementById('sc_svcTradeinIcon')?.value || '').trim();
+  _siteCfg.svcTestrideIcon = (document.getElementById('sc_svcTestrideIcon')?.value || '').trim();
   // ดึงค่า benefit ล่าสุด
   const rows = document.querySelectorAll('#sc_benefitsRows > div');
   rows.forEach(function(row, i) {
@@ -1459,6 +1497,10 @@ document.addEventListener('DOMContentLoaded', function() {
   if (hi) hi.addEventListener('input', _updateHeroPreview);
   const hiMy = document.getElementById('sc_heroImageMy');
   if (hiMy) hiMy.addEventListener('input', _updateHeroPreview);
+  const sti = document.getElementById('sc_svcTradeinIcon');
+  if (sti) sti.addEventListener('input', _updateSvcIconPreview);
+  const ste = document.getElementById('sc_svcTestrideIcon');
+  if (ste) ste.addEventListener('input', _updateSvcIconPreview);
 });
 
 // ========== MODELS ==========

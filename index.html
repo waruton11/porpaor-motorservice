@@ -219,7 +219,7 @@ img { display: block; max-width: 100%; }
 }
 .svc-card:hover { border-color: var(--red); box-shadow: 0 4px 14px rgba(204,0,0,.1); transform: translateY(-1px); }
 .svc-card:active { transform: translateY(0); }
-.svc-ico { font-size: 1.7rem; flex-shrink: 0; }
+.svc-ico { font-size: 1.7rem; flex-shrink: 0; width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; line-height: 1; }
 .svc-title { font-weight: 700; font-size: 0.92rem; color: var(--text); line-height: 1.2; }
 .svc-sub { font-size: 0.72rem; color: var(--text2); margin-top: 2px; }
 @media (min-width: 768px) {
@@ -1540,7 +1540,7 @@ footer .footer-brand {
 <!-- ===== SPECIAL SERVICES ===== -->
 <div class="svc-wrap">
   <a class="svc-card" href="javascript:void(0)" onclick="openTradeIn()">
-    <div class="svc-ico">🔄</div>
+    <div class="svc-ico" id="svcTradeinIco">🔄</div>
     <div class="svc-body">
       <div class="svc-title" data-i18n="svc_tradein_t">เทิร์นรถเก่า</div>
       <div class="svc-sub" data-i18n="svc_tradein_s">รับเทิร์นทุกรุ่น · ตีราคาที่ร้าน</div>
@@ -1548,7 +1548,7 @@ footer .footer-brand {
   </a>
   <a class="svc-card" href="javascript:void(0)" onclick="openTestRide()" style="position:relative;">
     <span data-i18n="free_badge" style="position:absolute;top:-7px;right:8px;background:#22aa55;color:#fff;font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:10px;box-shadow:0 2px 6px rgba(34,170,85,.3);">ฟรี!</span>
-    <div class="svc-ico">🏍️</div>
+    <div class="svc-ico" id="svcTestrideIco">🏍️</div>
     <div class="svc-body">
       <div class="svc-title" data-i18n="svc_testride_t">ทดลองขับขี่ฟรี</div>
       <div class="svc-sub" data-i18n="svc_testride_s">PCX160 & UC3 · ที่วังน้อย</div>
@@ -3094,7 +3094,9 @@ const DEFAULT_SITE_CONFIG = {
   categoryOverrides: {},
   faq: [],   // คำถามที่พบบ่อย ไทย — แก้ใน admin (ว่าง = ใช้ค่าเริ่มต้น FAQ_DATA)
   faq_my: [], // คำถามที่พบบ่อย พม่า (คนละชุด)
-  heroImage_my: '' // รูป Hero พม่า (ว่าง = ใช้รูปไทย)
+  heroImage_my: '', // รูป Hero พม่า (ว่าง = ใช้รูปไทย)
+  svcTradeinIcon: '',  // ไอคอนการ์ดเทิร์นรถ (ว่าง = 🔄)
+  svcTestrideIcon: ''  // ไอคอนการ์ดทดลองขับ (ว่าง = 🏍️)
 };
 let siteConfig = JSON.parse(JSON.stringify(DEFAULT_SITE_CONFIG));
 
@@ -3106,6 +3108,8 @@ async function fetchSiteConfig() {
     if (d) {
       if (d.heroImage) siteConfig.heroImage = d.heroImage;
       if (typeof d.heroImage_my === 'string') siteConfig.heroImage_my = d.heroImage_my;
+      if (typeof d.svcTradeinIcon === 'string') siteConfig.svcTradeinIcon = d.svcTradeinIcon;
+      if (typeof d.svcTestrideIcon === 'string') siteConfig.svcTestrideIcon = d.svcTestrideIcon;
       if (Array.isArray(d.benefits) && d.benefits.length) siteConfig.benefits = d.benefits;
       if (d.categoryOverrides && typeof d.categoryOverrides === 'object') siteConfig.categoryOverrides = d.categoryOverrides;
       if (Array.isArray(d.faq)) siteConfig.faq = d.faq;
@@ -3174,9 +3178,23 @@ function renderTrustStrip() {
   }).join('');
 }
 
+// ไอคอนการ์ดบริการ (เทิร์น/ทดลองขับ) — รูป = <img> · ไม่ใช่ = emoji/ข้อความ (ตั้งใน admin)
+function renderServiceIcons() {
+  const put = function(elId, val, def) {
+    const el = document.getElementById(elId); if (!el) return;
+    const v = (val || '').trim() || def;
+    if (/^https?:\/\//.test(v) || /^\//.test(v)) {
+      el.innerHTML = '<img src="' + encodeURI(v) + '" alt="" style="width:100%;height:100%;object-fit:contain;">';
+    } else { el.textContent = v; }
+  };
+  put('svcTradeinIco', siteConfig.svcTradeinIcon, '🔄');
+  put('svcTestrideIco', siteConfig.svcTestrideIcon, '🏍️');
+}
+
 fetchSiteConfig().then(fetchCatalogDisplay).then(function() {
   renderHero();
   renderTrustStrip();
+  renderServiceIcons();
   renderAllRows();
   initLiff();
 });

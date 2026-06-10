@@ -31,7 +31,7 @@
       ],
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT hero_image, hero_image_my, benefits, category_overrides, faq, faq_my FROM site_config WHERE id = 1;",
+        "query": "SELECT hero_image, hero_image_my, svc_tradein_icon, svc_testride_icon, benefits, category_overrides, faq, faq_my FROM site_config WHERE id = 1;",
         "options": {}
       },
       "credentials": {
@@ -51,7 +51,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const row = $input.first()?.json || {};\nreturn [{ json: { heroImage: row.hero_image || '', heroImage_my: row.hero_image_my || '', benefits: row.benefits || [], categoryOverrides: row.category_overrides || {}, faq: row.faq || [], faq_my: row.faq_my || [] } }];"
+        "jsCode": "const row = $input.first()?.json || {};\nreturn [{ json: { heroImage: row.hero_image || '', heroImage_my: row.hero_image_my || '', svcTradeinIcon: row.svc_tradein_icon || '', svcTestrideIcon: row.svc_testride_icon || '', benefits: row.benefits || [], categoryOverrides: row.category_overrides || {}, faq: row.faq || [], faq_my: row.faq_my || [] } }];"
       }
     },
     {
