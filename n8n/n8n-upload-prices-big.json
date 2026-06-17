@@ -1,0 +1,142 @@
+{
+  "name": "Upload Big Bike Prices",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "upload-prices-big",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "4ccdc16a-5473-4b3b-8974-a26c7b4678c7",
+      "name": "Webhook",
+      "webhookId": "4b2a30f0-706d-48e5-8bd0-11343c3c3a55"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {
+          "range": "A3:E350",
+          "sheetName": "HONDA"
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "bb4dac95-b081-441b-8f3d-a4b77def206c",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all();\nconst result = [];\n\nfor (const item of rows) {\n  const vals = Object.values(item.json);\n  const modelName = vals[0];\n  const typeField = String(vals[1] || '').trim();\n  const priceCash = Number(vals[4]); // col E = ราคาขาย\n\n  if (!modelName || !typeField || priceCash < 1000) continue;\n  if (typeof modelName !== 'string' || !/^[A-Za-z]/.test(modelName)) continue;\n  if (typeField.includes('(')) continue; // ข้ามรุ่นพิเศษ\n\n  // แยก \"NSS350AS 2TH\" → variant=\"NSS350AS\", type=\"2TH\"\n  const parts = typeField.split(' ');\n  if (parts.length < 2) continue;\n  const type = parts[parts.length - 1];\n  const variant = parts.slice(0, -1).join('').trim();\n\n  if (!type.includes('TH')) continue;\n\n  result.push({\n    json: {\n      variant: variant,\n      type: type,\n      price_cash: priceCash,\n      price_finance: priceCash\n    }\n  });\n}\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "6e4d9d8f-7e72-4277-a52a-ae2ca9ce53d7",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE car_prices \nSET \n  price_cash_paopao = {{ $json.price_cash }},\n  price_finance_paopao = {{ $json.price_finance }},\n  updated_at = NOW()\nWHERE variant = '{{ $json.variant }}'\n  AND type = '{{ $json.type }}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        624,
+        0
+      ],
+      "id": "960eb57f-7604-4e0e-8820-8a7fc063a86e",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "8MCWrd4HMMHaJf4D",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        832,
+        0
+      ],
+      "id": "e50e37bb-b3ae-4e62-b8ec-53b20ecc62a6",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f43294f6-301b-4210-8458-2bcd91b35754",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8e7d3f62b628a32fff91202f4d2b728e956e45ecfe0e6343be33611ff9be61f5"
+  },
+  "id": "gcCdNxJNUlBKxpBI",
+  "tags": []
+}

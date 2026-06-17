@@ -1,0 +1,91 @@
+{
+  "name": "Get Site Data",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "site-data",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "339f170d-3c09-4653-b063-443823b887d5",
+      "name": "Webhook",
+      "webhookId": "0732ec03-2b39-44d0-b938-5f116ba23895"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT categories, news, shop FROM site_data WHERE id = 1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        208,
+        0
+      ],
+      "id": "27a1a4c7-12a3-4011-b375-3ed04013488c",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "8MCWrd4HMMHaJf4D",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "b6de4ed2-4c24-466a-84a8-efd1a54d5bf5",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "979578be-e4d5-4890-bb8c-3a901e867b00",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8e7d3f62b628a32fff91202f4d2b728e956e45ecfe0e6343be33611ff9be61f5"
+  },
+  "id": "Coe33Q8GKp37B6QR",
+  "tags": []
+}

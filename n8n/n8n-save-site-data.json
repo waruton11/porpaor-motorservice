@@ -1,0 +1,114 @@
+{
+  "name": "Save Site Data",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "save-site-data",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "587ad7e0-a8e7-4489-b763-cd04c973c1dc",
+      "name": "Webhook",
+      "webhookId": "a3d35497-2018-4cc3-be9e-125e49268f9d"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst cats = JSON.stringify(body.categories || []).replace(/'/g, \"''\");\nconst news = JSON.stringify(body.news || []).replace(/'/g, \"''\");\nconst shop = JSON.stringify(body.shop || {}).replace(/'/g, \"''\");\nreturn [{ json: {\n  sql: `UPDATE site_data SET categories='${cats}'::jsonb, news='${news}'::jsonb, shop='${shop}'::jsonb, updated_at=NOW() WHERE id=1`\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "a824c54e-e534-4534-990e-96f28d6ff67e",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.sql }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        416,
+        0
+      ],
+      "id": "164ea265-acdd-4712-b235-d378f6fef089",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "8MCWrd4HMMHaJf4D",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        576,
+        0
+      ],
+      "id": "753c967d-163a-40d2-bfb7-1313d1a3bd53",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "91941b56-fd97-488b-a5f8-14de3d3d15fb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8e7d3f62b628a32fff91202f4d2b728e956e45ecfe0e6343be33611ff9be61f5"
+  },
+  "id": "19qK7Zb48IUMbuwn",
+  "tags": []
+}
