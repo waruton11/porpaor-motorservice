@@ -1,0 +1,116 @@
+{
+  "name": "Brand Categories",
+  "nodes": [
+    {
+      "id": "bc-get-1",
+      "name": "GET get-categories",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "get-categories",
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "get-categories",
+        "responseMode": "responseNode",
+        "options": { "allowedOrigins": "*" }
+      }
+    },
+    {
+      "id": "bc-get-2",
+      "name": "Read categories",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [460, 300],
+      "alwaysOutputData": true,
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT COALESCE((SELECT categories FROM bike_categories WHERE brand = '{{ $json.query.brand === 'yamaha' ? 'yamaha' : 'honda' }}'), '[]'::jsonb) AS categories;",
+        "options": {}
+      },
+      "credentials": { "postgres": { "name": "Postgres account" } }
+    },
+    {
+      "id": "bc-get-3",
+      "name": "Format categories",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const items = $input.all();\nconst row = items.length ? items[0].json : {};\nreturn [{ json: { categories: row.categories || [] } }];"
+      }
+    },
+    {
+      "id": "bc-get-4",
+      "name": "Respond categories",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [900, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": { "responseHeaders": { "entries": [ { "name": "Access-Control-Allow-Origin", "value": "*" } ] } }
+      }
+    },
+    {
+      "id": "bc-save-1",
+      "name": "POST save-categories",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 540],
+      "webhookId": "save-categories",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "save-categories",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "bc-save-2",
+      "name": "Build SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 540],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const b = $input.first().json.body || $input.first().json;\nconst brand = (b.brand === 'yamaha') ? 'yamaha' : 'honda';\nconst cats = JSON.stringify(Array.isArray(b.categories) ? b.categories : []).replace(/'/g, \"''\");\nconst sql = `INSERT INTO bike_categories (brand, categories, updated_at) VALUES ('${brand}', '${cats}'::jsonb, NOW()) ON CONFLICT (brand) DO UPDATE SET categories = EXCLUDED.categories, updated_at = NOW() RETURNING brand;`;\nreturn [{ json: { sql } }];"
+      }
+    },
+    {
+      "id": "bc-save-3",
+      "name": "Execute Save",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [680, 540],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "credentials": { "postgres": { "name": "Postgres account" } }
+    },
+    {
+      "id": "bc-save-4",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [900, 540],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true }) }}",
+        "options": { "responseHeaders": { "entries": [ { "name": "Access-Control-Allow-Origin", "value": "*" } ] } }
+      }
+    }
+  ],
+  "connections": {
+    "GET get-categories": { "main": [ [ { "node": "Read categories", "type": "main", "index": 0 } ] ] },
+    "Read categories": { "main": [ [ { "node": "Format categories", "type": "main", "index": 0 } ] ] },
+    "Format categories": { "main": [ [ { "node": "Respond categories", "type": "main", "index": 0 } ] ] },
+    "POST save-categories": { "main": [ [ { "node": "Build SQL", "type": "main", "index": 0 } ] ] },
+    "Build SQL": { "main": [ [ { "node": "Execute Save", "type": "main", "index": 0 } ] ] },
+    "Execute Save": { "main": [ [ { "node": "Respond OK", "type": "main", "index": 0 } ] ] }
+  },
+  "active": true,
+  "settings": { "executionOrder": "v1" }
+}

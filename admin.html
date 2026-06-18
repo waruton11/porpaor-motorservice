@@ -214,6 +214,10 @@ tr:hover td { background: #fafafa; }
   <div class="top-bar">
     <h1>⚙️ Admin — <span>ป.เปา มอเตอร์เซอร์วิส</span></h1>
     <div style="display:flex;align-items:center;gap:1rem;">
+      <select id="brandSwitch" onchange="setBrand(this.value)" title="สลับร้านที่กำลังจัดการ" style="padding:5px 9px;border-radius:6px;border:none;font-size:0.82rem;font-weight:700;cursor:pointer;">
+        <option value="honda">🔴 Honda (ป.เปา)</option>
+        <option value="yamaha">🔵 Yamaha (สิงห์ชัย)</option>
+      </select>
       <span id="userBadge" style="font-size:0.85rem;color:#fff;opacity:0.9;"></span>
       <button class="logout-btn" onclick="logout()">ออกจากระบบ</button>
     </div>
@@ -769,6 +773,35 @@ tr:hover td { background: #fafafa; }
 // ========== AUTH ==========
 let _currentUser = null;  // { role, name, username }
 
+// ===== Brand (multi-tenant Honda/Yamaha) =====
+// default 'honda' ทุกครั้งที่โหลด (ปลอดภัยกับ Honda — ไม่ค้างที่ yamaha)
+let activeBrand = 'honda';
+// ต่อ ?brand= เข้า URL (สำหรับ GET)
+function bq(url) { return url + (url.indexOf('?') >= 0 ? '&' : '?') + 'brand=' + activeBrand; }
+function setBrand(b) {
+  var nb = (b === 'yamaha') ? 'yamaha' : 'honda';
+  // สลับ categories (local) ของแบรนด์ — เก็บของเดิม แล้วชี้ไปแบรนด์ใหม่
+  try {
+    if (typeof data !== 'undefined' && data) {
+      if (!data.categoriesByBrand) data.categoriesByBrand = { honda: (data.categories || []), yamaha: [] };
+      data.categoriesByBrand[activeBrand] = data.categories;            // บันทึกแบรนด์ปัจจุบัน
+      activeBrand = nb;
+      if (!data.categoriesByBrand[activeBrand]) data.categoriesByBrand[activeBrand] = [];
+      data.categories = data.categoriesByBrand[activeBrand];            // สลับไปแบรนด์ใหม่
+      try { localStorage.setItem('papao_data', JSON.stringify(data)); } catch(e) {}
+    } else { activeBrand = nb; }
+  } catch(e) { activeBrand = nb; }
+  // re-render หน้า "รุ่นรถ & ราคา" (local) + dropdown หมวด
+  try { if (typeof renderModelTable === 'function') renderModelTable(); } catch(e) {}
+  try { if (typeof initAdmin === 'function') initAdmin(); } catch(e) {}
+  // reload ฝั่ง DB (แคตตาล็อก/รายชื่อรุ่น) ตามแบรนด์
+  try { bikeModelsData = []; } catch(e) {}
+  try { if (typeof syncCatalog === 'function') syncCatalog(true); } catch(e) {}
+  try { if (typeof loadBikeModelsData === 'function') loadBikeModelsData(); } catch(e) {}
+  try { if (typeof _loadCategoryList === 'function') _loadCategoryList(); } catch(e) {}
+  try { showToast('สลับเป็น ' + (activeBrand === 'yamaha' ? 'Yamaha (สิงห์ชัย)' : 'Honda (ป.เปา)'), 'success'); } catch(e) {}
+}
+
 async function doLogin() {
   const username = (document.getElementById('userInput').value || '').trim();
   const pw = document.getElementById('pwInput').value;
@@ -932,6 +965,12 @@ let data = JSON.parse(localStorage.getItem('papao_data') || 'null') || {
   catalog: []
 };
 if (!data.catalog) data.catalog = [];
+
+// ===== categories แยกตามแบรนด์ (multi-tenant Honda/Yamaha) =====
+// ของเดิม (Honda) ย้ายเข้า honda · yamaha เริ่มว่าง · data.categories ชี้ไปแบรนด์ที่ active
+if (!data.categoriesByBrand) data.categoriesByBrand = { honda: (data.categories || []), yamaha: [] };
+if (!data.categoriesByBrand[activeBrand]) data.categoriesByBrand[activeBrand] = [];
+data.categories = data.categoriesByBrand[activeBrand];
 
 let editModelIdx = null; // {ci, mi} or null
 let editNewsIdx = null;
@@ -1348,7 +1387,7 @@ const _DEFAULT_CAT_ICONS = {
 // ดึงรายชื่อหมวด (bike_type) จาก catalog — เรียงตาม sort_order
 async function _loadCategoryList() {
   try {
-    const res = await fetch('https://n8n-wt11.onrender.com/webhook/bike-catalog-display');
+    const res = await fetch(bq('https://n8n-wt11.onrender.com/webhook/bike-catalog-display'));
     if (!res.ok) return;
     const rows = await res.json();
     const seen = {};
@@ -2179,7 +2218,7 @@ function initCatalogTypeDropdown() {
 async function loadBikeModelsData() {
   if (bikeModelsData.length > 0) { populateSubmodelDatalist(''); return; }
   try {
-    const res = await fetch('https://n8n-wt11.onrender.com/webhook/bike-models-list');
+    const res = await fetch(bq('https://n8n-wt11.onrender.com/webhook/bike-models-list'));
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const arr = await res.json();
     bikeModelsData = Array.isArray(arr) ? arr : [];
@@ -2815,10 +2854,10 @@ function moveCatalog(idx, dir) {
 async function syncCatalog(silent=false) {
   if (!silent) showToast('กำลังโหลด...', '');
   try {
-    const res = await fetch('https://n8n-wt11.onrender.com/webhook/bike-catalog');
+    const res = await fetch(bq('https://n8n-wt11.onrender.com/webhook/bike-catalog'));
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const arr = await res.json();
-    if (Array.isArray(arr) && arr.length > 0) {
+    const arr = await res.json().catch(function(){ return []; });  // brand ว่าง → ตอบ empty → ถือเป็น []
+    if (Array.isArray(arr)) {
       data.catalog = arr.map(r => ({
         id: r.id,
         bikeType: r.bike_type || '',
@@ -2845,9 +2884,10 @@ async function syncCatalog(silent=false) {
       }));
       localStorage.setItem('papao_data', JSON.stringify(data));
       renderCatalogTable();
-      if (!silent) showToast(`โหลดสำเร็จ ${data.catalog.length} รายการ ✅`, 'success');
+      try { if (typeof renderModelTable === 'function') renderModelTable(); } catch(e) {}  // refresh หน้า "จัดการรุ่นรถ" ด้วย
+      if (!silent) showToast(arr.length ? ('โหลดสำเร็จ ' + data.catalog.length + ' รายการ ✅') : 'ยังไม่มีรถในแบรนด์นี้ — เพิ่มได้เลย', arr.length ? 'success' : '');
     } else if (!silent) {
-      showToast('Server ตอบกลับแต่ไม่มีข้อมูล', 'error');
+      showToast('Server ตอบกลับรูปแบบไม่ถูกต้อง', 'error');
     }
   } catch(e) {
     if (!silent) showToast('โหลดไม่สำเร็จ: ' + e.message, 'error');
@@ -2881,7 +2921,7 @@ async function saveCatalogToServer() {
     const res = await fetch('https://n8n-wt11.onrender.com/webhook/save-bike-catalog', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ catalog: payload })
+      body: JSON.stringify({ catalog: payload, brand: activeBrand })
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     resultDiv.innerHTML = `<div style="background:#e8f5e9;border:1.5px solid var(--green);border-radius:8px;padding:1rem;color:var(--green);">

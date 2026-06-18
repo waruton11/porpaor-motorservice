@@ -1,0 +1,572 @@
+{
+  "name": "n8n-workflow-get-bike-catalog",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "bike-models-list",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "6f38d490-c477-4718-a93a-72495ed4ee02",
+      "name": "GET bike-models-list",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        192,
+        576
+      ],
+      "webhookId": "bike-models-list"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT category_name, model_name, variant_name\nFROM bike_models\nORDER BY category_name ASC, model_name ASC, variant_name ASC;",
+        "options": {}
+      },
+      "id": "c3ffed4c-6cd2-4d62-8582-837e5e6c0a6d",
+      "name": "Query bike_models",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        416,
+        576
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "8MCWrd4HMMHaJf4D",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($input.all().map(item => item.json)) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "92195c0c-f81c-48a5-b1de-e9bb7a36f44d",
+      "name": "Respond Models List",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "save-price-list",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b6def1c7-ec72-4277-a47c-f9a8e800ad6b",
+      "name": "POST save-price-list",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        192,
+        752
+      ],
+      "webhookId": "save-price-list"
+    },
+    {
+      "parameters": {
+        "jsCode": "// รับ array ราคาจาก admin.html\nconst body = $input.first().json.body || $input.first().json;\nconst prices = body.prices || [];\n\nif (prices.length === 0) {\n  return [{ json: { sql: 'SELECT 1;', count: 0 } }];\n}\n\n// สร้าง VALUES string สำหรับ UPSERT\nconst esc = (s) => String(s || '').replace(/'/g, \"''\");\n\nconst values = prices.map(p => {\n  const mc = esc(p.model_code);\n  const vc = esc(p.variant_code || '');\n  const pr = parseInt(p.price) || 0;\n  const fp = parseInt(p.finance_price) || 0;\n  const ft = esc(p.file_type || 'small');\n  return `('${mc}','${vc}',${pr},${fp},'${ft}',NOW())`;\n}).join(',');\n\nconst sql = `INSERT INTO price_list (model_code, variant_code, price, finance_price, file_type, updated_at)\nVALUES ${values}\nON CONFLICT (model_code, variant_code)\nDO UPDATE SET\n  price = EXCLUDED.price,\n  finance_price = EXCLUDED.finance_price,\n  file_type = EXCLUDED.file_type,\n  updated_at = NOW();`;\n\nreturn [{ json: { sql, count: prices.length } }];"
+      },
+      "id": "becd46e2-7584-4e6f-aaae-7a6b1f14f3a5",
+      "name": "Build Upsert SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        752
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "b3521557-d515-4c7a-b0a5-007d15920597",
+      "name": "Execute Upsert",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        640,
+        752
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "8MCWrd4HMMHaJf4D",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, count: $('Build Upsert SQL').first().json.count }) }}",
+        "options": {}
+      },
+      "id": "45556bef-3843-4596-94d7-c22986d54bc3",
+      "name": "Respond OK1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        864,
+        752
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "save-bike-catalog",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "0b0fb8d9-98d8-47dd-a77e-770ef8509304",
+      "name": "POST save-bike-catalog",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        208,
+        400
+      ],
+      "webhookId": "save-bike-catalog"
+    },
+    {
+      "parameters": {
+        "jsCode": "// รับ catalog array จาก admin.html\nconst body = $input.first().json.body || $input.first().json;\nconst catalog = body.catalog || [];\nconst brand = (body.brand === 'yamaha') ? 'yamaha' : 'honda';\n\nconst esc = (s) => String(s == null ? '' : s).replace(/'/g, \"''\");\nconst boolVal = (v) => (v === true || v === 'true' || v === 1) ? 'true' : 'false';\n\nlet sql;\n\nif (catalog.length === 0) {\n  sql = 'SELECT 1;';\n} else {\n  const cols = [\n    'bike_type','submodel_name','model_name','variant_name','marketing_name',\n    'engine_cc','transmission','is_active','sort_order','note','badge','colors',\n    'auto_rate','auto_rate_unit','auto_down_pcts','auto_rate2','auto_rate2_min_down','brand'\n  ].join(',');\n\n  const values = catalog.map(c =>\n    `('${esc(c.bike_type)}','${esc(c.submodel_name)}','${esc(c.model_name)}','${esc(c.variant_name)}','${esc(c.marketing_name)}',${parseInt(c.engine_cc)||0},'${esc(c.transmission||'Automatic')}',${boolVal(c.is_active)},${parseInt(c.sort_order)||0},'${esc(c.note)}','${esc(c.badge||'')}','${esc(c.colors)}',${parseFloat(c.auto_rate)||0},'${esc(c.auto_rate_unit||'month')}','${esc(c.auto_down_pcts)}',${parseFloat(c.auto_rate2)||0},${parseInt(c.auto_rate2_min_down)||0},'${brand}')`\n  ).join(',\\n');\n\n  sql = `DELETE FROM bike_catalog WHERE brand = '${brand}';\\nINSERT INTO bike_catalog (${cols})\\nVALUES\\n${values};`;\n}\n\nreturn [{ json: { sql, count: catalog.length } }];"
+      },
+      "id": "5b4bb511-03fb-4752-bd9f-7a49cdbf4080",
+      "name": "Build SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "30c8c386-3c9a-47bf-b4a2-457ca4752b0a",
+      "name": "Execute Save",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        656,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "8MCWrd4HMMHaJf4D",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, count: $('Build SQL').first().json.count }) }}",
+        "options": {}
+      },
+      "id": "77fbeab3-7bb3-4498-b1c5-734d9292014c",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "path": "bike-catalog-display",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "724d6e72-450a-4955-a7d8-c55c468f6777",
+      "name": "GET bike-catalog-display",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        192,
+        224
+      ],
+      "webhookId": "bike-catalog-display"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT\n  bc.id, bc.bike_type, bc.submodel_name, bc.model_name, bc.variant_name,\n  bc.badge, bc.colors, bc.engine_cc, bc.is_active, bc.sort_order,\n  bc.auto_rate, bc.auto_rate_unit, bc.auto_down_pcts, bc.auto_rate2,\n  bc.auto_rate2_min_down, bc.freebies, pl.price, pl.finance_price\nFROM bike_catalog bc\nLEFT JOIN price_list pl\n  ON bc.model_name = pl.model_code AND bc.variant_name = pl.variant_code\nWHERE bc.is_active = true AND bc.brand = '{{ $json.query.brand === 'yamaha' ? 'yamaha' : 'honda' }}'\nORDER BY bc.sort_order ASC, bc.id ASC;",
+        "options": {}
+      },
+      "id": "1d7babf3-023a-478c-90e9-92cca404a97a",
+      "name": "Query Catalog with Prices",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        420,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "8MCWrd4HMMHaJf4D",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($input.all().map(item => item.json)) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "e235e593-7a1b-4214-9f91-f89e28082ed2",
+      "name": "Respond with Data",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "path": "bike-catalog",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f67ce86d-84a1-4254-841d-e00188bbf42c",
+      "name": "GET bike-catalog",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        192,
+        48
+      ],
+      "webhookId": "bike-catalog"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT\n  id, bike_type, submodel_name, model_name, variant_name, marketing_name,\n  engine_cc, transmission, is_active, sort_order, note, badge, colors,\n  auto_rate, auto_rate_unit, auto_down_pcts, auto_rate2, auto_rate2_min_down\nFROM bike_catalog\nWHERE brand = '{{ $json.query.brand === 'yamaha' ? 'yamaha' : 'honda' }}'\nORDER BY sort_order ASC, id ASC;",
+        "options": {}
+      },
+      "id": "3eb55376-5435-4cf3-ae75-d133bda240d0",
+      "name": "Query bike_catalog",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        416,
+        48
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "8MCWrd4HMMHaJf4D",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($input.all().map(item => item.json)) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "0ee3b010-0c43-432c-9c8a-4fd5fffa5e1f",
+      "name": "Respond GET",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "update-catalog-rates",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "ae65d7ba-7c11-448b-bd88-891b673dd2ff",
+      "name": "POST update-catalog-rates",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        176,
+        -128
+      ],
+      "webhookId": "update-catalog-rates"
+    },
+    {
+      "parameters": {
+        "jsCode": "// รับ rates array จาก admin.html (รุ่นรถ & ราคา)\n// แต่ละ item: { submodel_name, auto_rate, auto_rate_unit, auto_down_pcts, auto_rate2, auto_rate2_min_down }\nconst body = $input.first().json.body || $input.first().json;\nconst rates = body.rates || [];\n\nif (rates.length === 0) {\n  return [{ json: { sql: 'SELECT 1;', count: 0 } }];\n}\n\nconst esc = (s) => String(s == null ? '' : s).replace(/'/g, \"''\");\n\n// UPDATE bike_catalog ด้วย exact submodel_name match (ไม่ใช้ LIKE)\nconst statements = rates.map(r =>\n  `UPDATE bike_catalog SET auto_rate=${parseFloat(r.auto_rate)||0}, auto_rate_unit='${esc(r.auto_rate_unit||'month')}', auto_down_pcts='${esc(r.auto_down_pcts)}', auto_rate2=${parseFloat(r.auto_rate2)||0}, auto_rate2_min_down=${parseInt(r.auto_rate2_min_down)||0} WHERE submodel_name = '${esc(r.submodel_name)}';`\n).join('\\n');\n\nreturn [{ json: { sql: statements, count: rates.length } }];"
+      },
+      "id": "c796ac54-c984-4739-b924-730b04990096",
+      "name": "Build Update SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        -128
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "8634f30f-2f41-41be-8e3a-7d71fc1f422a",
+      "name": "Execute Update",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        624,
+        -128
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "8MCWrd4HMMHaJf4D",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, count: $('Build Update SQL').first().json.count }) }}",
+        "options": {}
+      },
+      "id": "445804b2-e2b3-478f-b377-1e02594d9ae2",
+      "name": "Respond OK4",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        848,
+        -128
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "GET bike-models-list": {
+      "main": [
+        [
+          {
+            "node": "Query bike_models",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query bike_models": {
+      "main": [
+        [
+          {
+            "node": "Respond Models List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST save-price-list": {
+      "main": [
+        [
+          {
+            "node": "Build Upsert SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Upsert SQL": {
+      "main": [
+        [
+          {
+            "node": "Execute Upsert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Upsert": {
+      "main": [
+        [
+          {
+            "node": "Respond OK1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST save-bike-catalog": {
+      "main": [
+        [
+          {
+            "node": "Build SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build SQL": {
+      "main": [
+        [
+          {
+            "node": "Execute Save",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Save": {
+      "main": [
+        [
+          {
+            "node": "Respond OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET bike-catalog-display": {
+      "main": [
+        [
+          {
+            "node": "Query Catalog with Prices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Catalog with Prices": {
+      "main": [
+        [
+          {
+            "node": "Respond with Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET bike-catalog": {
+      "main": [
+        [
+          {
+            "node": "Query bike_catalog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query bike_catalog": {
+      "main": [
+        [
+          {
+            "node": "Respond GET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST update-catalog-rates": {
+      "main": [
+        [
+          {
+            "node": "Build Update SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Update SQL": {
+      "main": [
+        [
+          {
+            "node": "Execute Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Update": {
+      "main": [
+        [
+          {
+            "node": "Respond OK4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3cc76313-7a11-48fa-85fc-894340aa8421",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8e7d3f62b628a32fff91202f4d2b728e956e45ecfe0e6343be33611ff9be61f5"
+  },
+  "id": "B9RefxDyC8EdAFDW",
+  "tags": [
+    {
+      "createdAt": "2026-05-25T08:12:23.004Z",
+      "updatedAt": "2026-05-25T08:12:23.004Z",
+      "id": "yZqjZlFSE1V2dsBE",
+      "name": "porpaor"
+    }
+  ]
+}
