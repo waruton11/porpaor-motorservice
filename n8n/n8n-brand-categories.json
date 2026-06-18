@@ -24,7 +24,7 @@
       "alwaysOutputData": true,
       "parameters": {
         "operation": "executeQuery",
-        "query": "=SELECT COALESCE((SELECT categories FROM bike_categories WHERE brand = '{{ $json.query.brand === 'yamaha' ? 'yamaha' : 'honda' }}'), '[]'::jsonb) AS categories;",
+        "query": "=SELECT COALESCE((SELECT categories FROM brand_categories WHERE brand = '{{ $json.query.brand === 'yamaha' ? 'yamaha' : 'honda' }}'), '[]'::jsonb) AS categories;",
         "options": {}
       },
       "credentials": { "postgres": { "name": "Postgres account" } }
@@ -74,7 +74,7 @@
       "position": [460, 540],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const b = $input.first().json.body || $input.first().json;\nconst brand = (b.brand === 'yamaha') ? 'yamaha' : 'honda';\nconst cats = JSON.stringify(Array.isArray(b.categories) ? b.categories : []).replace(/'/g, \"''\");\nconst sql = `INSERT INTO bike_categories (brand, categories, updated_at) VALUES ('${brand}', '${cats}'::jsonb, NOW()) ON CONFLICT (brand) DO UPDATE SET categories = EXCLUDED.categories, updated_at = NOW() RETURNING brand;`;\nreturn [{ json: { sql } }];"
+        "jsCode": "const b = $input.first().json.body || $input.first().json;\nconst brand = (b.brand === 'yamaha') ? 'yamaha' : 'honda';\nconst cats = JSON.stringify(Array.isArray(b.categories) ? b.categories : []).replace(/'/g, \"''\");\nconst sql = `INSERT INTO brand_categories (brand, categories, updated_at) VALUES ('${brand}', '${cats}'::jsonb, NOW()) ON CONFLICT (brand) DO UPDATE SET categories = EXCLUDED.categories, updated_at = NOW() RETURNING brand;`;\nreturn [{ json: { sql } }];"
       }
     },
     {

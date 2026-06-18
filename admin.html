@@ -799,7 +799,44 @@ function setBrand(b) {
   try { if (typeof syncCatalog === 'function') syncCatalog(true); } catch(e) {}
   try { if (typeof loadBikeModelsData === 'function') loadBikeModelsData(); } catch(e) {}
   try { if (typeof _loadCategoryList === 'function') _loadCategoryList(); } catch(e) {}
+  try { loadCategoriesFromDB(); } catch(e) {}   // โหลด categories ของแบรนด์จาก DB (+ auto-migrate)
   try { showToast('สลับเป็น ' + (activeBrand === 'yamaha' ? 'Yamaha (สิงห์ชัย)' : 'Honda (ป.เปา)'), 'success'); } catch(e) {}
+}
+
+// โหลด categories ของแบรนด์ที่ active จาก DB · auto-migrate: ถ้า DB ว่างแต่ local มี → ดันขึ้น DB (กันหาย)
+async function loadCategoriesFromDB() {
+  const brand = activeBrand;
+  try {
+    const res = await fetch('https://n8n-wt11.onrender.com/webhook/get-categories?brand=' + brand);
+    const d = await res.json().catch(function(){ return { categories: [] }; });
+    const dbCats = Array.isArray(d.categories) ? d.categories : [];
+    if (!data.categoriesByBrand) data.categoriesByBrand = { honda: [], yamaha: [] };
+    const localCats = data.categoriesByBrand[brand] || [];
+    if (dbCats.length > 0) {
+      data.categoriesByBrand[brand] = dbCats;               // DB มี → ใช้ DB เป็นหลัก
+    } else if (localCats.length > 0) {
+      saveCategoriesToDB(brand, localCats);                 // DB ว่าง + local มี → migrate ขึ้น DB
+    } else {
+      data.categoriesByBrand[brand] = [];
+    }
+    if (brand === activeBrand) {                            // ยังอยู่แบรนด์เดิม (ไม่ได้สลับไปแล้ว)
+      data.categories = data.categoriesByBrand[brand];
+      try { localStorage.setItem('papao_data', JSON.stringify(data)); } catch(e) {}
+      try { if (typeof renderModelTable === 'function') renderModelTable(); } catch(e) {}
+      try { if (typeof initAdmin === 'function') initAdmin(); } catch(e) {}
+    }
+  } catch(e) { console.warn('loadCategoriesFromDB', e.message); }
+}
+// บันทึก categories ของแบรนด์ขึ้น DB (เรียกทุกครั้งที่ saveData)
+function saveCategoriesToDB(brand, cats) {
+  brand = brand || activeBrand;
+  cats = cats || (data.categories || []);
+  try {
+    fetch('https://n8n-wt11.onrender.com/webhook/save-categories', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ brand: brand, categories: cats })
+    }).catch(function(){});
+  } catch(e) {}
 }
 
 async function doLogin() {
@@ -833,7 +870,7 @@ function enterAdmin() {
   document.getElementById('adminPanel').style.display = 'block';
   applyRole();
   initAdmin();
-  if (_currentUser && _currentUser.role !== 'sales') syncFromServer(true);
+  if (_currentUser && _currentUser.role !== 'sales') { syncFromServer(true); loadCategoriesFromDB(); }
 }
 
 // แสดงเมนูตาม role: sales เห็นแค่ CRM, owner เห็นทุกอย่าง
@@ -1010,6 +1047,7 @@ function saveData() {
   _syncToN8n(false); // sync ไป server — retry อัตโนมัติถ้า Render หลับ
   syncRatesToDB();   // sync rates ไปยัง bike_catalog ใน DB
   syncFreebiesToDB(); // sync ของแถม (ต่อรุ่นย่อย) ไปยัง bike_catalog
+  try { saveCategoriesToDB(); } catch(e) {}  // sync "รุ่นรถ & ราคา" (categories) ขึ้น DB ต่อแบรนด์
 }
 
 // sync ของแถมต่อรุ่นย่อย → จับคู่ submodel_name = ชื่อรุ่น + ' / ' + ชื่อรุ่นย่อย
