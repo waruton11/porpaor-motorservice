@@ -1,0 +1,90 @@
+{
+  "name": "POST google-login",
+  "nodes": [
+    {
+      "id": "gl-001",
+      "name": "POST google-login",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "google-login",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "google-login",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "gl-002",
+      "name": "Verify with Google",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 300],
+      "continueOnFail": true,
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "GET",
+        "url": "=https://oauth2.googleapis.com/tokeninfo?id_token={{ $json.body.credential }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "gl-003",
+      "name": "Check + build SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const CLIENT_ID = '529635582119-5fnrb83o3f1vbr8nj2ttls0ibf715b1k.apps.googleusercontent.com';\nconst r = $input.first().json || {};\nconst verified = (r.email_verified === true || r.email_verified === 'true');\nconst okToken = r.aud === CLIENT_ID && verified && !!r.email;\nlet sql;\nif (okToken) {\n  const email = String(r.email).toLowerCase().replace(/'/g, \"''\");\n  sql = `WITH ok AS (SELECT username, role, name FROM users WHERE lower(email) = '${email}' AND active = true LIMIT 1) INSERT INTO sessions (token, username, role, name, expires_at) SELECT gen_random_uuid()::text, username, role, name, NOW() + interval '30 days' FROM ok RETURNING token, role, name, username;`;\n} else {\n  sql = `SELECT NULL::text AS token WHERE false;`;\n}\nreturn [{ json: { sql } }];"
+      }
+    },
+    {
+      "id": "gl-004",
+      "name": "Exec",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [840, 300],
+      "alwaysOutputData": true,
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "credentials": { "postgres": { "name": "Postgres account" } }
+    },
+    {
+      "id": "gl-005",
+      "name": "Format",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1040, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const rows = $input.all();\nif (rows.length && rows[0].json && rows[0].json.token) {\n  const u = rows[0].json;\n  return [{ json: { ok: true, token: u.token, role: u.role, name: u.name || u.username, username: u.username } }];\n}\nreturn [{ json: { ok: false, reason: 'not_authorized' } }];"
+      }
+    },
+    {
+      "id": "gl-006",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1240, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": { "responseHeaders": { "entries": [ { "name": "Access-Control-Allow-Origin", "value": "*" } ] } }
+      }
+    }
+  ],
+  "connections": {
+    "POST google-login": { "main": [ [ { "node": "Verify with Google", "type": "main", "index": 0 } ] ] },
+    "Verify with Google": { "main": [ [ { "node": "Check + build SQL", "type": "main", "index": 0 } ] ] },
+    "Check + build SQL": { "main": [ [ { "node": "Exec", "type": "main", "index": 0 } ] ] },
+    "Exec": { "main": [ [ { "node": "Format", "type": "main", "index": 0 } ] ] },
+    "Format": { "main": [ [ { "node": "Respond", "type": "main", "index": 0 } ] ] }
+  },
+  "active": true,
+  "settings": { "executionOrder": "v1" }
+}

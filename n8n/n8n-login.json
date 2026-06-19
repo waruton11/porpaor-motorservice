@@ -29,7 +29,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const b = $input.first().json.body || $input.first().json;\nconst esc = (s) => String(s == null ? '' : s).replace(/'/g, \"''\");\nconst sql = `SELECT username, role, name FROM users WHERE username = '${esc(b.username)}' AND password = '${esc(b.password)}' AND active = true LIMIT 1;`;\nreturn [{ json: { sql } }];"
+        "jsCode": "const b = $input.first().json.body || $input.first().json;\nconst esc = (s) => String(s == null ? '' : s).replace(/'/g, \"''\");\nconst u = esc(b.username), p = esc(b.password);\nconst sql = `WITH ok AS (SELECT username, role, name FROM users WHERE username = '${u}' AND active = true AND ((password_hash IS NOT NULL AND password_hash = crypt('${p}', password_hash)) OR password = '${p}') LIMIT 1) INSERT INTO sessions (token, username, role, name, expires_at) SELECT gen_random_uuid()::text, username, role, name, NOW() + interval '30 days' FROM ok RETURNING token, role, name, username;`;\nreturn [{ json: { sql } }];"
       }
     },
     {
@@ -64,7 +64,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const rows = $input.all();\nif (rows.length && rows[0].json && rows[0].json.role) {\n  const u = rows[0].json;\n  return [{ json: { ok: true, role: u.role, name: u.name || u.username, username: u.username } }];\n}\nreturn [{ json: { ok: false } }];"
+        "jsCode": "const rows = $input.all();\nif (rows.length && rows[0].json && rows[0].json.token) {\n  const u = rows[0].json;\n  return [{ json: { ok: true, token: u.token, role: u.role, name: u.name || u.username, username: u.username } }];\n}\nreturn [{ json: { ok: false } }];"
       }
     },
     {

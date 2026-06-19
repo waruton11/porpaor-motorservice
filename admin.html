@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel — ป.เปา มอเตอร์เซอร์วิส</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root {
   --red: #cc0000; --red-dark: #990000;
@@ -206,6 +207,16 @@ tr:hover td { background: #fafafa; }
     <input type="password" id="pwInput" placeholder="รหัสผ่าน" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
     <button class="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
     <div class="login-err" id="loginErr">ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</div>
+    <div style="display:flex;align-items:center;gap:0.6rem;margin:1rem 0 0.8rem;color:#999;font-size:0.85rem;">
+      <span style="flex:1;height:1px;background:#ddd;"></span>หรือ<span style="flex:1;height:1px;background:#ddd;"></span>
+    </div>
+    <div id="g_id_onload"
+         data-client_id="529635582119-5fnrb83o3f1vbr8nj2ttls0ibf715b1k.apps.googleusercontent.com"
+         data-callback="handleGoogleLogin"
+         data-auto_prompt="false"></div>
+    <div class="g_id_signin" data-type="standard" data-size="large" data-text="signin_with"
+         data-shape="rectangular" data-logo_alignment="center" data-width="280"
+         style="display:flex;justify-content:center;"></div>
   </div>
 </div>
 
@@ -843,6 +854,37 @@ function saveCategoriesToDB(brand, cats) {
   } catch(e) {}
 }
 
+// ===== auth helper: แนบ session token กับทุก request ที่ต้องล็อกอิน =====
+function authToken() {
+  try { return (JSON.parse(localStorage.getItem('papao_user') || 'null') || {}).token || ''; }
+  catch (e) { return ''; }
+}
+// ใช้แทน fetch() สำหรับ endpoint ที่ต้องการสิทธิ์: แนบ token (GET→query, POST→body) + จัดการ 401
+async function apiFetch(url, opts) {
+  opts = opts || {};
+  const token = authToken();
+  const method = (opts.method || 'GET').toUpperCase();
+  if (token) {
+    if (method === 'GET') {
+      url += (url.indexOf('?') >= 0 ? '&' : '?') + 'token=' + encodeURIComponent(token);
+    } else {
+      try {
+        const body = opts.body ? JSON.parse(opts.body) : {};
+        body.token = token;
+        opts.body = JSON.stringify(body);
+        opts.headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
+      } catch (e) {}
+    }
+  }
+  const r = await fetch(url, opts);
+  if (r.status === 401) {
+    try { showToast('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่', 'error'); } catch (e) {}
+    try { logout(); } catch (e) {}
+    throw new Error('unauthorized');
+  }
+  return r;
+}
+
 async function doLogin() {
   const username = (document.getElementById('userInput').value || '').trim();
   const pw = document.getElementById('pwInput').value;
@@ -859,13 +901,35 @@ async function doLogin() {
   } catch(e) { console.warn('login', e.message); }
 
   if (res && res.ok) {
-    _currentUser = { role: res.role, name: res.name, username: res.username };
+    _currentUser = { role: res.role, name: res.name, username: res.username, token: res.token || '' };
     localStorage.setItem('papao_user', JSON.stringify(_currentUser));
     localStorage.setItem('papao_sales_name', res.name); // ใช้เป็น assignee ตอนรับเคส
     enterAdmin();
   } else {
     errEl.style.display = 'block';
     document.getElementById('pwInput').value = '';
+  }
+}
+
+// ===== Sign in with Google: รับ ID token จาก GIS → ยืนยันที่ n8n → ได้ session token =====
+async function handleGoogleLogin(resp) {
+  const errEl = document.getElementById('loginErr');
+  let res = null;
+  try {
+    const r = await fetch('https://n8n-wt11.onrender.com/webhook/google-login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential: resp.credential })
+    });
+    res = r.ok ? await r.json() : null;
+  } catch (e) { console.warn('google-login', e.message); }
+
+  if (res && res.ok) {
+    _currentUser = { role: res.role, name: res.name, username: res.username, token: res.token || '' };
+    localStorage.setItem('papao_user', JSON.stringify(_currentUser));
+    localStorage.setItem('papao_sales_name', res.name);
+    enterAdmin();
+  } else {
+    if (errEl) { errEl.textContent = 'อีเมล Google นี้ไม่มีสิทธิ์เข้าระบบ'; errEl.style.display = 'block'; }
   }
 }
 
