@@ -74,7 +74,7 @@
       "position": [460, 540],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const b = $input.first().json.body || $input.first().json;\nconst brand = (b.brand === 'yamaha') ? 'yamaha' : 'honda';\nconst cats = JSON.stringify(Array.isArray(b.categories) ? b.categories : []).replace(/'/g, \"''\");\nconst sql = `INSERT INTO brand_categories (brand, categories, updated_at) VALUES ('${brand}', '${cats}'::jsonb, NOW()) ON CONFLICT (brand) DO UPDATE SET categories = EXCLUDED.categories, updated_at = NOW() RETURNING brand;`;\nreturn [{ json: { sql } }];"
+        "jsCode": "const b = $input.first().json.body || $input.first().json;\nconst brand = (b.brand === 'yamaha') ? 'yamaha' : 'honda';\nconst arr = Array.isArray(b.categories) ? b.categories : [];\nconst cats = JSON.stringify(arr).replace(/'/g, \"''\");\n// 1) สำรองแถวเดิมก่อนเสมอ (ถ้ามี)  2) เขียนทับ แต่ห้ามเอา [] ว่างทับของจริง\nconst sql = `INSERT INTO brand_categories_backup (brand, categories, backed_up_at) SELECT brand, categories, NOW() FROM brand_categories WHERE brand='${brand}'; INSERT INTO brand_categories (brand, categories, updated_at) VALUES ('${brand}', '${cats}'::jsonb, NOW()) ON CONFLICT (brand) DO UPDATE SET categories = EXCLUDED.categories, updated_at = NOW() WHERE EXCLUDED.categories <> '[]'::jsonb OR brand_categories.categories = '[]'::jsonb RETURNING brand;`;\nreturn [{ json: { sql } }];"
       }
     },
     {
@@ -83,6 +83,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
       "position": [680, 540],
+      "alwaysOutputData": true,
       "parameters": {
         "operation": "executeQuery",
         "query": "={{ $json.sql }}",
