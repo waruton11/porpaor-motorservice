@@ -1,0 +1,188 @@
+{
+  "name": "Users & Login",
+  "nodes": [
+    {
+      "id": "lg-001",
+      "name": "POST login",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 80],
+      "webhookId": "login",
+      "parameters": { "httpMethod": "POST", "path": "login", "responseMode": "responseNode", "options": {} }
+    },
+    {
+      "id": "lg-002",
+      "name": "Build Q",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 80],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const b = $input.first().json.body || $input.first().json;\nconst esc = (s) => String(s == null ? '' : s).replace(/'/g, \"''\");\nconst u = esc(b.username), p = esc(b.password);\nconst sql = `WITH ok AS (SELECT username, role, name FROM users WHERE username = '${u}' AND active = true AND ((password_hash IS NOT NULL AND password_hash = crypt('${p}', password_hash)) OR password = '${p}') LIMIT 1) INSERT INTO sessions (token, username, role, name, expires_at) SELECT gen_random_uuid()::text, username, role, name, NOW() + interval '30 days' FROM ok RETURNING token, role, name, username;`;\nreturn [{ json: { sql } }];"
+      }
+    },
+    {
+      "id": "lg-003",
+      "name": "Check",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [640, 80],
+      "alwaysOutputData": true,
+      "parameters": { "operation": "executeQuery", "query": "={{ $json.sql }}", "options": {} },
+      "credentials": { "postgres": { "name": "Postgres account" } }
+    },
+    {
+      "id": "lg-004",
+      "name": "Format",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [840, 80],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const rows = $input.all();\nif (rows.length && rows[0].json && rows[0].json.token) {\n  const u = rows[0].json;\n  return [{ json: { ok: true, token: u.token, role: u.role, name: u.name || u.username, username: u.username } }];\n}\nreturn [{ json: { ok: false } }];"
+      }
+    },
+    {
+      "id": "lg-005",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1040, 80],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": { "responseHeaders": { "entries": [ { "name": "Access-Control-Allow-Origin", "value": "*" } ] } }
+      }
+    },
+
+    {
+      "id": "us-g-001",
+      "name": "GET users",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 280],
+      "webhookId": "users-list",
+      "parameters": { "httpMethod": "GET", "path": "users-list", "responseMode": "responseNode", "options": { "allowedOrigins": "*" } }
+    },
+    {
+      "id": "us-g-002",
+      "name": "Read users",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [440, 280],
+      "parameters": { "operation": "executeQuery", "query": "SELECT id, username, role, name, active FROM users ORDER BY role, id;", "options": {} },
+      "credentials": { "postgres": { "name": "Postgres account" } }
+    },
+    {
+      "id": "us-g-003",
+      "name": "Respond users",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [640, 280],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($input.all().map(i => i.json)) }}",
+        "options": { "responseHeaders": { "entries": [ { "name": "Access-Control-Allow-Origin", "value": "*" } ] } }
+      }
+    },
+    {
+      "id": "us-s-001",
+      "name": "POST save-user",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 480],
+      "webhookId": "save-user",
+      "parameters": { "httpMethod": "POST", "path": "save-user", "responseMode": "responseNode", "options": {} }
+    },
+    {
+      "id": "us-s-002",
+      "name": "Build user SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 480],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const b = $input.first().json.body || $input.first().json;\nconst esc = (s) => (s == null || s === '') ? 'NULL' : `'${String(s).replace(/'/g, \"''\")}'`;\nconst num = (n) => (n == null || n === '' || isNaN(Number(n))) ? 'NULL' : Number(n);\nconst act = (b.active === false) ? 'false' : 'true';\nlet sql;\nif (b.id) {\n  const sets = [`username = ${esc(b.username)}`, `role = ${esc(b.role)}`, `name = ${esc(b.name)}`, `active = ${act}`];\n  if (b.password) { sets.push(`password = ${esc(b.password)}`); sets.push(`password_hash = crypt(${esc(b.password)}, gen_salt('bf'))`); }\n  if (b.email !== undefined) sets.push(`email = ${esc(b.email)}`);\n  sql = `UPDATE users SET ${sets.join(', ')} WHERE id = ${num(b.id)};`;\n} else {\n  sql = `INSERT INTO users (username, password, password_hash, role, name, email, active) VALUES (${esc(b.username)}, ${esc(b.password)}, crypt(${esc(b.password)}, gen_salt('bf')), ${esc(b.role)}, ${esc(b.name)}, ${esc(b.email)}, ${act}) ON CONFLICT (username) DO UPDATE SET password = EXCLUDED.password, password_hash = EXCLUDED.password_hash, role = EXCLUDED.role, name = EXCLUDED.name, email = EXCLUDED.email, active = EXCLUDED.active;`;\n}\nreturn [{ json: { sql } }];"
+      }
+    },
+    {
+      "id": "us-s-003",
+      "name": "Exec user",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [640, 480],
+      "parameters": { "operation": "executeQuery", "query": "={{ $json.sql }}", "options": {} },
+      "credentials": { "postgres": { "name": "Postgres account" } }
+    },
+    {
+      "id": "us-s-004",
+      "name": "Respond save",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [840, 480],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true }) }}",
+        "options": { "responseHeaders": { "entries": [ { "name": "Access-Control-Allow-Origin", "value": "*" } ] } }
+      }
+    },
+    {
+      "id": "us-d-001",
+      "name": "POST delete-user",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 680],
+      "webhookId": "delete-user",
+      "parameters": { "httpMethod": "POST", "path": "delete-user", "responseMode": "responseNode", "options": {} }
+    },
+    {
+      "id": "us-d-002",
+      "name": "Build del",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 680],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const b = $input.first().json.body || $input.first().json;\nconst id = parseInt(b.id);\nconst sql = id ? `DELETE FROM users WHERE id = ${id} AND role <> 'owner';` : 'SELECT 1;';\nreturn [{ json: { sql } }];"
+      }
+    },
+    {
+      "id": "us-d-003",
+      "name": "Exec del",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [640, 680],
+      "parameters": { "operation": "executeQuery", "query": "={{ $json.sql }}", "options": {} },
+      "credentials": { "postgres": { "name": "Postgres account" } }
+    },
+    {
+      "id": "us-d-004",
+      "name": "Respond del",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [840, 680],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true }) }}",
+        "options": { "responseHeaders": { "entries": [ { "name": "Access-Control-Allow-Origin", "value": "*" } ] } }
+      }
+    }
+  ],
+  "connections": {
+    "POST login": { "main": [ [ { "node": "Build Q", "type": "main", "index": 0 } ] ] },
+    "Build Q": { "main": [ [ { "node": "Check", "type": "main", "index": 0 } ] ] },
+    "Check": { "main": [ [ { "node": "Format", "type": "main", "index": 0 } ] ] },
+    "Format": { "main": [ [ { "node": "Respond", "type": "main", "index": 0 } ] ] },
+
+    "GET users": { "main": [ [ { "node": "Read users", "type": "main", "index": 0 } ] ] },
+    "Read users": { "main": [ [ { "node": "Respond users", "type": "main", "index": 0 } ] ] },
+    "POST save-user": { "main": [ [ { "node": "Build user SQL", "type": "main", "index": 0 } ] ] },
+    "Build user SQL": { "main": [ [ { "node": "Exec user", "type": "main", "index": 0 } ] ] },
+    "Exec user": { "main": [ [ { "node": "Respond save", "type": "main", "index": 0 } ] ] },
+    "POST delete-user": { "main": [ [ { "node": "Build del", "type": "main", "index": 0 } ] ] },
+    "Build del": { "main": [ [ { "node": "Exec del", "type": "main", "index": 0 } ] ] },
+    "Exec del": { "main": [ [ { "node": "Respond del", "type": "main", "index": 0 } ] ] }
+  },
+  "active": true,
+  "settings": { "executionOrder": "v1" }
+}
