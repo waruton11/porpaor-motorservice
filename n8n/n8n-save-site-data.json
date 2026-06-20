@@ -2,10 +2,18 @@
   "name": "Save Site Data",
   "nodes": [
     {
-      "parameters": { "httpMethod": "POST", "path": "save-site-data", "responseMode": "responseNode", "options": {} },
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "save-site-data",
+        "responseMode": "responseNode",
+        "options": {}
+      },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [0, 0],
+      "position": [
+        0,
+        0
+      ],
       "id": "ssd-webhook",
       "name": "Webhook",
       "webhookId": "a3d35497-2018-4cc3-be9e-125e49268f9d"
@@ -17,32 +25,64 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [208, 0],
+      "position": [
+        208,
+        0
+      ],
       "id": "ssd-authsql",
       "name": "Auth SQL"
     },
     {
-      "parameters": { "operation": "executeQuery", "query": "={{ $json.sql }}", "options": {} },
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
-      "position": [416, 0],
+      "position": [
+        416,
+        0
+      ],
       "id": "ssd-verify",
       "name": "Verify session",
       "alwaysOutputData": true,
-      "credentials": { "postgres": { "name": "Postgres account" } }
+      "credentials": {
+        "postgres": {
+          "name": "Postgres account"
+        }
+      }
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
-          "conditions": [ { "id": "c", "leftValue": "={{ $json.role }}", "rightValue": "", "operator": { "type": "string", "operation": "notEmpty", "singleValue": true } } ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c",
+              "leftValue": "={{ $json.role }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
           "combinator": "and"
         },
         "options": {}
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [624, 0],
+      "position": [
+        624,
+        0
+      ],
       "id": "ssd-if",
       "name": "Authorized?"
     },
@@ -52,28 +92,54 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [832, -100],
+      "position": [
+        832,
+        -100
+      ],
       "id": "ssd-code",
       "name": "Code"
     },
     {
-      "parameters": { "operation": "executeQuery", "query": "={{ $json.sql }}", "options": {} },
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
-      "position": [1040, -100],
+      "position": [
+        1040,
+        -100
+      ],
       "id": "ssd-exec",
       "name": "Execute a SQL query",
-      "credentials": { "postgres": { "name": "Postgres account" } }
+      "credentials": {
+        "postgres": {
+          "name": "Postgres account"
+        }
+      }
     },
     {
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ JSON.stringify({ ok: true }) }}",
-        "options": { "responseHeaders": { "entries": [ { "name": "Access-Control-Allow-Origin", "value": "*" } ] } }
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
       },
       "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.4,
-      "position": [1248, -100],
+      "typeVersion": 1.1,
+      "position": [
+        1248,
+        -100
+      ],
       "id": "ssd-respond",
       "name": "Respond OK"
     },
@@ -81,28 +147,105 @@
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ JSON.stringify({ ok: false, error: 'unauthorized' }) }}",
-        "options": { "responseCode": 401, "responseHeaders": { "entries": [ { "name": "Access-Control-Allow-Origin", "value": "*" } ] } }
+        "options": {
+          "responseCode": 401,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
       },
       "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.4,
-      "position": [832, 100],
+      "typeVersion": 1.1,
+      "position": [
+        832,
+        100
+      ],
       "id": "ssd-401",
       "name": "Respond 401"
     }
   ],
   "connections": {
-    "Webhook": { "main": [ [ { "node": "Auth SQL", "type": "main", "index": 0 } ] ] },
-    "Auth SQL": { "main": [ [ { "node": "Verify session", "type": "main", "index": 0 } ] ] },
-    "Verify session": { "main": [ [ { "node": "Authorized?", "type": "main", "index": 0 } ] ] },
-    "Authorized?": {
+    "Webhook": {
       "main": [
-        [ { "node": "Code", "type": "main", "index": 0 } ],
-        [ { "node": "Respond 401", "type": "main", "index": 0 } ]
+        [
+          {
+            "node": "Auth SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Code": { "main": [ [ { "node": "Execute a SQL query", "type": "main", "index": 0 } ] ] },
-    "Execute a SQL query": { "main": [ [ { "node": "Respond OK", "type": "main", "index": 0 } ] ] }
+    "Auth SQL": {
+      "main": [
+        [
+          {
+            "node": "Verify session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify session": {
+      "main": [
+        [
+          {
+            "node": "Authorized?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Authorized?": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 401",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Respond OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
   "active": true,
-  "settings": { "executionOrder": "v1" }
+  "settings": {
+    "executionOrder": "v1"
+  }
 }
