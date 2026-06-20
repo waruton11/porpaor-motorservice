@@ -1,0 +1,44 @@
+# ชุดทดสอบ local: Postgres + n8n (แยกจาก production บน Render)
+# ใช้: cd local && docker compose up -d
+# ปิด: docker compose down            (เก็บข้อมูล)
+# ล้างเริ่มใหม่: docker compose down -v  (ลบ DB+n8n ให้ schema/seed รันใหม่)
+name: porpaor-local
+services:
+  db:
+    image: postgres:16
+    container_name: porpaor-db
+    environment:
+      POSTGRES_USER: porpaor
+      POSTGRES_PASSWORD: porpaor
+      POSTGRES_DB: porpaor
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db-init:/docker-entrypoint-initdb.d:ro   # รัน *.sql ตอนสร้าง DB ครั้งแรก
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U porpaor"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: porpaor-n8n
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_PORT=5678
+      - N8N_SECURE_COOKIE=false          # ให้เข้าผ่าน http://localhost ได้
+      - GENERIC_TIMEZONE=Asia/Bangkok
+      - N8N_DIAGNOSTICS_ENABLED=false
+      # n8n เก็บข้อมูลภายในของตัวเองใน sqlite (คนละก้อนกับ DB แอป Postgres)
+    volumes:
+      - n8ndata:/home/node/.n8n
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  n8ndata:
