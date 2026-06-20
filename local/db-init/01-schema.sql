@@ -75,6 +75,17 @@ CREATE TABLE IF NOT EXISTS site_config (
   CONSTRAINT single_row CHECK (id = 1)
 );
 
+-- ---------- site_data (legacy blob: news + shop, อ่าน/เขียนโดย admin _syncToN8n) ----------
+CREATE TABLE IF NOT EXISTS site_data (
+  id          INT PRIMARY KEY DEFAULT 1,
+  categories  JSONB DEFAULT '[]'::jsonb,
+  news        JSONB DEFAULT '[]'::jsonb,
+  shop        JSONB DEFAULT '{}'::jsonb,
+  updated_at  TIMESTAMP DEFAULT NOW(),
+  CONSTRAINT site_data_single CHECK (id = 1)
+);
+INSERT INTO site_data (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+
 -- ---------- brand_categories (+ backup) ----------
 CREATE TABLE IF NOT EXISTS brand_categories (
   brand       VARCHAR(20) PRIMARY KEY,

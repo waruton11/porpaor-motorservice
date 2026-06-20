@@ -1143,7 +1143,7 @@ async function _syncToN8n(isRetry) {
   const payload = { news: data.news, shop: data.shop, savedAt: data.savedAt };
   if (isRetry) showToast('⏳ กำลังรอ server ตื่น...', '', 38000);
   try {
-    const res = await fetch('https://n8n-wt11.onrender.com/webhook/save-site-data', {
+    const res = await apiFetch('https://n8n-wt11.onrender.com/webhook/save-site-data', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
