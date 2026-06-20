@@ -6,7 +6,7 @@
       "name": "GET get-categories",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [240, 300],
+      "position": [240, 120],
       "webhookId": "get-categories",
       "parameters": {
         "httpMethod": "GET",
@@ -20,7 +20,7 @@
       "name": "Read categories",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [460, 300],
+      "position": [460, 120],
       "alwaysOutputData": true,
       "parameters": {
         "operation": "executeQuery",
@@ -34,7 +34,7 @@
       "name": "Format categories",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [680, 300],
+      "position": [680, 120],
       "parameters": {
         "mode": "runOnceForAllItems",
         "jsCode": "const items = $input.all();\nconst row = items.length ? items[0].json : {};\nreturn [{ json: { categories: row.categories || [] } }];"
@@ -45,19 +45,20 @@
       "name": "Respond categories",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [900, 300],
+      "position": [900, 120],
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ JSON.stringify($json) }}",
         "options": { "responseHeaders": { "entries": [ { "name": "Access-Control-Allow-Origin", "value": "*" } ] } }
       }
     },
+
     {
       "id": "bc-save-1",
       "name": "POST save-categories",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [240, 540],
+      "position": [240, 360],
       "webhookId": "save-categories",
       "parameters": {
         "httpMethod": "POST",
@@ -67,14 +68,52 @@
       }
     },
     {
+      "id": "bc-auth-1",
+      "name": "Auth SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 360],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const j = $input.first().json;\nconst t = String((j.query && j.query.token) || (j.body && j.body.token) || j.token || '').replace(/'/g, \"''\");\nreturn [{ json: { sql: `SELECT role FROM sessions WHERE token = '${t}' AND expires_at > NOW() LIMIT 1;` } }];"
+      }
+    },
+    {
+      "id": "bc-auth-2",
+      "name": "Verify session",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [640, 360],
+      "alwaysOutputData": true,
+      "parameters": { "operation": "executeQuery", "query": "={{ $json.sql }}", "options": {} },
+      "credentials": { "postgres": { "name": "Postgres account" } }
+    },
+    {
+      "id": "bc-auth-3",
+      "name": "Authorized?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [840, 360],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [
+            { "id": "c", "leftValue": "={{ $json.role }}", "rightValue": "", "operator": { "type": "string", "operation": "notEmpty", "singleValue": true } }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
       "id": "bc-save-2",
       "name": "Build SQL",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [460, 540],
+      "position": [1040, 280],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const b = $input.first().json.body || $input.first().json;\nconst brand = (b.brand === 'yamaha') ? 'yamaha' : 'honda';\nconst arr = Array.isArray(b.categories) ? b.categories : [];\nconst cats = JSON.stringify(arr).replace(/'/g, \"''\");\n// 1) สำรองแถวเดิมก่อนเสมอ (ถ้ามี)  2) เขียนทับ แต่ห้ามเอา [] ว่างทับของจริง\nconst sql = `INSERT INTO brand_categories_backup (brand, categories, backed_up_at) SELECT brand, categories, NOW() FROM brand_categories WHERE brand='${brand}'; INSERT INTO brand_categories (brand, categories, updated_at) VALUES ('${brand}', '${cats}'::jsonb, NOW()) ON CONFLICT (brand) DO UPDATE SET categories = EXCLUDED.categories, updated_at = NOW() WHERE EXCLUDED.categories <> '[]'::jsonb OR brand_categories.categories = '[]'::jsonb RETURNING brand;`;\nreturn [{ json: { sql } }];"
+        "jsCode": "const b = $('POST save-categories').first().json.body || $('POST save-categories').first().json;\nconst brand = (b.brand === 'yamaha') ? 'yamaha' : 'honda';\nconst arr = Array.isArray(b.categories) ? b.categories : [];\nconst cats = JSON.stringify(arr).replace(/'/g, \"''\");\n// 1) สำรองแถวเดิมก่อนเสมอ (ถ้ามี)  2) เขียนทับ แต่ห้ามเอา [] ว่างทับของจริง\nconst sql = `INSERT INTO brand_categories_backup (brand, categories, backed_up_at) SELECT brand, categories, NOW() FROM brand_categories WHERE brand='${brand}'; INSERT INTO brand_categories (brand, categories, updated_at) VALUES ('${brand}', '${cats}'::jsonb, NOW()) ON CONFLICT (brand) DO UPDATE SET categories = EXCLUDED.categories, updated_at = NOW() WHERE EXCLUDED.categories <> '[]'::jsonb OR brand_categories.categories = '[]'::jsonb RETURNING brand;`;\nreturn [{ json: { sql } }];"
       }
     },
     {
@@ -82,13 +121,9 @@
       "name": "Execute Save",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [680, 540],
+      "position": [1240, 280],
       "alwaysOutputData": true,
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "={{ $json.sql }}",
-        "options": {}
-      },
+      "parameters": { "operation": "executeQuery", "query": "={{ $json.sql }}", "options": {} },
       "credentials": { "postgres": { "name": "Postgres account" } }
     },
     {
@@ -96,11 +131,26 @@
       "name": "Respond OK",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [900, 540],
+      "position": [1440, 280],
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ JSON.stringify({ ok: true }) }}",
         "options": { "responseHeaders": { "entries": [ { "name": "Access-Control-Allow-Origin", "value": "*" } ] } }
+      }
+    },
+    {
+      "id": "bc-save-401",
+      "name": "Respond 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1040, 470],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: false, error: 'unauthorized' }) }}",
+        "options": {
+          "responseCode": 401,
+          "responseHeaders": { "entries": [ { "name": "Access-Control-Allow-Origin", "value": "*" } ] }
+        }
       }
     }
   ],
@@ -108,7 +158,16 @@
     "GET get-categories": { "main": [ [ { "node": "Read categories", "type": "main", "index": 0 } ] ] },
     "Read categories": { "main": [ [ { "node": "Format categories", "type": "main", "index": 0 } ] ] },
     "Format categories": { "main": [ [ { "node": "Respond categories", "type": "main", "index": 0 } ] ] },
-    "POST save-categories": { "main": [ [ { "node": "Build SQL", "type": "main", "index": 0 } ] ] },
+
+    "POST save-categories": { "main": [ [ { "node": "Auth SQL", "type": "main", "index": 0 } ] ] },
+    "Auth SQL": { "main": [ [ { "node": "Verify session", "type": "main", "index": 0 } ] ] },
+    "Verify session": { "main": [ [ { "node": "Authorized?", "type": "main", "index": 0 } ] ] },
+    "Authorized?": {
+      "main": [
+        [ { "node": "Build SQL", "type": "main", "index": 0 } ],
+        [ { "node": "Respond 401", "type": "main", "index": 0 } ]
+      ]
+    },
     "Build SQL": { "main": [ [ { "node": "Execute Save", "type": "main", "index": 0 } ] ] },
     "Execute Save": { "main": [ [ { "node": "Respond OK", "type": "main", "index": 0 } ] ] }
   },

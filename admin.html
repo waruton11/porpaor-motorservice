@@ -847,7 +847,7 @@ function saveCategoriesToDB(brand, cats) {
   brand = brand || activeBrand;
   cats = cats || (data.categories || []);
   try {
-    fetch('https://n8n-wt11.onrender.com/webhook/save-categories', {
+    apiFetch('https://n8n-wt11.onrender.com/webhook/save-categories', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ brand: brand, categories: cats })
     }).catch(function(){});
