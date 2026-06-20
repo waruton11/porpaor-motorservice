@@ -1319,7 +1319,7 @@ async function loadCrm(silent) {
   const wrap = document.getElementById('crmList');
   if (wrap && !silent) wrap.innerHTML = '<div style="color:#999;padding:1rem;">กำลังโหลด...</div>';
   try {
-    const res = await fetch('https://n8n-wt11.onrender.com/webhook/customers');
+    const res = await apiFetch('https://n8n-wt11.onrender.com/webhook/customers');
     _crmData = res.ok ? await res.json() : [];
     if (!Array.isArray(_crmData)) _crmData = [];
   } catch(e) { _crmData = []; console.warn('loadCrm', e.message); }
