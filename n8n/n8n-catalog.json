@@ -81,14 +81,14 @@
     },
     {
       "parameters": {
-        "jsCode": "// รับ array ราคาจาก admin.html\nconst body = $input.first().json.body || $input.first().json;\nconst prices = body.prices || [];\n\nif (prices.length === 0) {\n  return [{ json: { sql: 'SELECT 1;', count: 0 } }];\n}\n\n// สร้าง VALUES string สำหรับ UPSERT\nconst esc = (s) => String(s || '').replace(/'/g, \"''\");\n\nconst values = prices.map(p => {\n  const mc = esc(p.model_code);\n  const vc = esc(p.variant_code || '');\n  const pr = parseInt(p.price) || 0;\n  const fp = parseInt(p.finance_price) || 0;\n  const ft = esc(p.file_type || 'small');\n  return `('${mc}','${vc}',${pr},${fp},'${ft}',NOW())`;\n}).join(',');\n\nconst sql = `INSERT INTO price_list (model_code, variant_code, price, finance_price, file_type, updated_at)\nVALUES ${values}\nON CONFLICT (model_code, variant_code)\nDO UPDATE SET\n  price = EXCLUDED.price,\n  finance_price = EXCLUDED.finance_price,\n  file_type = EXCLUDED.file_type,\n  updated_at = NOW();`;\n\nreturn [{ json: { sql, count: prices.length } }];"
+        "jsCode": "// รับ array ราคาจาก admin.html\nconst body = $('POST save-price-list').first().json.body || $('POST save-price-list').first().json;\nconst prices = body.prices || [];\n\nif (prices.length === 0) {\n  return [{ json: { sql: 'SELECT 1;', count: 0 } }];\n}\n\n// สร้าง VALUES string สำหรับ UPSERT\nconst esc = (s) => String(s || '').replace(/'/g, \"''\");\n\nconst values = prices.map(p => {\n  const mc = esc(p.model_code);\n  const vc = esc(p.variant_code || '');\n  const pr = parseInt(p.price) || 0;\n  const fp = parseInt(p.finance_price) || 0;\n  const ft = esc(p.file_type || 'small');\n  return `('${mc}','${vc}',${pr},${fp},'${ft}',NOW())`;\n}).join(',');\n\nconst sql = `INSERT INTO price_list (model_code, variant_code, price, finance_price, file_type, updated_at)\nVALUES ${values}\nON CONFLICT (model_code, variant_code)\nDO UPDATE SET\n  price = EXCLUDED.price,\n  finance_price = EXCLUDED.finance_price,\n  file_type = EXCLUDED.file_type,\n  updated_at = NOW();`;\n\nreturn [{ json: { sql, count: prices.length } }];"
       },
       "id": "becd46e2-7584-4e6f-aaae-7a6b1f14f3a5",
       "name": "Build Upsert SQL",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        416,
+        912,
         752
       ]
     },
@@ -147,14 +147,14 @@
     },
     {
       "parameters": {
-        "jsCode": "// รับ catalog array จาก admin.html\nconst body = $input.first().json.body || $input.first().json;\nconst catalog = body.catalog || [];\nconst brand = (body.brand === 'yamaha') ? 'yamaha' : 'honda';\n\nconst esc = (s) => String(s == null ? '' : s).replace(/'/g, \"''\");\nconst boolVal = (v) => (v === true || v === 'true' || v === 1) ? 'true' : 'false';\n\nlet sql;\n\nif (catalog.length === 0) {\n  sql = 'SELECT 1;';\n} else {\n  const cols = [\n    'bike_type','submodel_name','model_name','variant_name','marketing_name',\n    'engine_cc','transmission','is_active','sort_order','note','badge','colors',\n    'auto_rate','auto_rate_unit','auto_down_pcts','auto_rate2','auto_rate2_min_down','brand'\n  ].join(',');\n\n  const values = catalog.map(c =>\n    `('${esc(c.bike_type)}','${esc(c.submodel_name)}','${esc(c.model_name)}','${esc(c.variant_name)}','${esc(c.marketing_name)}',${parseInt(c.engine_cc)||0},'${esc(c.transmission||'Automatic')}',${boolVal(c.is_active)},${parseInt(c.sort_order)||0},'${esc(c.note)}','${esc(c.badge||'')}','${esc(c.colors)}',${parseFloat(c.auto_rate)||0},'${esc(c.auto_rate_unit||'month')}','${esc(c.auto_down_pcts)}',${parseFloat(c.auto_rate2)||0},${parseInt(c.auto_rate2_min_down)||0},'${brand}')`\n  ).join(',\\n');\n\n  sql = `DELETE FROM bike_catalog WHERE brand = '${brand}';\\nINSERT INTO bike_catalog (${cols})\\nVALUES\\n${values};`;\n}\n\nreturn [{ json: { sql, count: catalog.length } }];"
+        "jsCode": "// รับ catalog array จาก admin.html\nconst body = $('POST save-bike-catalog').first().json.body || $('POST save-bike-catalog').first().json;\nconst catalog = body.catalog || [];\nconst brand = (body.brand === 'yamaha') ? 'yamaha' : 'honda';\n\nconst esc = (s) => String(s == null ? '' : s).replace(/'/g, \"''\");\nconst boolVal = (v) => (v === true || v === 'true' || v === 1) ? 'true' : 'false';\n\nlet sql;\n\nif (catalog.length === 0) {\n  sql = 'SELECT 1;';\n} else {\n  const cols = [\n    'bike_type','submodel_name','model_name','variant_name','marketing_name',\n    'engine_cc','transmission','is_active','sort_order','note','badge','colors',\n    'auto_rate','auto_rate_unit','auto_down_pcts','auto_rate2','auto_rate2_min_down','brand'\n  ].join(',');\n\n  const values = catalog.map(c =>\n    `('${esc(c.bike_type)}','${esc(c.submodel_name)}','${esc(c.model_name)}','${esc(c.variant_name)}','${esc(c.marketing_name)}',${parseInt(c.engine_cc)||0},'${esc(c.transmission||'Automatic')}',${boolVal(c.is_active)},${parseInt(c.sort_order)||0},'${esc(c.note)}','${esc(c.badge||'')}','${esc(c.colors)}',${parseFloat(c.auto_rate)||0},'${esc(c.auto_rate_unit||'month')}','${esc(c.auto_down_pcts)}',${parseFloat(c.auto_rate2)||0},${parseInt(c.auto_rate2_min_down)||0},'${brand}')`\n  ).join(',\\n');\n\n  sql = `DELETE FROM bike_catalog WHERE brand = '${brand}';\\nINSERT INTO bike_catalog (${cols})\\nVALUES\\n${values};`;\n}\n\nreturn [{ json: { sql, count: catalog.length } }];"
       },
       "id": "5b4bb511-03fb-4752-bd9f-7a49cdbf4080",
       "name": "Build SQL",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        432,
+        928,
         400
       ]
     },
@@ -335,14 +335,14 @@
     },
     {
       "parameters": {
-        "jsCode": "// รับ rates array จาก admin.html (รุ่นรถ & ราคา)\n// แต่ละ item: { submodel_name, auto_rate, auto_rate_unit, auto_down_pcts, auto_rate2, auto_rate2_min_down }\nconst body = $input.first().json.body || $input.first().json;\nconst rates = body.rates || [];\n\nif (rates.length === 0) {\n  return [{ json: { sql: 'SELECT 1;', count: 0 } }];\n}\n\nconst esc = (s) => String(s == null ? '' : s).replace(/'/g, \"''\");\n\n// UPDATE bike_catalog ด้วย exact submodel_name match (ไม่ใช้ LIKE)\nconst statements = rates.map(r =>\n  `UPDATE bike_catalog SET auto_rate=${parseFloat(r.auto_rate)||0}, auto_rate_unit='${esc(r.auto_rate_unit||'month')}', auto_down_pcts='${esc(r.auto_down_pcts)}', auto_rate2=${parseFloat(r.auto_rate2)||0}, auto_rate2_min_down=${parseInt(r.auto_rate2_min_down)||0} WHERE submodel_name = '${esc(r.submodel_name)}';`\n).join('\\n');\n\nreturn [{ json: { sql: statements, count: rates.length } }];"
+        "jsCode": "// รับ rates array จาก admin.html (รุ่นรถ & ราคา)\n// แต่ละ item: { submodel_name, auto_rate, auto_rate_unit, auto_down_pcts, auto_rate2, auto_rate2_min_down }\nconst body = $('POST update-catalog-rates').first().json.body || $('POST update-catalog-rates').first().json;\nconst rates = body.rates || [];\n\nif (rates.length === 0) {\n  return [{ json: { sql: 'SELECT 1;', count: 0 } }];\n}\n\nconst esc = (s) => String(s == null ? '' : s).replace(/'/g, \"''\");\n\n// UPDATE bike_catalog ด้วย exact submodel_name match (ไม่ใช้ LIKE)\nconst statements = rates.map(r =>\n  `UPDATE bike_catalog SET auto_rate=${parseFloat(r.auto_rate)||0}, auto_rate_unit='${esc(r.auto_rate_unit||'month')}', auto_down_pcts='${esc(r.auto_down_pcts)}', auto_rate2=${parseFloat(r.auto_rate2)||0}, auto_rate2_min_down=${parseInt(r.auto_rate2_min_down)||0} WHERE submodel_name = '${esc(r.submodel_name)}';`\n).join('\\n');\n\nreturn [{ json: { sql: statements, count: rates.length } }];"
       },
       "id": "c796ac54-c984-4739-b924-730b04990096",
       "name": "Build Update SQL",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        400,
+        896,
         -128
       ]
     },
@@ -381,6 +381,285 @@
         848,
         -128
       ]
+    },
+    {
+      "id": "au-SPL",
+      "name": "Auth SQL SPL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        372,
+        752
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const j = $input.first().json;\nconst t = String((j.query && j.query.token) || (j.body && j.body.token) || j.token || '').replace(/'/g, \"''\");\nreturn [{ json: { sql: `SELECT role FROM sessions WHERE token = '${t}' AND expires_at > NOW() LIMIT 1;` } }];"
+      }
+    },
+    {
+      "id": "vs-SPL",
+      "name": "Verify SPL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        552,
+        752
+      ],
+      "alwaysOutputData": true,
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "if-SPL",
+      "name": "Auth? SPL",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        732,
+        752
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c",
+              "leftValue": "={{ $json.role }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "r401-SPL",
+      "name": "Respond 401 SPL",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        912,
+        892
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: false, error: 'unauthorized' }) }}",
+        "options": {
+          "responseCode": 401,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "au-SBC",
+      "name": "Auth SQL SBC",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        388,
+        400
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const j = $input.first().json;\nconst t = String((j.query && j.query.token) || (j.body && j.body.token) || j.token || '').replace(/'/g, \"''\");\nreturn [{ json: { sql: `SELECT role FROM sessions WHERE token = '${t}' AND expires_at > NOW() LIMIT 1;` } }];"
+      }
+    },
+    {
+      "id": "vs-SBC",
+      "name": "Verify SBC",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        568,
+        400
+      ],
+      "alwaysOutputData": true,
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "if-SBC",
+      "name": "Auth? SBC",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        748,
+        400
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c",
+              "leftValue": "={{ $json.role }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "r401-SBC",
+      "name": "Respond 401 SBC",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        928,
+        540
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: false, error: 'unauthorized' }) }}",
+        "options": {
+          "responseCode": 401,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "au-UCR",
+      "name": "Auth SQL UCR",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        356,
+        -128
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const j = $input.first().json;\nconst t = String((j.query && j.query.token) || (j.body && j.body.token) || j.token || '').replace(/'/g, \"''\");\nreturn [{ json: { sql: `SELECT role FROM sessions WHERE token = '${t}' AND expires_at > NOW() LIMIT 1;` } }];"
+      }
+    },
+    {
+      "id": "vs-UCR",
+      "name": "Verify UCR",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        536,
+        -128
+      ],
+      "alwaysOutputData": true,
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "if-UCR",
+      "name": "Auth? UCR",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        716,
+        -128
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c",
+              "leftValue": "={{ $json.role }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "r401-UCR",
+      "name": "Respond 401 UCR",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        896,
+        12
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: false, error: 'unauthorized' }) }}",
+        "options": {
+          "responseCode": 401,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      }
     }
   ],
   "pinData": {},
@@ -411,7 +690,7 @@
       "main": [
         [
           {
-            "node": "Build Upsert SQL",
+            "node": "Auth SQL SPL",
             "type": "main",
             "index": 0
           }
@@ -444,7 +723,7 @@
       "main": [
         [
           {
-            "node": "Build SQL",
+            "node": "Auth SQL SBC",
             "type": "main",
             "index": 0
           }
@@ -521,7 +800,7 @@
       "main": [
         [
           {
-            "node": "Build Update SQL",
+            "node": "Auth SQL UCR",
             "type": "main",
             "index": 0
           }
@@ -544,6 +823,126 @@
         [
           {
             "node": "Respond OK4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth SQL SPL": {
+      "main": [
+        [
+          {
+            "node": "Verify SPL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify SPL": {
+      "main": [
+        [
+          {
+            "node": "Auth? SPL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth? SPL": {
+      "main": [
+        [
+          {
+            "node": "Build Upsert SQL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 401 SPL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth SQL SBC": {
+      "main": [
+        [
+          {
+            "node": "Verify SBC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify SBC": {
+      "main": [
+        [
+          {
+            "node": "Auth? SBC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth? SBC": {
+      "main": [
+        [
+          {
+            "node": "Build SQL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 401 SBC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth SQL UCR": {
+      "main": [
+        [
+          {
+            "node": "Verify UCR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify UCR": {
+      "main": [
+        [
+          {
+            "node": "Auth? UCR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth? UCR": {
+      "main": [
+        [
+          {
+            "node": "Build Update SQL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 401 UCR",
             "type": "main",
             "index": 0
           }

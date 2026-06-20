@@ -1102,7 +1102,7 @@ function syncRatesToDB() {
     });
   });
   if (rates.length === 0) return;
-  fetch('https://n8n-wt11.onrender.com/webhook/update-catalog-rates', {
+  apiFetch('https://n8n-wt11.onrender.com/webhook/update-catalog-rates', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ rates })
@@ -2432,7 +2432,7 @@ async function _syncPriceListToServer(showUI) {
   });
   if (items.length === 0) return;
   try {
-    const res = await fetch('https://n8n-wt11.onrender.com/webhook/save-price-list', {
+    const res = await apiFetch('https://n8n-wt11.onrender.com/webhook/save-price-list', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prices: items })
@@ -3029,7 +3029,7 @@ async function saveCatalogToServer() {
       auto_rate2: c.autoRate2 || 0,
       auto_rate2_min_down: c.autoRate2MinDown || 0
     }));
-    const res = await fetch('https://n8n-wt11.onrender.com/webhook/save-bike-catalog', {
+    const res = await apiFetch('https://n8n-wt11.onrender.com/webhook/save-bike-catalog', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ catalog: payload, brand: activeBrand })
