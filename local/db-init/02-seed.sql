@@ -4,13 +4,13 @@
 -- ==========================================================
 
 -- บัญชี admin (เจ้าของ) — ล็อกอินด้วยรหัสผ่าน หรือ Gmail waruton11@gmail.com
-INSERT INTO users (username, password, password_hash, role, name, email, active)
-VALUES ('admin', 'papao2569', crypt('papao2569', gen_salt('bf')), 'owner', 'เจ้าของร้าน (local)', 'waruton11@gmail.com', true)
+INSERT INTO users (username, password_hash, role, name, email, active)
+VALUES ('admin', crypt('papao2569', gen_salt('bf')), 'owner', 'เจ้าของร้าน (local)', 'waruton11@gmail.com', true)
 ON CONFLICT (username) DO NOTHING;
 
 -- บัญชีเซลทดสอบ
-INSERT INTO users (username, password, password_hash, role, name, active)
-VALUES ('salesA', 'sales123', crypt('sales123', gen_salt('bf')), 'sales', 'เซลเอ (local)', true)
+INSERT INTO users (username, password_hash, role, name, active)
+VALUES ('salesA', crypt('sales123', gen_salt('bf')), 'sales', 'เซลเอ (local)', true)
 ON CONFLICT (username) DO NOTHING;
 
 -- site_config row แรก

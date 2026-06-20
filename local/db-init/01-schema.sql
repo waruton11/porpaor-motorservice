@@ -11,7 +11,6 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE TABLE IF NOT EXISTS users (
   id            SERIAL PRIMARY KEY,
   username      TEXT UNIQUE NOT NULL,
-  password      TEXT,
   password_hash TEXT,
   role          TEXT DEFAULT 'sales',
   name          TEXT,
