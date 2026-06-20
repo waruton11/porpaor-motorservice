@@ -3064,7 +3064,7 @@ function buildCategoriesFromAPI(rows) {
 // ดึง catalog+ราคาจาก DB ผ่าน n8n — DB คือ single source of truth
 async function fetchCatalogDisplay() {
   try {
-    const res = await fetch('https://n8n-wt11.onrender.com/webhook/bike-catalog-display');
+    const res = await fetch(brandUrl('https://n8n-wt11.onrender.com/webhook/bike-catalog-display'));
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const rows = await res.json();
     if (Array.isArray(rows) && rows.length > 0) {
@@ -3102,7 +3102,7 @@ let siteConfig = JSON.parse(JSON.stringify(DEFAULT_SITE_CONFIG));
 
 async function fetchSiteConfig() {
   try {
-    const res = await fetch('https://n8n-wt11.onrender.com/webhook/site-config');
+    const res = await fetch(brandUrl('https://n8n-wt11.onrender.com/webhook/site-config'));
     if (!res.ok) return;
     const d = await res.json();
     if (d) {
@@ -3191,6 +3191,38 @@ function renderServiceIcons() {
   put('svcTestrideIco', siteConfig.svcTestrideIcon, '🏍️');
 }
 
+// ===== Brand (Honda / Yamaha) — parameterize: ?brand=yamaha → โหมด Yamaha =====
+const BRAND = (new URLSearchParams(location.search).get('brand') === 'yamaha') ? 'yamaha' : 'honda';
+const BRAND_CFG = ({
+  honda:  { name: 'ป.เปา มอเตอร์เซอร์วิส', tagline: 'ตัวแทนจำหน่าย Honda · วังน้อย', color: '#cc0000', colorDark: '#990000', oa: '@975ltwhp', title: 'ป.เปา มอเตอร์เซอร์วิส | Honda วังน้อย', liffId: '2010228940-rjXFOkmc', modelsTitle: 'รุ่นรถฮอนด้า', modelsTitleMy: 'Honda ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Honda · 189-191 ม.7 ต.ลำไทร อ.วังน้อย จ.พระนครศรีอยุธยา<br>เปิดทุกวัน 08:00 – 17:30 น. · โทร. 092-249968-6' },
+  yamaha: { name: 'สิงห์ชัยสยามยนต์', tagline: 'ตัวแทนจำหน่ายรถจักรยานยนต์ Yamaha · พระนครศรีอยุธยา', color: '#0a3aa0', colorDark: '#062a78', oa: '@459eeeog', title: 'สิงห์ชัยสยามยนต์ | Yamaha อยุธยา', liffId: '', modelsTitle: 'รุ่นรถยามาฮ่า', modelsTitleMy: 'Yamaha ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Yamaha — สิงห์ชัยสยามยนต์ · จ.พระนครศรีอยุธยา<br>(โปรดระบุที่อยู่ · เวลาเปิด · เบอร์โทร)' }
+})[BRAND];
+function brandUrl(u) { return u + (u.indexOf('?') >= 0 ? '&' : '?') + 'brand=' + BRAND; }
+function applyBrand() {
+  try {
+    const r = document.documentElement.style;
+    r.setProperty('--red', BRAND_CFG.color);
+    r.setProperty('--red-dark', BRAND_CFG.colorDark);
+    document.title = BRAND_CFG.title;
+    const tb = document.querySelector('.top-bar-brand');
+    if (tb) tb.innerHTML = BRAND_CFG.name + '<small>' + BRAND_CFG.tagline + '</small>';
+    const fb = document.querySelector('.footer-brand');
+    if (fb) fb.textContent = BRAND_CFG.name;
+    // heading "รุ่นรถ..." — brand-aware (+ patch i18n ให้สลับภาษาแล้วยังถูก)
+    try { I18N.th.models_title = BRAND_CFG.modelsTitle; I18N.my.models_title = BRAND_CFG.modelsTitleMy; } catch (e) {}
+    const mt = document.querySelector('[data-i18n="models_title"]');
+    if (mt) mt.textContent = BRAND_CFG.modelsTitle;
+    // footer address
+    const fa = fb && fb.nextElementSibling;
+    if (fa && fa.tagName === 'P') fa.innerHTML = BRAND_CFG.footer;
+    const oaPlain = BRAND_CFG.oa.replace('@', '');
+    document.querySelectorAll('a[href*="975ltwhp"]').forEach(function(a) {
+      a.href = a.href.replace('@975ltwhp', BRAND_CFG.oa).replace('%40975ltwhp', '%40' + oaPlain);
+    });
+  } catch (e) { console.warn('applyBrand', e); }
+}
+
+applyBrand();
 fetchSiteConfig().then(fetchCatalogDisplay).then(function() {
   renderHero();
   renderTrustStrip();
@@ -3200,7 +3232,7 @@ fetchSiteConfig().then(fetchCatalogDisplay).then(function() {
 });
 
 // ===== LIFF Integration =====
-const LIFF_ID = '2010228940-rjXFOkmc';
+const LIFF_ID = BRAND_CFG.liffId;
 let isInLiff = false;
 
 // บันทึก lead ลง DB (fire-and-forget — ไม่ขัดจังหวะการส่งการ์ด)
@@ -3208,6 +3240,7 @@ function saveLead(lead) {
   if (!lead) return;
   try {
     lead.lang = langMode; // 'my' = ลูกค้าพม่า → ใส่โน้ตบนการ์ดเซลล์
+    lead.brand = BRAND;   // honda / yamaha → แยกร้าน
     fetch('https://n8n-wt11.onrender.com/webhook/save-lead', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(lead)
@@ -3327,7 +3360,7 @@ function handleAutoSend() {
 // → redirect ไป LIFF URL พร้อม params → LIFF เปิดใน LINE → auto-fire sendToLine() → Flex card เข้า chat
 function sendToLineViaBrowser() {
   if (!calcModel) {
-    window.open('https://line.me/R/ti/p/@975ltwhp', '_blank');
+    window.open('https://line.me/R/ti/p/' + BRAND_CFG.oa, '_blank');
     return;
   }
   // หา index ของ model ใน catalog
@@ -3338,7 +3371,7 @@ function sendToLineViaBrowser() {
     }
   }
   if (ci < 0) {
-    window.open('https://line.me/R/ti/p/@975ltwhp', '_blank');
+    window.open('https://line.me/R/ti/p/' + BRAND_CFG.oa, '_blank');
     return;
   }
   const custName = (document.getElementById('custName')?.value || '').trim();
@@ -3667,12 +3700,12 @@ async function deliverFlexToLine(flexMsg, fallbackText, opts) {
       const ok = await pushCardWithRetry(userId, flexMsg);
       if (!ok) throw new Error('push failed after retries');
       fireAck();
-      const oaUrl = 'https://line.me/R/ti/p/@975ltwhp';
+      const oaUrl = 'https://line.me/R/ti/p/' + BRAND_CFG.oa;
       if (liff.openWindow) { liff.openWindow({ url: oaUrl, external: false }); }
       setTimeout(function(){ try { liff.closeWindow(); } catch(_){} }, 800);
     } catch(e2) {
       // วิธีสุดท้าย: เปิดแชท OA พร้อม pre-fill ข้อความ
-      const oaUrl = 'https://line.me/R/oaMessage/%40975ltwhp/?' + encodeURIComponent(fallbackText);
+      const oaUrl = 'https://line.me/R/oaMessage/%40' + BRAND_CFG.oa.replace('@', '') + '/?' + encodeURIComponent(fallbackText);
       window.location.href = oaUrl;
     }
   }
