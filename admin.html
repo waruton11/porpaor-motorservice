@@ -1130,7 +1130,7 @@ function syncFreebiesToDB() {
     });
   });
   if (items.length === 0) return;
-  fetch('https://n8n-wt11.onrender.com/webhook/update-catalog-freebies', {
+  apiFetch('https://n8n-wt11.onrender.com/webhook/update-catalog-freebies', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ items })

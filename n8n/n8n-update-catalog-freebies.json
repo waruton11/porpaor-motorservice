@@ -6,15 +6,43 @@
       "name": "POST update-catalog-freebies",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        240,
-        300
-      ],
+      "position": [240, 300],
       "webhookId": "update-catalog-freebies",
+      "parameters": { "httpMethod": "POST", "path": "update-catalog-freebies", "responseMode": "responseNode", "options": {} }
+    },
+    {
+      "id": "fb-auth1",
+      "name": "Auth SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300],
       "parameters": {
-        "httpMethod": "POST",
-        "path": "update-catalog-freebies",
-        "responseMode": "responseNode",
+        "mode": "runOnceForAllItems",
+        "jsCode": "const j = $input.first().json;\nconst t = String((j.query && j.query.token) || (j.body && j.body.token) || j.token || '').replace(/'/g, \"''\");\nreturn [{ json: { sql: `SELECT role FROM sessions WHERE token = '${t}' AND expires_at > NOW() LIMIT 1;` } }];"
+      }
+    },
+    {
+      "id": "fb-auth2",
+      "name": "Verify session",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [640, 300],
+      "alwaysOutputData": true,
+      "parameters": { "operation": "executeQuery", "query": "={{ $json.sql }}", "options": {} },
+      "credentials": { "postgres": { "name": "Postgres account" } }
+    },
+    {
+      "id": "fb-auth3",
+      "name": "Authorized?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [840, 300],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [ { "id": "c", "leftValue": "={{ $json.role }}", "rightValue": "", "operator": { "type": "string", "operation": "notEmpty", "singleValue": true } } ],
+          "combinator": "and"
+        },
         "options": {}
       }
     },
@@ -23,13 +51,10 @@
       "name": "Build SQL",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        460,
-        300
-      ],
+      "position": [1040, 220],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst items = body.items || [];\nif (items.length === 0) return [{ json: { sql: 'SELECT 1;', count: 0 } }];\nconst esc = (s) => String(s == null ? '' : s).replace(/'/g, \"''\");\n// UPDATE ของแถมต่อรุ่นย่อย (จับด้วย submodel_name)\nconst stmts = items.map(it => {\n  const sm = esc(it.submodel_name);\n  const fb = esc(JSON.stringify(Array.isArray(it.freebies) ? it.freebies : []));\n  return `UPDATE bike_catalog SET freebies = '${fb}'::jsonb WHERE submodel_name = '${sm}';`;\n}).join('\\n');\nreturn [{ json: { sql: stmts, count: items.length } }];"
+        "jsCode": "const body = $('POST update-catalog-freebies').first().json.body || $('POST update-catalog-freebies').first().json;\nconst items = body.items || [];\nif (items.length === 0) return [{ json: { sql: 'SELECT 1;', count: 0 } }];\nconst esc = (s) => String(s == null ? '' : s).replace(/'/g, \"''\");\nconst stmts = items.map(it => {\n  const sm = esc(it.submodel_name);\n  const fb = esc(JSON.stringify(Array.isArray(it.freebies) ? it.freebies : []));\n  return `UPDATE bike_catalog SET freebies = '${fb}'::jsonb WHERE submodel_name = '${sm}';`;\n}).join('\\n');\nreturn [{ json: { sql: stmts, count: items.length } }];"
       }
     },
     {
@@ -37,74 +62,48 @@
       "name": "Execute",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [
-        680,
-        300
-      ],
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "={{ $json.sql }}",
-        "options": {}
-      },
-      "credentials": {
-        "postgres": {
-          "name": "Postgres account"
-        }
-      }
+      "position": [1240, 220],
+      "parameters": { "operation": "executeQuery", "query": "={{ $json.sql }}", "options": {} },
+      "credentials": { "postgres": { "name": "Postgres account" } }
     },
     {
       "id": "fb-004",
       "name": "Respond OK",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [
-        900,
-        300
-      ],
+      "position": [1440, 220],
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ JSON.stringify({ ok: true, count: $('Build SQL').first().json.count }) }}",
-        "options": {}
+        "options": { "responseHeaders": { "entries": [ { "name": "Access-Control-Allow-Origin", "value": "*" } ] } }
+      }
+    },
+    {
+      "id": "fb-401",
+      "name": "Respond 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1040, 400],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: false, error: 'unauthorized' }) }}",
+        "options": { "responseCode": 401, "responseHeaders": { "entries": [ { "name": "Access-Control-Allow-Origin", "value": "*" } ] } }
       }
     }
   ],
   "connections": {
-    "POST update-catalog-freebies": {
+    "POST update-catalog-freebies": { "main": [ [ { "node": "Auth SQL", "type": "main", "index": 0 } ] ] },
+    "Auth SQL": { "main": [ [ { "node": "Verify session", "type": "main", "index": 0 } ] ] },
+    "Verify session": { "main": [ [ { "node": "Authorized?", "type": "main", "index": 0 } ] ] },
+    "Authorized?": {
       "main": [
-        [
-          {
-            "node": "Build SQL",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [ { "node": "Build SQL", "type": "main", "index": 0 } ],
+        [ { "node": "Respond 401", "type": "main", "index": 0 } ]
       ]
     },
-    "Build SQL": {
-      "main": [
-        [
-          {
-            "node": "Execute",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Execute": {
-      "main": [
-        [
-          {
-            "node": "Respond OK",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
+    "Build SQL": { "main": [ [ { "node": "Execute", "type": "main", "index": 0 } ] ] },
+    "Execute": { "main": [ [ { "node": "Respond OK", "type": "main", "index": 0 } ] ] }
   },
   "active": true,
-  "settings": {
-    "executionOrder": "v1"
-  }
+  "settings": { "executionOrder": "v1" }
 }
