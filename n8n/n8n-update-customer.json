@@ -2,118 +2,108 @@
   "name": "POST update-customer",
   "nodes": [
     {
-      "id": "cust-u-001",
+      "id": "uc-001",
       "name": "POST update-customer",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        240,
-        600
-      ],
+      "position": [240, 300],
       "webhookId": "update-customer",
+      "parameters": { "httpMethod": "POST", "path": "update-customer", "responseMode": "responseNode", "options": {} }
+    },
+    {
+      "id": "uc-auth1",
+      "name": "Auth SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300],
       "parameters": {
-        "httpMethod": "POST",
-        "path": "update-customer",
-        "responseMode": "responseNode",
+        "mode": "runOnceForAllItems",
+        "jsCode": "const j = $input.first().json;\nconst t = String((j.query && j.query.token) || (j.body && j.body.token) || j.token || '').replace(/'/g, \"''\");\nreturn [{ json: { sql: `SELECT role FROM sessions WHERE token = '${t}' AND expires_at > NOW() LIMIT 1;` } }];"
+      }
+    },
+    {
+      "id": "uc-auth2",
+      "name": "Verify session",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [640, 300],
+      "alwaysOutputData": true,
+      "parameters": { "operation": "executeQuery", "query": "={{ $json.sql }}", "options": {} },
+      "credentials": { "postgres": { "name": "Postgres account" } }
+    },
+    {
+      "id": "uc-auth3",
+      "name": "Authorized?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [840, 300],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [ { "id": "c", "leftValue": "={{ $json.role }}", "rightValue": "", "operator": { "type": "string", "operation": "notEmpty", "singleValue": true } } ],
+          "combinator": "and"
+        },
         "options": {}
       }
     },
     {
-      "id": "cust-u-002",
+      "id": "uc-002",
       "name": "Build SQL",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        460,
-        600
-      ],
+      "position": [1040, 220],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const b = $input.first().json.body || $input.first().json;\nconst esc = (s) => (s == null || s === '') ? 'NULL' : `'${String(s).replace(/'/g, \"''\")}'`;\nconst lit = (s) => String(s == null ? '' : s).replace(/'/g, \"''\");\nconst uid = lit(b.line_user_id);\nif (!uid) return [{ json: { sql: 'SELECT 1;', ok: false } }];\nconst sets = [];\nif (b.status !== undefined) sets.push(`status = ${esc(b.status)}`);\nif (b.assignee !== undefined) sets.push(`assignee = ${esc(b.assignee)}`);\nif (b.display_name !== undefined) sets.push(`display_name = ${esc(b.display_name)}`);\nif (b.note !== undefined) sets.push(`note = ${esc(b.note)}`);\nif (b.purchase_date !== undefined) sets.push(`purchase_date = ${esc(b.purchase_date)}`);\nsets.push('updated_at = NOW()');\nconst sql = `UPDATE customers SET ${sets.join(', ')} WHERE line_user_id = '${uid}';`;\nreturn [{ json: { sql } }];"
+        "jsCode": "const b = $('POST update-customer').first().json.body || $('POST update-customer').first().json;\nconst esc = (s) => (s == null || s === '') ? 'NULL' : `'${String(s).replace(/'/g, \"''\")}'`;\nconst lit = (s) => String(s == null ? '' : s).replace(/'/g, \"''\");\nconst uid = lit(b.line_user_id);\nif (!uid) return [{ json: { sql: 'SELECT 1;', ok: false } }];\nconst sets = [];\nif (b.status !== undefined) sets.push(`status = ${esc(b.status)}`);\nif (b.assignee !== undefined) sets.push(`assignee = ${esc(b.assignee)}`);\nif (b.display_name !== undefined) sets.push(`display_name = ${esc(b.display_name)}`);\nif (b.note !== undefined) sets.push(`note = ${esc(b.note)}`);\nif (b.purchase_date !== undefined) sets.push(`purchase_date = ${esc(b.purchase_date)}`);\nsets.push('updated_at = NOW()');\nconst sql = `UPDATE customers SET ${sets.join(', ')} WHERE line_user_id = '${uid}';`;\nreturn [{ json: { sql } }];"
       }
     },
     {
-      "id": "cust-u-003",
+      "id": "uc-003",
       "name": "Execute",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [
-        680,
-        600
-      ],
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "={{ $json.sql }}",
-        "options": {}
-      },
-      "credentials": {
-        "postgres": {
-          "name": "Postgres account"
-        }
-      }
+      "position": [1240, 220],
+      "parameters": { "operation": "executeQuery", "query": "={{ $json.sql }}", "options": {} },
+      "credentials": { "postgres": { "name": "Postgres account" } }
     },
     {
-      "id": "cust-u-004",
+      "id": "uc-004",
       "name": "Respond OK",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [
-        900,
-        600
-      ],
+      "position": [1440, 220],
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ JSON.stringify({ ok: true }) }}",
-        "options": {
-          "responseHeaders": {
-            "entries": [
-              {
-                "name": "Access-Control-Allow-Origin",
-                "value": "*"
-              }
-            ]
-          }
-        }
+        "options": { "responseHeaders": { "entries": [ { "name": "Access-Control-Allow-Origin", "value": "*" } ] } }
+      }
+    },
+    {
+      "id": "uc-401",
+      "name": "Respond 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1040, 400],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: false, error: 'unauthorized' }) }}",
+        "options": { "responseCode": 401, "responseHeaders": { "entries": [ { "name": "Access-Control-Allow-Origin", "value": "*" } ] } }
       }
     }
   ],
   "connections": {
-    "POST update-customer": {
+    "POST update-customer": { "main": [ [ { "node": "Auth SQL", "type": "main", "index": 0 } ] ] },
+    "Auth SQL": { "main": [ [ { "node": "Verify session", "type": "main", "index": 0 } ] ] },
+    "Verify session": { "main": [ [ { "node": "Authorized?", "type": "main", "index": 0 } ] ] },
+    "Authorized?": {
       "main": [
-        [
-          {
-            "node": "Build SQL",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [ { "node": "Build SQL", "type": "main", "index": 0 } ],
+        [ { "node": "Respond 401", "type": "main", "index": 0 } ]
       ]
     },
-    "Build SQL": {
-      "main": [
-        [
-          {
-            "node": "Execute",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Execute": {
-      "main": [
-        [
-          {
-            "node": "Respond OK",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
+    "Build SQL": { "main": [ [ { "node": "Execute", "type": "main", "index": 0 } ] ] },
+    "Execute": { "main": [ [ { "node": "Respond OK", "type": "main", "index": 0 } ] ] }
   },
   "active": true,
-  "settings": {
-    "executionOrder": "v1"
-  }
+  "settings": { "executionOrder": "v1" }
 }

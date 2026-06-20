@@ -1392,7 +1392,7 @@ function renderCrm() {
 async function _crmUpdate(uid, fields) {
   fields.line_user_id = uid;
   try {
-    await fetch('https://n8n-wt11.onrender.com/webhook/update-customer', {
+    await apiFetch('https://n8n-wt11.onrender.com/webhook/update-customer', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fields)
     });
   } catch(e) { showToast('อัปเดตไม่สำเร็จ: ' + e.message, 'error'); return false; }
