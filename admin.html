@@ -1255,7 +1255,7 @@ async function loadUsers() {
   const wrap = document.getElementById('usersList');
   if (wrap) wrap.innerHTML = '<div style="color:#999;padding:1rem;">กำลังโหลด...</div>';
   try {
-    const res = await fetch('https://n8n-wt11.onrender.com/webhook/users-list');
+    const res = await apiFetch('https://n8n-wt11.onrender.com/webhook/users-list');
     _usersData = res.ok ? await res.json() : [];
     if (!Array.isArray(_usersData)) _usersData = [];
   } catch(e) { _usersData = []; }
@@ -1292,13 +1292,13 @@ function openUserForm(id) {
   const payload = { username: username.trim(), name: name.trim(), role: 'sales', active: true };
   if (id) payload.id = id;
   if (pw.trim()) payload.password = pw.trim();
-  fetch('https://n8n-wt11.onrender.com/webhook/save-user', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+  apiFetch('https://n8n-wt11.onrender.com/webhook/save-user', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
     .then(function(){ showToast('บันทึกเซลแล้ว ✅', 'success'); loadUsers(); })
     .catch(function(e){ showToast('ผิดพลาด: ' + e.message, 'error'); });
 }
 function deleteUser(id, name) {
   if (!confirm('ลบเซล "' + name + '" ?')) return;
-  fetch('https://n8n-wt11.onrender.com/webhook/delete-user', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id: id }) })
+  apiFetch('https://n8n-wt11.onrender.com/webhook/delete-user', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id: id }) })
     .then(function(){ showToast('ลบแล้ว', 'success'); loadUsers(); })
     .catch(function(e){ showToast('ผิดพลาด: ' + e.message, 'error'); });
 }
