@@ -1,3 +1,11 @@
 node_modules/
 IMPORT-*.json
 _build_*.js
+
+# Claude Code (ตั้งค่าส่วนตัว — ไม่ขึ้น git)
+.claude/
+
+# ไฟล์ร่าง/ทดลอง
+test-*.html
+wireframe.html
+flex-card-*.json
