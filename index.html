@@ -2181,11 +2181,36 @@ function sC(i, colors) {
 
 function updCarImg2(c) {
   const area = document.getElementById('mCarImg');
-  if (c && c.img) {
-    area.innerHTML = '<img src="' + c.img + '" style="max-height:180px;max-width:100%;object-fit:contain;">';
-  } else {
+  if (!c || !c.img) {
     area.innerHTML = '<span style="font-size:4rem">' + modalModel.icon + '</span>';
+    return;
   }
+  // แกลเลอรีหลายมุมต่อสี: รูปหลัก (0.png) + มุมอื่น (gallery) → ปัดนิ้ว/กดเปลี่ยนมุมได้
+  const imgs = [c.img].concat(Array.isArray(c.gallery) ? c.gallery : []).filter(Boolean);
+  let idx = 0;
+  area.style.position = 'relative';
+  area.style.touchAction = 'pan-y';
+  function render() {
+    const multi = imgs.length > 1;
+    area.innerHTML =
+      '<img src="' + imgs[idx] + '" draggable="false" style="max-height:190px;max-width:100%;object-fit:contain;user-select:none;-webkit-user-drag:none;pointer-events:none;">' +
+      (multi ?
+        '<div style="position:absolute;bottom:6px;left:0;right:0;display:flex;justify-content:center;gap:5px;">' +
+          imgs.map(function(_, j) { return '<span style="width:7px;height:7px;border-radius:50%;background:' + (j === idx ? 'var(--red)' : '#ccc') + ';transition:background .15s;"></span>'; }).join('') +
+        '</div>' +
+        '<div onclick="window.__galStep(-1)" style="position:absolute;left:0;top:0;bottom:0;width:32%;cursor:pointer;" title="มุมก่อนหน้า"></div>' +
+        '<div onclick="window.__galStep(1)" style="position:absolute;right:0;top:0;bottom:0;width:32%;cursor:pointer;" title="มุมถัดไป"></div>'
+      : '');
+  }
+  window.__galStep = function(d) { idx = (idx + d + imgs.length) % imgs.length; render(); };
+  // ปัดนิ้วบนภาพใหญ่ (มือถือ/แท็บเล็ต)
+  let sx = 0, sy = 0;
+  area.ontouchstart = function(e) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; };
+  area.ontouchend = function(e) {
+    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) > 30 && Math.abs(dx) > Math.abs(dy)) window.__galStep(dx < 0 ? 1 : -1);
+  };
+  render();
 }
 
 function calcInstFlat(financed, ratePct, months) {
