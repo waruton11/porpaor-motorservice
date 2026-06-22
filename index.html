@@ -632,6 +632,20 @@ img { display: block; max-width: 100%; }
   margin-bottom: 1rem;
   padding: 0.75rem;
 }
+.modal-banner {
+  margin: -1rem -1rem 1rem;
+  overflow: hidden;
+  background: #eef0f3;
+  line-height: 0;
+  min-height: 90px;
+  aspect-ratio: 1900 / 550;
+}
+.modal-banner img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
 .modal-price {
   color: var(--red);
   font-size: 1.3rem;
@@ -1590,6 +1604,9 @@ footer .footer-brand {
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
+      <!-- Lifestyle banner (hero) -->
+      <div class="modal-banner" id="mBanner" style="display:none;"></div>
+
       <!-- Car image -->
       <div class="modal-img-card" id="mCarImg"></div>
 
@@ -1957,6 +1974,24 @@ footer .footer-brand {
 // ===== CONSTANTS =====
 const RATE = 0.065;
 let categories = [/* ข้อมูลโหลดจาก DB ผ่าน fetchCatalogDisplay() */];
+
+// แบนเนอร์ lifestyle ต่อรุ่น (จับคู่ชื่อรุ่น → URL รูปกว้าง 1900x550 จาก yamaha-motor.co.th)
+// เก็บที่นี่แทน DB เพื่อไม่กระทบ bike_catalog/หน้าแอดมิน — ค่อยๆ เพิ่มทีละรุ่น
+const MODEL_BANNERS = {
+  'Yamaha FINN': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2026/finn-2026/banner-website/top-banner-section-product_pc_1900x550px.jpg?sfvrsn=209834d3_2',
+  'Yamaha PG-1': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2025/pg-1-2025/banner/banner-yamaha-pg-1_2025-1900x550.jpg?sfvrsn=d087d1b9_2',
+  'Yamaha FAZZIO': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2026/fazzio-2026/banner-website/top-banner_section-product_pc-1900x550.jpg?sfvrsn=e038fc38_2',
+  'Yamaha EXCITER': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2025/exciter155-2025/banner/yamaha-exciter-155-2025_1900x550px.jpg?sfvrsn=a11312bd_2',
+  'Yamaha GRAND FILANO': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2026/grand-filano-hybrid-2026/banner-website-new/top-banner-section-product_pc_1900x550px.jpg?sfvrsn=867ad66b_2',
+  'Yamaha AEROX': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2025/all-new-aerox-2025/banner/banner-all-new-yamaha-aerox-2025_1900x550.jpg?sfvrsn=1744bdbf_6',
+  'Yamaha NMAX': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2026/nmax-2026/banner/yamaha-nmax-2026_1900x550px.jpg?sfvrsn=4d16b3b6_4',
+  'Yamaha X-MAX300': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2026/xmax-2026/banner/banner-yamaha-xmax-2026_1900x550px.jpg?sfvrsn=15e75c_2',
+  'Yamaha R15': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2026/r15---r15-2026/banner-website/top-banner-section-product_pc_1900x550px.jpg?sfvrsn=69b4114f_2',
+  'Yamaha R3 (YZF-R3)': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2025/r3-2025/banner/yamaha-r3-2025_1900x550px.jpg?sfvrsn=83155c8_2',
+  'Yamaha MT-15': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2024/mt-15-2024/banner/banner-yamaha-mt-15-2024_1900x550px.jpg?sfvrsn=caa8bdc2_4',
+  'Yamaha WR155R': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2022/wr155r-2022/banner/yamaha-wr155r-2022_1900x550.jpg?sfvrsn=c1f78d45_2',
+  'Yamaha XSR155': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2024/xsr155-2024/banner/yamaha-xsr155-2024-banner-1900x550.jpg?sfvrsn=c9ceb747_2'
+};
 let modalModel = null, modalVariantIdx = 0, modalColorIdx = 0;
 
 // ===== UTILITIES =====
@@ -2057,6 +2092,7 @@ function oM(ci, mi) {
   modalVariantIdx = 0;
   modalColorIdx = 0;
   document.getElementById('mName').textContent = modalModel.name;
+  rBanner();
   rV(); rC(); rFreebies(); uT();
   document.getElementById('modalOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -2113,6 +2149,16 @@ function rFreebies() {
     return '<div style="display:flex;align-items:center;gap:6px;font-size:.86rem;color:#444;">' +
       '<span style="color:#22aa55;font-weight:700;">✓</span> ' + label + '</div>';
   }).join('');
+}
+
+// แสดงแบนเนอร์ lifestyle ด้านบนโมดอล ถ้ารุ่นนี้มีรูป
+function rBanner() {
+  const b = document.getElementById('mBanner');
+  if (!b) return;
+  const url = MODEL_BANNERS[modalModel.name];
+  if (!url) { b.style.display = 'none'; b.innerHTML = ''; return; }
+  b.style.display = 'block';
+  b.innerHTML = '<img src="' + url + '" alt="' + modalModel.name + '" onerror="this.parentNode.style.display=\'none\';">';
 }
 
 function rV() {
