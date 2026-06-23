@@ -2155,14 +2155,51 @@ async function uploadToN8n(type) {
   const resultDiv = document.getElementById(resultId);
   resultDiv.innerHTML = '<span style="color:var(--blue);">⏳ กำลังอัพโหลด กรุณารอสักครู่...</span>';
 
-  // === Parse สำหรับ catalog dropdown + sync ราคาไป server ===
-  _parsePriceXlsx(file, priceKey, function(count) {
+  // Yamaha: ดันราคาเข้า price_list อย่างเดียว (= ราคาที่ขึ้นเว็บลูกค้า)
+  // ไม่ส่งไฟล์เข้า upload-prices/car_prices เพราะ workflow นั้น hardcode sheet HONDA
+  // (car_prices = ตารางเทียบราคา 2 ดีลเลอร์ของ Honda เท่านั้น — เว็บลูกค้าไม่ได้ใช้)
+  const isYamaha = activeBrand === 'yamaha';
+
+  // === Parse สำหรับ catalog dropdown + sync ราคาไป price_list ===
+  _parsePriceXlsx(file, priceKey, async function(count, perr) {
+    if (perr) {
+      resultDiv.innerHTML = `<div style="background:#ffebee;border:1.5px solid #e53935;border-radius:8px;padding:1rem;color:#c62828;">
+        <strong>❌ อ่านไฟล์ไม่ได้</strong><br>${perr}
+      </div>`;
+      showToast('เกิดข้อผิดพลาด ❌', 'error');
+      return;
+    }
     if (count > 0) {
-      _syncPriceListToServer(false); // sync ราคาไป price_list table (silent)
+      const sync = await _syncPriceListToServer(false); // → price_list (silent)
+      // Yamaha จบที่นี่ — ไม่แตะ car_prices ของ Honda
+      if (isYamaha) {
+        if (sync && sync.ok) {
+          resultDiv.innerHTML = `<div style="background:#e8f5e9;border:1.5px solid var(--green);border-radius:8px;padding:1rem;color:var(--green);">
+            <strong>✅ อัพเดทราคา${label} (Yamaha) สำเร็จ!</strong><br>
+            ดันราคา ${sync.count} รายการเข้า price_list แล้ว — ราคาบนเว็บลูกค้าจะเปลี่ยนทันทีเมื่อ Refresh หน้า<br>
+            <small style="opacity:.8;">ข้อมูลรุ่น/แบบบันทึกแล้ว — dropdown ในหน้า แคตตาล็อก พร้อมใช้งาน ✅</small>
+          </div>`;
+          showToast('อัพเดทราคา' + label + ' (Yamaha) สำเร็จ! ✅', 'success');
+          fileInput.value = '';
+        } else {
+          resultDiv.innerHTML = `<div style="background:#ffebee;border:1.5px solid #e53935;border-radius:8px;padding:1rem;color:#c62828;">
+            <strong>❌ ซิงค์ราคาไป server ไม่สำเร็จ</strong><br>${(sync && sync.error) || 'HTTP error'}
+          </div>`;
+          showToast('เกิดข้อผิดพลาด ❌', 'error');
+        }
+      }
+    } else if (isYamaha) {
+      resultDiv.innerHTML = `<div style="background:#ffebee;border:1.5px solid #e53935;border-radius:8px;padding:1rem;color:#c62828;">
+        <strong>❌ ไม่พบราคาในไฟล์</strong><br>เช็คว่าเลือกไฟล์ถูกต้อง และแบรนด์บนทอปบาร์ = Yamaha
+      </div>`;
+      showToast('ไม่พบราคา ❌', 'error');
     }
   });
 
-  // === ส่งไฟล์ไปยัง n8n ===
+  // Yamaha: ไม่ส่งไฟล์เข้า car_prices (Honda-only) → จบ
+  if (isYamaha) return;
+
+  // === Honda: ส่งไฟล์ไปยัง n8n → car_prices (เดิม ไม่แตะ) ===
   const formData = new FormData();
   formData.append('data', file, file.name);
   try {
@@ -2428,7 +2465,7 @@ async function _syncPriceListToServer(showUI) {
     const fp = d.finance_prices || {};
     items.push({ model_code: d.model, variant_code: '', price: prices[''] || 0, finance_price: fp[''] || 0, file_type: 'big' });
   });
-  if (items.length === 0) return;
+  if (items.length === 0) return { ok: true, count: 0 };
   try {
     const res = await apiFetch('https://n8n-wt11.onrender.com/webhook/save-price-list', {
       method: 'POST',
@@ -2439,9 +2476,11 @@ async function _syncPriceListToServer(showUI) {
       if (res.ok) showToast('ซิงค์ราคา ' + items.length + ' รายการไป server สำเร็จ ✅', 'success');
       else showToast('ซิงค์ราคาไม่สำเร็จ HTTP ' + res.status + ' ⚠️', 'error');
     }
+    return { ok: res.ok, count: items.length, status: res.status };
   } catch(e) {
     if (showUI) showToast('ซิงค์ราคาล้มเหลว: ' + e.message, 'error');
     console.warn('_syncPriceListToServer failed', e);
+    return { ok: false, count: items.length, error: e.message };
   }
 }
 
