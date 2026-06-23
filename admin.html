@@ -2838,11 +2838,9 @@ async function openEditCatalog(idx) {
   populateSubmodelDatalist(c.bikeType || '');
 
   // Model dropdown — PRIMARY: priceData (Excel ชื่อตามไฟล์), FALLBACK: bikeModelsData (PostgreSQL)
-  const cat = c.bikeType || '';
-  const isBig = cat.indexOf('Big Bike') !== -1 || cat.indexOf('พรีเมียม') !== -1;
-  const src = (isBig && priceData.big.length > 0) ? priceData.big
-            : (!isBig && priceData.small.length > 0) ? priceData.small
-            : priceData.small.concat(priceData.big);
+  // รวมโค้ดทั้งรถเล็ก+Big Bike เสมอ: โค้ดเป็น SKU ไม่ซ้ำข้ามไฟล์ และ priceData แยกแบรนด์อยู่แล้ว
+  // (อย่ากรองตามประเภทรถ — บางรุ่นอยู่คนละไฟล์กับประเภท เช่น X-MAX300=ออโตเมติก/R3=สปอร์ต แต่โค้ดอยู่ในไฟล์ Big Bike)
+  const src = priceData.small.concat(priceData.big);
 
   if (src.length > 0) {
     csSetOptions('c_model_w', src.map(function(d) { return {val: d.model, label: d.model}; }),
