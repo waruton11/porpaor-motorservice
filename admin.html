@@ -560,8 +560,8 @@ tr:hover td { background: #fafafa; }
 
         <!-- รถเล็ก -->
         <div class="card">
-          <div class="card-title">🛵 รถเล็ก (Wave, Scoopy, Click, PCX ฯลฯ)</div>
-          <p style="color:var(--text2);font-size:.875rem;margin-bottom:.5rem;">ไฟล์: <strong>ราคาขายใหม่ล่าสุด.xlsx</strong> · Sheet1 · Col A=รหัสรุ่น, B=Type, F=ราคาเงินสด ป.เปา, K=ราคาขายไฟแนนซ์ ป.เปา</p>
+          <div class="card-title">🛵 รถเล็ก (Honda: Wave, Click, PCX · Yamaha: Finn, Aerox, NMAX ฯลฯ)</div>
+          <p style="color:var(--text2);font-size:.875rem;margin-bottom:.5rem;">ไฟล์: <strong>ราคาขายใหม่ล่าสุด.xlsx</strong> · ระบบเลือก sheet ตาม<strong>แบรนด์ที่เลือกบนแถบบน</strong> — Honda = Sheet1 (โค้ด col A) · Yamaha = Sheet2 (โค้ด col B) · ราคาเงินสด col F</p>
           <input type="file" id="excelUploadSmall" accept=".xlsx,.xls" style="display:block;margin-bottom:1rem;padding:.5rem;border:1.5px dashed var(--gray2);border-radius:8px;width:100%;cursor:pointer;font-family:inherit;">
           <button class="btn btn-primary" onclick="uploadToN8n('small')" style="font-size:1rem;padding:.75rem 2rem;">📤 อัพโหลดราคารถเล็ก</button>
           <div id="uploadResultSmall" style="margin-top:1.25rem;"></div>
@@ -569,8 +569,8 @@ tr:hover td { background: #fafafa; }
 
         <!-- รถใหญ่ -->
         <div class="card">
-          <div class="card-title">🏍️ Big Bike (Forza, ADV350, CRF300, CL300, Rebel300, CB300R)</div>
-          <p style="color:var(--text2);font-size:.875rem;margin-bottom:.5rem;">ไฟล์: <strong>ราคาขาย BIG Bike ใหม่ล่าสุด.xlsx</strong> · Sheet HONDA · Col B=รหัส+Type, E=ราคาขาย</p>
+          <div class="card-title">🏍️ Big Bike (Honda: Forza, ADV350, Rebel · Yamaha: MT-03, X-MAX, R3)</div>
+          <p style="color:var(--text2);font-size:.875rem;margin-bottom:.5rem;">ไฟล์: <strong>ราคาขาย BIG Bike ใหม่ล่าสุด.xlsx</strong> · ระบบเลือก sheet ตาม<strong>แบรนด์ที่เลือกบนแถบบน</strong> — Honda = sheet HONDA · Yamaha = sheet YAMAHA · โค้ด col B, ราคาขาย col E</p>
           <input type="file" id="excelUploadBig" accept=".xlsx,.xls" style="display:block;margin-bottom:1rem;padding:.5rem;border:1.5px dashed var(--gray2);border-radius:8px;width:100%;cursor:pointer;font-family:inherit;">
           <button class="btn btn-primary" onclick="uploadToN8n('big')" style="font-size:1rem;padding:.75rem 2rem;">📤 อัพโหลดราคา Big Bike</button>
           <div id="uploadResultBig" style="margin-top:1.25rem;"></div>
@@ -814,6 +814,7 @@ function setBrand(b) {
   try { if (typeof syncCatalog === 'function') syncCatalog(true); } catch(e) {}
   try { if (typeof loadBikeModelsData === 'function') loadBikeModelsData(); } catch(e) {}
   try { if (typeof _loadCategoryList === 'function') _loadCategoryList(); } catch(e) {}
+  try { if (typeof loadStoredPriceData === 'function') loadStoredPriceData(); } catch(e) {}   // สลับ priceData (dropdown รุ่น/แบบ ไฟล์ราคา) ตามแบรนด์
   try { loadCategoriesFromDB(); } catch(e) {}   // โหลด categories ของแบรนด์จาก DB (+ auto-migrate)
   try { showToast('สลับเป็น ' + (activeBrand === 'yamaha' ? 'Yamaha (สิงห์ชัย)' : 'Honda (ป.เปา)'), 'success'); } catch(e) {}
 }
@@ -2349,42 +2350,39 @@ function _parsePriceXlsx(file, fileType, onDone) {
     try {
       const wb = XLSX.read(e.target.result, { type: 'array' });
 
-      // บิ๊กไบค์: หา sheet "HONDA" ก่อน (Yamaha ไม่เอา), ถ้าไม่มีใช้ sheet แรก
-      // ขนาดเล็ก: ใช้ sheet แรกปกติ
-      let wsName;
+      // เลือก sheet + คอลัมน์ตามแบรนด์ที่ active และประเภทไฟล์ (ไฟล์รวม Honda+Yamaha แยกด้วย sheet)
+      // โครงสร้างจริง (ตรวจไฟล์ 23/06/2569):
+      //   เล็ก Honda  = Sheet1 : A=โค้ด, B=แบบ, F=ราคาเงินสด, K=ไฟแนนซ์
+      //   เล็ก Yamaha = Sheet2 : A=รุ่น, B=โค้ด, F=ราคาเงินสด
+      //   Big Honda   = sheet "HONDA"  : B=โค้ด, E=ราคาขาย
+      //   Big Yamaha  = sheet "YAMAHA" : B=โค้ด, E=ราคาขาย
+      const isY = activeBrand === 'yamaha';
+      let L; // layout: {sheet, modelCol=คอลัมน์โค้ด(ค่า dropdown), variantCol(-1=ไม่มี), priceCol, financeCol(-1=ไม่มี)}
       if (fileType === 'big') {
-        wsName = wb.Sheets['HONDA'] ? 'HONDA' : wb.SheetNames[0];
+        L = { sheet: isY ? 'YAMAHA' : 'HONDA', modelCol: 1, variantCol: -1, priceCol: 4, financeCol: -1 };
       } else {
-        wsName = wb.SheetNames[0];
+        L = isY
+          ? { sheet: 'Sheet2', modelCol: 1, variantCol: -1, priceCol: 5, financeCol: -1 }
+          : { sheet: 'Sheet1', modelCol: 0, variantCol: 1, priceCol: 5, financeCol: 10 };
       }
+      const wsName = wb.Sheets[L.sheet] ? L.sheet : wb.SheetNames[0];
       const ws = wb.Sheets[wsName];
       const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
 
       const map = new Map();
       rows.forEach(function(row) {
-        // โครงสร้าง Excel ราคาขาย ป.เปา (Sheet1, ตรวจสอบจากไฟล์จริง 28/05/2569):
-        //   Col A (idx 0) = รหัสรุ่น (model_code)
-        //   Col B (idx 1) = variant (เช่น TH)
-        //   Col C (idx 2) = ราคาทุน  ← ไม่ใช้
-        //   Col F (idx 5) = ราคาเงินสด ป.เปา  ← ใช้เป็น price
-        //   Col K (idx 10) = ราคาขายไฟแนนซ์ ป.เปา  ← ใช้เป็น finance_price
-        // บิ๊กไบค์: Col B (index 1) = รหัส+Type, Col C (index 2) = ราคา (ยังไม่มีไฟล์ตัวอย่าง)
-        const model   = fileType === 'big'
-          ? String(row[1] || '').trim()
-          : String(row[0] || '').trim();
-        const variant = fileType === 'big'
-          ? ''
-          : String(row[1] || '').trim();
-        const priceRaw = fileType === 'small' ? row[5] : row[2];
+        const model   = String(row[L.modelCol] || '').trim();
+        const variant = L.variantCol >= 0 ? String(row[L.variantCol] || '').trim() : '';
+        const priceRaw = row[L.priceCol];
         const price = typeof priceRaw === 'number'
           ? Math.round(priceRaw)
           : parseInt(String(priceRaw || '').replace(/[^0-9]/g, '')) || 0;
-        // รถเล็ก: Col K (idx 10) = ราคาขายไฟแนนซ์ ป.เปา, รถใหญ่: ใช้ราคาเดียวกัน
-        const financeRaw = fileType === 'small' ? row[10] : priceRaw;
+        const financeRaw = L.financeCol >= 0 ? row[L.financeCol] : priceRaw;
         const financePrice = typeof financeRaw === 'number'
           ? Math.round(financeRaw)
           : parseInt(String(financeRaw || '').replace(/[^0-9]/g, '')) || 0;
         if (!model) return;
+        if (/^\d+$/.test(model)) return;           // ข้ามเลข serial วันที่/หัวตาราง (เช่น 244484)
         const ml = model.toLowerCase();
         if (ml === 'model' || ml === 'รุ่น' || ml === 'รหัส' || ml === 'a' || ml === 'ลำดับ' || ml === 'type' || ml === 'b') return;
         if (!map.has(model)) map.set(model, { variants: [], prices: {}, finance_prices: {} });
@@ -2398,8 +2396,8 @@ function _parsePriceXlsx(file, fileType, onDone) {
         return { model: entry[0], variants: entry[1].variants, prices: entry[1].prices, finance_prices: entry[1].finance_prices || {} };
       });
 
-      // บันทึกลง localStorage เพื่อใช้ข้ามหน้า/session
-      try { localStorage.setItem('papao_price_data', JSON.stringify(priceData)); } catch(e) {}
+      // บันทึกลง localStorage เพื่อใช้ข้ามหน้า/session — แยกคีย์ตามแบรนด์
+      try { localStorage.setItem('papao_price_data_' + activeBrand, JSON.stringify(priceData)); } catch(e) {}
 
       updatePriceStatusUI();
       if (typeof onDone === 'function') onDone(priceData[fileType].length);
@@ -2450,11 +2448,17 @@ async function _syncPriceListToServer(showUI) {
 // โหลดจาก localStorage เมื่อ login — ไม่ต้องโหลดไฟล์ใหม่ถ้าเคยอัพโหลดแล้ว
 function loadStoredPriceData() {
   try {
-    const stored = localStorage.getItem('papao_price_data');
-    if (!stored) return;
-    const parsed = JSON.parse(stored);
-    if (Array.isArray(parsed.small)) priceData.small = parsed.small;
-    if (Array.isArray(parsed.big))   priceData.big   = parsed.big;
+    // เคลียร์ก่อนเสมอ — สลับไปแบรนด์ที่ยังไม่มีข้อมูลต้องไม่ค้างโค้ดของแบรนด์เดิม
+    priceData.small = [];
+    priceData.big = [];
+    let stored = localStorage.getItem('papao_price_data_' + activeBrand);
+    // migrate คีย์เก่า (ก่อนแยกแบรนด์ = ฮอนด้า)
+    if (!stored && activeBrand === 'honda') stored = localStorage.getItem('papao_price_data');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed.small)) priceData.small = parsed.small;
+      if (Array.isArray(parsed.big))   priceData.big   = parsed.big;
+    }
     updatePriceStatusUI();
   } catch(e) {}
 }
@@ -2472,6 +2476,8 @@ function updatePriceStatusUI() {
     if (arr && arr.length > 0) {
       const preview = arr.slice(0, 4).map(function(d) { return d.model; }).join(', ');
       el.innerHTML = '<span style="color:var(--green);">✅ โหลดแล้ว ' + arr.length + ' รุ่น — ' + preview + (arr.length > 4 ? '...' : '') + '</span>';
+    } else {
+      el.innerHTML = '<span style="color:var(--text2);">ยังไม่มีข้อมูล — อัพโหลดไฟล์ราคา ' + (l.key === 'small' ? 'รถเล็ก' : 'Big Bike') + '</span>';
     }
   });
 }
