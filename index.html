@@ -1744,7 +1744,7 @@ footer .footer-brand {
           <!-- Period pills -->
           <div class="slider-section">
             <div class="slbl" style="margin-bottom:8px;" data-i18n="lbl_period">ระยะเวลาผ่อน</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <div id="periodPills" style="display:flex;gap:6px;flex-wrap:wrap;">
               <button class="period-pill" data-mo="24" onclick="selectPeriod(24)">24 <span data-i18n="unit_month">เดือน</span></button>
               <button class="period-pill" data-mo="30" onclick="selectPeriod(30)">30 <span data-i18n="unit_month">เดือน</span></button>
               <button class="period-pill active" data-mo="36" onclick="selectPeriod(36)">36 <span data-i18n="unit_month">เดือน</span></button>
@@ -2215,10 +2215,10 @@ function sC(i, colors) {
   const usePrice = colorPrice > 0 ? colorPrice : (parseInt(d.price) || 0);
 
   if (usePrice > 0) {
-    const {rate, rate2, rate2MinDown, isAnnual, downPcts} = getAutoRate(d);
+    const {rate, rate2, rate2MinDown, isAnnual, downPcts, ratesByTerm} = getAutoRate(d);
     if (rate > 0) {
       const calcBase = colorFinancePrice > 0 ? colorFinancePrice : usePrice;
-      const ci = genAutoCI(calcBase, rate, isAnnual, downPcts, rate2, rate2MinDown);
+      const ci = genAutoCI(calcBase, rate, isAnnual, downPcts, rate2, rate2MinDown, ratesByTerm);
       _updateRateNote(rate, isAnnual, rate2, rate2MinDown);
       _renderPriceAndTable(usePrice, null, colorFinancePrice, ci);
     }
@@ -2311,30 +2311,57 @@ function calcInstFlatAnnual(financed, annualRatePct, months) {
   return Math.ceil(financed * (1 + annualRatePct / 100 * months / 12) / months);
 }
 
+// แปลงดอกเบี้ยรายงวด autoRatesByTerm → object {งวด: เรต} (รองรับทั้ง object และ JSON string จาก DB)
+function parseRatesByTerm(v) {
+  if (!v) return null;
+  let o = v;
+  if (typeof v === 'string') { try { o = JSON.parse(v); } catch(e) { return null; } }
+  if (!o || typeof o !== 'object') return null;
+  const keys = Object.keys(o).filter(k => (parseFloat(o[k]) || 0) > 0);
+  return keys.length ? o : null;
+}
+
 // ดึง rate + downPcts จาก variant สำหรับ Option C (auto-down)
 function getAutoRate(d) {
   const downPcts = d.autoDownPcts && d.autoDownPcts.length ? d.autoDownPcts : null;
   const rate2 = d.autoRate2 || 0;
   const rate2MinDown = d.autoRate2MinDown || 0;
-  if (d.autoRate && d.autoRate > 0) return {rate: d.autoRate, rate2, rate2MinDown, isAnnual: d.autoRateUnit === 'year', downPcts};
-  if (d.ratesPerDown) { const vals = Object.values(d.ratesPerDown); if (vals.length) return {rate: parseFloat(vals[0]) || 0, rate2, rate2MinDown, isAnnual: d.rateUnit === 'year', downPcts}; }
-  if (d.rates) { const vals = Object.values(d.rates); if (vals.length) return {rate: parseFloat(vals[0]) || 0, rate2, rate2MinDown, isAnnual: d.rateUnit === 'year', downPcts}; }
-  return {rate: 0, rate2: 0, rate2MinDown: 0, isAnnual: false, downPcts};
+  const ratesByTerm = parseRatesByTerm(d.autoRatesByTerm);
+  if (d.autoRate && d.autoRate > 0) return {rate: d.autoRate, rate2, rate2MinDown, isAnnual: d.autoRateUnit === 'year', downPcts, ratesByTerm};
+  // เรตรายงวดอย่างเดียว (ไม่มี autoRate เดี่ยว) — ใช้ค่างวดแรกเป็น rate ตัวแทนเพื่อให้ผ่านเงื่อนไข rate>0
+  if (ratesByTerm) { const vals = Object.keys(ratesByTerm).map(k => parseFloat(ratesByTerm[k]) || 0).filter(x => x > 0); if (vals.length) return {rate: vals[0], rate2, rate2MinDown, isAnnual: d.autoRateUnit === 'year', downPcts, ratesByTerm}; }
+  if (d.ratesPerDown) { const vals = Object.values(d.ratesPerDown); if (vals.length) return {rate: parseFloat(vals[0]) || 0, rate2, rate2MinDown, isAnnual: d.rateUnit === 'year', downPcts, ratesByTerm: null}; }
+  if (d.rates) { const vals = Object.values(d.rates); if (vals.length) return {rate: parseFloat(vals[0]) || 0, rate2, rate2MinDown, isAnnual: d.rateUnit === 'year', downPcts, ratesByTerm: null}; }
+  return {rate: 0, rate2: 0, rate2MinDown: 0, isAnnual: false, downPcts, ratesByTerm: null};
+}
+
+// เรตที่ใช้จริงสำหรับงวด+ดาวน์ที่เลือก — ดอกเบี้ยรายงวดมาก่อน, ถ้าไม่มีค่อย fallback อัตรา2(ดาวน์สูง)/เรตเดี่ยว
+function effRateForTerm(ra, months, pct) {
+  if (ra.ratesByTerm) {
+    const r = parseFloat(ra.ratesByTerm[String(months)]) || 0;
+    if (r > 0) return r;
+  }
+  return (ra.rate2 > 0 && ra.rate2MinDown > 0 && pct >= ra.rate2MinDown) ? ra.rate2 : ra.rate;
 }
 
 // สร้าง customInstallments อัตโนมัติจาก price
-function genAutoCI(price, rate, isAnnual, downPcts, rate2, rate2MinDown) {
+function genAutoCI(price, rate, isAnnual, downPcts, rate2, rate2MinDown, ratesByTerm) {
   rate2 = rate2 || 0;
   rate2MinDown = rate2MinDown || 0;
-  const months = [48, 42, 36, 30, 24];
+  // งวดมาจากดอกเบี้ยรายงวดถ้ามี (เรียงมาก→น้อย), ไม่งั้นใช้ชุดเดิม
+  const months = ratesByTerm
+    ? Object.keys(ratesByTerm).map(Number).filter(n => n > 0).sort((a, b) => b - a)
+    : [48, 42, 36, 30, 24];
   const pcts = downPcts && downPcts.length ? downPcts : [10, 15, 20];
   const ci = {};
   pcts.forEach(pct => {
     const dn = pct === 0 ? 0 : Math.ceil(price * pct / 100);
     const financed = price - dn;
-    const effectiveRate = (rate2 > 0 && rate2MinDown > 0 && pct >= rate2MinDown) ? rate2 : rate;
     ci[String(dn)] = {};
     months.forEach(mo => {
+      let effectiveRate;
+      if (ratesByTerm && (parseFloat(ratesByTerm[String(mo)]) || 0) > 0) effectiveRate = parseFloat(ratesByTerm[String(mo)]);
+      else effectiveRate = (rate2 > 0 && rate2MinDown > 0 && pct >= rate2MinDown) ? rate2 : rate;
       ci[String(dn)][String(mo)] = effectiveRate > 0
         ? (isAnnual ? calcInstFlatAnnual(financed, effectiveRate, mo) : calcInstFlat(financed, effectiveRate, mo))
         : Math.ceil(financed / mo);
@@ -2369,10 +2396,10 @@ function uT() {
     financePrice = window._curColors[modalColorIdx]._finance_price || 0;
   }
 
-  const {rate, rate2, rate2MinDown, isAnnual, downPcts} = getAutoRate(d);
+  const {rate, rate2, rate2MinDown, isAnnual, downPcts, ratesByTerm} = getAutoRate(d);
   if (price > 0 && rate > 0) {
     const calcBase = financePrice > 0 ? financePrice : price;
-    ci = genAutoCI(calcBase, rate, isAnnual, downPcts, rate2, rate2MinDown);
+    ci = genAutoCI(calcBase, rate, isAnnual, downPcts, rate2, rate2MinDown, ratesByTerm);
   }
   _updateRateNote(rate, isAnnual, rate2, rate2MinDown);
   _renderPriceAndTable(price, null, financePrice, ci);
@@ -2717,6 +2744,7 @@ function onCalcModelChange() {
   calcCustomDownAmount = null; // reset custom down
   const cd = document.getElementById('customDown');
   if (cd) cd.value = '';
+  renderPeriodPills();
   updateCalcCarStrip();
   updateCalcLive();
 }
@@ -2885,10 +2913,10 @@ function getCalcInstallment() {
   const calcBase = (v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
   const { dn, pct } = getCalcDown();
   const financed = calcBase - dn + mySurcharge();
-  const {rate, rate2, rate2MinDown, isAnnual} = getAutoRate(v);
-  if (rate > 0) {
-    const er = (rate2 > 0 && rate2MinDown > 0 && pct >= rate2MinDown) ? rate2 : rate;
-    return isAnnual ? calcInstFlatAnnual(financed, er, calcPeriod) : calcInstFlat(financed, er, calcPeriod);
+  const ra = getAutoRate(v);
+  if (ra.rate > 0) {
+    const er = effRateForTerm(ra, calcPeriod, pct);
+    return ra.isAnnual ? calcInstFlatAnnual(financed, er, calcPeriod) : calcInstFlat(financed, er, calcPeriod);
   }
   return Math.ceil(financed / calcPeriod);
 }
@@ -2926,9 +2954,9 @@ function updateCalcLive() {
     const lpR = document.getElementById('lpRate');
     if (lpF) lpF.textContent = financed > 0 ? '฿' + fmt(financed) : '—';
     if (lpR && v) {
-      const {rate, rate2, rate2MinDown, isAnnual} = getAutoRate(v);
-      const effRate = (rate2 > 0 && rate2MinDown > 0 && pct >= rate2MinDown) ? rate2 : rate;
-      lpR.textContent = effRate > 0 ? t('rate_prefix') + effRate + (isAnnual ? t('pct_per_year') : t('pct_per_month')) : t('no_rate');
+      const ra = getAutoRate(v);
+      const effRate = effRateForTerm(ra, calcPeriod, pct);
+      lpR.textContent = effRate > 0 ? t('rate_prefix') + effRate + (ra.isAnnual ? t('pct_per_year') : t('pct_per_month')) : t('no_rate');
     }
   } else {
     document.getElementById('sDownAmt').textContent = '';
@@ -2982,15 +3010,39 @@ function selectPeriod(mo) {
   updateCalcLive();
 }
 
+// งวดที่ใช้ได้ของ variant: มาจากดอกเบี้ยรายงวด (เรียงน้อย→มาก) ถ้ามี, ไม่งั้นชุดเริ่มต้น
+function calcTermsFor(v) {
+  if (v) {
+    const ra = getAutoRate(v);
+    if (ra.ratesByTerm) {
+      const ks = Object.keys(ra.ratesByTerm).map(Number).filter(n => n > 0).sort((a, b) => a - b);
+      if (ks.length) return ks;
+    }
+  }
+  return [24, 30, 36, 42, 48];
+}
+
+// สร้างปุ่มเลือกงวดใหม่ตาม variant ปัจจุบัน (รถเล็ก Yamaha = 24/36/42/48, ทั่วไป = ครบ 5 งวด)
+function renderPeriodPills() {
+  const wrap = document.getElementById('periodPills');
+  if (!wrap) return;
+  const v = calcModel ? (calcModel.variants[calcVariantIdx] || calcModel.variants[0]) : null;
+  const terms = calcTermsFor(v);
+  if (terms.indexOf(calcPeriod) === -1) calcPeriod = terms[terms.length - 1]; // งวดยาวสุด = ค่างวดถูกสุด
+  wrap.innerHTML = terms.map(mo =>
+    '<button class="period-pill' + (mo === calcPeriod ? ' active' : '') + '" data-mo="' + mo + '" onclick="selectPeriod(' + mo + ')">' + mo + ' <span data-i18n="unit_month">' + t('unit_month') + '</span></button>'
+  ).join('');
+}
+
 function goCalcStep2() {
   if (!calcModel) { alert('กรุณาเลือกรุ่นรถก่อน'); return; }
   document.getElementById('calcStep1').style.display = 'none';
   document.getElementById('calcStep2').style.display = 'block';
   document.getElementById('calcStep3').style.display = 'none';
   updateStepIndicators(2);
-  // ล็อคค่าเริ่มต้น: ผ่อน 48 งวด (สูงสุด) เพื่อให้ค่างวดถูกสุดตอนเปิดครั้งแรก
+  // ล็อคค่าเริ่มต้น: ผ่อนงวดยาวสุดของรุ่น เพื่อให้ค่างวดถูกสุดตอนเปิดครั้งแรก
   calcPeriod = 48;
-  document.querySelectorAll('.period-pill').forEach(p => p.classList.toggle('active', parseInt(p.dataset.mo) === 48));
+  renderPeriodPills();
   updateSliderRange();
   renderCalcColors();
   setPayType(calcPayType);
@@ -3148,6 +3200,7 @@ function buildCategoriesFromAPI(rows) {
         autoDownPcts: autoDownPcts.length ? autoDownPcts : null,
         autoRate2: parseFloat(row.auto_rate2) || 0,
         autoRate2MinDown: parseInt(row.auto_rate2_min_down) || 0,
+        autoRatesByTerm: row.auto_rates_by_term || '',
         freebies: fb
       });
     }

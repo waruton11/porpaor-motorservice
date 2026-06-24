@@ -1080,6 +1080,35 @@ data.categories = data.categoriesByBrand[activeBrand];
 let editModelIdx = null; // {ci, mi} or null
 let editNewsIdx = null;
 
+// ดอกเบี้ยรายงวด: object {งวด:เรต} ↔ string "24:1.06, 36:1.09, 42:1.10, 48:1.10"
+function ratesByTermToStr(o) {
+  if (!o) return '';
+  if (typeof o === 'string') { try { o = JSON.parse(o); } catch(e) { return o; } }
+  if (typeof o !== 'object') return '';
+  return Object.keys(o).map(Number).filter(function(n){ return n > 0; }).sort(function(a,b){ return a - b; })
+    .map(function(m){ return m + ':' + o[String(m)]; }).join(', ');
+}
+function parseRatesByTermStr(s) {
+  if (!s) return null;
+  if (typeof s === 'object') return Object.keys(s).length ? s : null;
+  const o = {};
+  String(s).split(',').forEach(function(pair) {
+    const m = pair.split(':');
+    if (m.length === 2) {
+      const term = parseInt(m[0].trim());
+      const rate = parseFloat(m[1].trim());
+      if (term > 0 && rate > 0) o[String(term)] = rate;
+    }
+  });
+  return Object.keys(o).length ? o : null;
+}
+// แปลง JSON string จาก DB → object (ใช้ตอนโหลด catalog)
+function ratesByTermFromDb(v) {
+  if (!v) return null;
+  if (typeof v === 'object') return Object.keys(v).length ? v : null;
+  try { const o = JSON.parse(v); return (o && Object.keys(o).length) ? o : null; } catch(e) { return null; }
+}
+
 function syncRatesToDB() {
   const rates = [];
   (data.categories || []).forEach(function(cat) {
@@ -1091,12 +1120,13 @@ function syncRatesToDB() {
       const rate = parseFloat(v.autoRate) || 0;
       const rateUnit = v.autoRateUnit || 'month';
       const downPcts = Array.isArray(v.autoDownPcts) ? v.autoDownPcts.join(',') : (v.autoDownPcts || '');
-      if (rate <= 0 && !downPcts) return;
+      const ratesByTermStr = v.autoRatesByTerm ? JSON.stringify(v.autoRatesByTerm) : '';
+      if (rate <= 0 && !downPcts && !ratesByTermStr) return;
       // จับคู่ด้วย submodel_name จาก data.catalog (exact match — ไม่ใช้ LIKE)
       (data.catalog || []).forEach(function(c) {
         const cBikeName = (c.submodelName || '').split(' / ')[0].trim();
         if (cBikeName === model.name && c.submodelName) {
-          rates.push({ submodel_name: c.submodelName, auto_rate: rate, auto_rate_unit: rateUnit, auto_down_pcts: downPcts, auto_rate2: parseFloat(v.autoRate2) || 0, auto_rate2_min_down: parseInt(v.autoRate2MinDown) || 0 });
+          rates.push({ submodel_name: c.submodelName, auto_rate: rate, auto_rate_unit: rateUnit, auto_down_pcts: downPcts, auto_rate2: parseFloat(v.autoRate2) || 0, auto_rate2_min_down: parseInt(v.autoRate2MinDown) || 0, auto_rates_by_term: ratesByTermStr });
         }
       });
     });
@@ -1711,7 +1741,7 @@ function openEditModel(ci, mi) {
   // variants
   document.getElementById('variantRows').innerHTML = '';
   m.variants.forEach(v => {
-    addVariantRow(v.name, v.price, v.autoRate || '', v.autoRateUnit || 'month', v.autoDownPcts ? v.autoDownPcts.join(',') : '', v.autoRate2 || '', v.autoRate2MinDown || '', v.freebies || []);
+    addVariantRow(v.name, v.price, v.autoRate || '', v.autoRateUnit || 'month', v.autoDownPcts ? v.autoDownPcts.join(',') : '', v.autoRate2 || '', v.autoRate2MinDown || '', v.freebies || [], ratesByTermToStr(v.autoRatesByTerm));
   });
   // colors
   document.getElementById('colorRows').innerHTML = '';
@@ -1754,7 +1784,7 @@ function _buildFreebiesUI(freebies) {
   '</div>';
 }
 
-function addVariantRow(name='', price='', autoRate='', autoRateUnit='month', autoDownPcts='', autoRate2='', autoRate2MinDown='', freebies=[]) {
+function addVariantRow(name='', price='', autoRate='', autoRateUnit='month', autoDownPcts='', autoRate2='', autoRate2MinDown='', freebies=[], autoRatesByTerm='') {
   const div = document.createElement('div');
   div.className = 'form-row variant-row';
   div.style.background = '#fafafa'; div.style.padding = '0.75rem'; div.style.borderRadius = '8px'; div.style.marginBottom = '0.5rem'; div.style.flexWrap = 'wrap';
@@ -1793,6 +1823,12 @@ function addVariantRow(name='', price='', autoRate='', autoRateUnit='month', aut
           style="width:50px;padding:.45rem .3rem;border:1.5px solid var(--gray2);border-radius:6px;font-size:.85rem;text-align:center;" title="อัตราดอกเบี้ยดาวน์สูง">
       </div>
       <div style="font-size:.68rem;color:#999;margin-top:2px;">เช่น ดาวน์≥15%→5%/ปี</div>
+    </div>
+    <div class="form-group" style="flex:1 1 100%;min-width:240px;">
+      <label style="white-space:nowrap;">ดอกเบี้ยรายงวด (รถเล็ก)</label>
+      <input class="vautoRatesByTerm" value="${autoRatesByTerm}" placeholder="24:1.06, 36:1.09, 42:1.10, 48:1.10"
+        style="width:100%;padding:.45rem .4rem;border:1.5px solid var(--gray2);border-radius:6px;font-size:.85rem;">
+      <div style="font-size:.68rem;color:#999;margin-top:2px;">รูปแบบ <b>งวด:เรต</b> คั่นด้วย , — ใช้หน่วยตาม "อัตราดบ." ด้านบน · ตั้งช่องนี้แล้วจะใช้แทนอัตราเดี่ยว · บิ๊กไบค์เรตเดียว (เช่น 6.5%/ปี) เว้นว่างได้</div>
     </div>
     <div style="display:flex; align-items:flex-end; padding-bottom:2px;">
       <button class="btn btn-danger btn-sm" onclick="this.closest('.variant-row').remove()">✕</button>
@@ -1991,6 +2027,9 @@ function saveModel() {
       const vautoRate2 = parseFloat(row.querySelector('.vautoRate2')?.value) || 0;
       const vautoRate2MinDown = parseInt(row.querySelector('.vautoRate2MinDown')?.value) || 0;
       if (vautoRate2 > 0 && vautoRate2MinDown > 0) { v.autoRate2 = vautoRate2; v.autoRate2MinDown = vautoRate2MinDown; }
+      // ดอกเบี้ยรายงวด (รถเล็ก) — เก็บเป็น object {งวด:เรต}
+      const vautoRatesByTerm = parseRatesByTermStr(row.querySelector('.vautoRatesByTerm')?.value.trim() || '');
+      if (vautoRatesByTerm) v.autoRatesByTerm = vautoRatesByTerm;
       // ของแถม: checkbox มาตรฐาน + ช่อง custom หลายช่อง
       const freebies = [];
       row.querySelectorAll('.vfreebie:checked').forEach(function(cb) { freebies.push(cb.value); });
@@ -2007,6 +2046,7 @@ function saveModel() {
           if (!v.autoRate && oldV.autoRate) { v.autoRate = oldV.autoRate; v.autoRateUnit = oldV.autoRateUnit; }
           if (!v.autoDownPcts && oldV.autoDownPcts) v.autoDownPcts = oldV.autoDownPcts;
           if (!v.autoRate2 && oldV.autoRate2) { v.autoRate2 = oldV.autoRate2; v.autoRate2MinDown = oldV.autoRate2MinDown; }
+          if (!v.autoRatesByTerm && oldV.autoRatesByTerm) v.autoRatesByTerm = oldV.autoRatesByTerm;
           if (!v.freebies && oldV.freebies) v.freebies = oldV.freebies;
         }
       }
@@ -3046,7 +3086,8 @@ function saveCatalogItem() {
     autoRateUnit: editCatalogIdx !== null ? (data.catalog[editCatalogIdx]?.autoRateUnit || 'month') : 'month',
     autoDownPcts: editCatalogIdx !== null ? (data.catalog[editCatalogIdx]?.autoDownPcts || '') : '',
     autoRate2: editCatalogIdx !== null ? (data.catalog[editCatalogIdx]?.autoRate2 || 0) : 0,
-    autoRate2MinDown: editCatalogIdx !== null ? (data.catalog[editCatalogIdx]?.autoRate2MinDown || 0) : 0
+    autoRate2MinDown: editCatalogIdx !== null ? (data.catalog[editCatalogIdx]?.autoRate2MinDown || 0) : 0,
+    autoRatesByTerm: editCatalogIdx !== null ? (data.catalog[editCatalogIdx]?.autoRatesByTerm || null) : null
   };
 
   if (editCatalogIdx !== null) {
@@ -3113,7 +3154,8 @@ async function syncCatalog(silent=false) {
         autoRateUnit: r.auto_rate_unit || 'month',
         autoDownPcts: r.auto_down_pcts || '',
         autoRate2: parseFloat(r.auto_rate2) || 0,
-        autoRate2MinDown: parseInt(r.auto_rate2_min_down) || 0
+        autoRate2MinDown: parseInt(r.auto_rate2_min_down) || 0,
+        autoRatesByTerm: ratesByTermFromDb(r.auto_rates_by_term)
       }));
       localStorage.setItem('papao_data', JSON.stringify(data));
       renderCatalogTable();
@@ -3149,7 +3191,8 @@ async function saveCatalogToServer() {
       auto_rate_unit: c.autoRateUnit || 'month',
       auto_down_pcts: c.autoDownPcts || '',
       auto_rate2: c.autoRate2 || 0,
-      auto_rate2_min_down: c.autoRate2MinDown || 0
+      auto_rate2_min_down: c.autoRate2MinDown || 0,
+      auto_rates_by_term: c.autoRatesByTerm ? JSON.stringify(c.autoRatesByTerm) : ''
     }));
     const res = await apiFetch('https://n8n-wt11.onrender.com/webhook/save-bike-catalog', {
       method: 'POST',
