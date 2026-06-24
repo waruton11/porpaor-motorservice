@@ -1961,6 +1961,9 @@ function saveModel() {
   });
   if (variants.length === 0) { showToast('กรุณาใส่ชื่อรุ่นย่อยอย่างน้อย 1 รุ่น', 'error'); return; }
 
+  // สีเดิมของรุ่นนี้ (ตอน edit) — ใช้ preserve ค่าที่ฟอร์มไม่มีช่องแก้ เช่น gallery รายสี
+  const _oldColors = (editModelIdx && data.categories[editModelIdx.ci] && data.categories[editModelIdx.ci].models[editModelIdx.mi])
+    ? (data.categories[editModelIdx.ci].models[editModelIdx.mi].colors || []) : [];
   const colors = [];
   document.querySelectorAll('#colorRows .color-row').forEach(row => {
     const cname = row.querySelector('.cname').value.trim();
@@ -1973,6 +1976,11 @@ function saveModel() {
       const colorObj = { name: cname, hex: chex, img: cimg };
       if (chex2) colorObj.hex2 = chex2;
       if (cvariant) colorObj.variant = cvariant;
+      // preserve รูปหลายมุม (gallery) ราย "สี" — ฟอร์มนี้ไม่มีช่องแก้ gallery รายสี
+      // จับคู่สีเดิมด้วยชื่อ+รุ่นย่อย (fallback: img เดียวกัน) แล้วคงค่า gallery ไว้ ไม่ให้ถูกลบตอน save
+      const oldC = _oldColors.find(o => o.name === cname && (o.variant || '') === (cvariant || ''))
+                 || _oldColors.find(o => o.img && o.img === cimg);
+      if (oldC && Array.isArray(oldC.gallery) && oldC.gallery.length) colorObj.gallery = oldC.gallery;
       colors.push(colorObj);
     }
   });

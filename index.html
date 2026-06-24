@@ -2227,36 +2227,80 @@ function sC(i, colors) {
 
 function updCarImg2(c) {
   const area = document.getElementById('mCarImg');
+  // หยุดโมเมนตัมของวิวเวอร์เดิม (เปลี่ยนสี/ปิดโมดอล)
+  if (window.__spin360raf) { cancelAnimationFrame(window.__spin360raf); window.__spin360raf = null; }
+  function clearHandlers() { area.onpointerdown = area.onpointermove = area.onpointerup = area.onpointercancel = null; area.style.cursor = ''; }
   if (!c || !c.img) {
+    clearHandlers();
     area.innerHTML = '<span style="font-size:4rem">' + modalModel.icon + '</span>';
     return;
   }
-  // แกลเลอรีหลายมุมต่อสี: รูปหลัก (0.png) + มุมอื่น (gallery) → ปัดนิ้ว/กดเปลี่ยนมุมได้
-  const imgs = [c.img].concat(Array.isArray(c.gallery) ? c.gallery : []).filter(Boolean);
-  let idx = 0;
   area.style.position = 'relative';
   area.style.touchAction = 'pan-y';
-  function render() {
-    const multi = imgs.length > 1;
-    area.innerHTML =
-      '<img src="' + imgs[idx] + '" draggable="false" style="max-height:190px;max-width:100%;object-fit:contain;user-select:none;-webkit-user-drag:none;pointer-events:none;">' +
-      (multi ?
-        '<div style="position:absolute;bottom:6px;left:0;right:0;display:flex;justify-content:center;gap:5px;">' +
-          imgs.map(function(_, j) { return '<span style="width:7px;height:7px;border-radius:50%;background:' + (j === idx ? 'var(--red)' : '#ccc') + ';transition:background .15s;"></span>'; }).join('') +
-        '</div>' +
-        '<div onclick="window.__galStep(-1)" style="position:absolute;left:0;top:0;bottom:0;width:32%;cursor:pointer;" title="มุมก่อนหน้า"></div>' +
-        '<div onclick="window.__galStep(1)" style="position:absolute;right:0;top:0;bottom:0;width:32%;cursor:pointer;" title="มุมถัดไป"></div>'
-      : '');
+  // รวมรูปทุกมุม (img + gallery) แล้วเรียงตามเลขเฟรมในชื่อไฟล์ (…/N.png) → หมุน 360° ต่อเนื่อง
+  const seen = {};
+  const frames = [c.img].concat(Array.isArray(c.gallery) ? c.gallery : [])
+    .filter(Boolean)
+    .filter(function(u) { const k = u.split('?')[0]; if (seen[k]) return false; seen[k] = 1; return true; })
+    .map(function(u) { const m = u.split('?')[0].match(/(\d+)\.png$/i); return { u: u, n: m ? parseInt(m[1], 10) : 0 }; })
+    .sort(function(a, b) { return a.n - b.n; })
+    .map(function(o) { return o.u; });
+
+  // รูปเดียว → แสดงเฉย ๆ ไม่ต้องหมุน
+  if (frames.length <= 1) {
+    clearHandlers();
+    area.innerHTML = '<img src="' + frames[0] + '" draggable="false" style="max-height:190px;max-width:100%;object-fit:contain;user-select:none;-webkit-user-drag:none;pointer-events:none;">';
+    return;
   }
-  window.__galStep = function(d) { idx = (idx + d + imgs.length) % imgs.length; render(); };
-  // ปัดนิ้วบนภาพใหญ่ (มือถือ/แท็บเล็ต)
-  let sx = 0, sy = 0;
-  area.ontouchstart = function(e) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; };
-  area.ontouchend = function(e) {
-    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
-    if (Math.abs(dx) > 30 && Math.abs(dx) > Math.abs(dy)) window.__galStep(dx < 0 ? 1 : -1);
+
+  // preload ทุกเฟรมล่วงหน้า → ลากแล้วภาพสลับทันที ไม่สะดุด
+  frames.forEach(function(u) { const im = new Image(); im.src = u; });
+
+  let idx = Math.max(0, frames.indexOf(c.img));
+  area.style.cursor = 'grab';
+  area.innerHTML =
+    '<img id="spin360img" src="' + frames[idx] + '" draggable="false" style="max-height:190px;max-width:100%;object-fit:contain;user-select:none;-webkit-user-drag:none;pointer-events:none;">' +
+    '<div id="spin360hint" style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:4px;background:rgba(0,0,0,.45);color:#fff;font-size:.72rem;line-height:1;padding:4px 10px;border-radius:20px;pointer-events:none;transition:opacity .4s;white-space:nowrap;">↻ ' + t('drag_to_spin') + '</div>';
+
+  const imgEl = document.getElementById('spin360img');
+  const hintEl = document.getElementById('spin360hint');
+  function show(i) { idx = (i % frames.length + frames.length) % frames.length; imgEl.src = frames[idx]; }
+  function ppfCalc() { return Math.max(8, (area.clientWidth || 300) / frames.length); } // px ต่อ 1 เฟรม: ลากเต็มกว้าง ≈ หมุนครบรอบ
+
+  let dragging = false, startX = 0, startIdx = 0, ppf = 20, lastX = 0, lastT = 0, vel = 0;
+
+  area.onpointerdown = function(e) {
+    dragging = true; startX = e.clientX; startIdx = idx; ppf = ppfCalc();
+    lastX = e.clientX; lastT = e.timeStamp; vel = 0;
+    if (hintEl) hintEl.style.opacity = '0';
+    area.style.cursor = 'grabbing';
+    if (window.__spin360raf) { cancelAnimationFrame(window.__spin360raf); window.__spin360raf = null; }
+    try { area.setPointerCapture(e.pointerId); } catch (_) {}
   };
-  render();
+  area.onpointermove = function(e) {
+    if (!dragging) return;
+    const step = Math.round((e.clientX - startX) / ppf);
+    show(startIdx - step); // ลากซ้าย → หมุนไปข้างหน้า
+    const dt = e.timeStamp - lastT;
+    if (dt > 0) vel = (e.clientX - lastX) / dt; // px/ms
+    lastX = e.clientX; lastT = e.timeStamp;
+  };
+  function release() {
+    if (!dragging) return;
+    dragging = false; area.style.cursor = 'grab';
+    // โมเมนตัม: หมุนต่อแล้วค่อย ๆ ช้าลง ให้รู้สึกลื่น
+    let v = vel, carry = 0;
+    function spin() {
+      v *= 0.94;
+      carry += -v * 16 / ppf;
+      if (Math.abs(carry) >= 1) { const s = Math.trunc(carry); show(idx + s); carry -= s; }
+      if (Math.abs(v) > 0.02) window.__spin360raf = requestAnimationFrame(spin);
+      else window.__spin360raf = null;
+    }
+    if (Math.abs(v) > 0.05) window.__spin360raf = requestAnimationFrame(spin);
+  }
+  area.onpointerup = release;
+  area.onpointercancel = release;
 }
 
 function calcInstFlat(financed, ratePct, months) {
@@ -2749,7 +2793,7 @@ const I18N = {
     models_title: 'รุ่นรถฮอนด้า', models_sub: 'กดรถที่สนใจเพื่อดูสีและรุ่นย่อย · สอบถามราคาและตารางผ่อนได้ที่ร้าน',
     nav_home: 'หน้าหลัก', nav_bikes: 'รุ่นรถ', nav_calc: 'ค่างวด', nav_chat: 'แชท LINE', nav_social2: 'โซเชียล',
     calc_title: 'คำนวณค่างวด', cta_calc: 'คำนวณค่างวด →', gifts_title: '🎁 ของแถมรุ่นนี้', price_hint: '💬 กดปุ่มคำนวณค่างวดด้านล่าง เพื่อดูตารางผ่อนและสอบถามราคา', step_choose: 'เลือกรุ่น', step_setup: 'ตั้งค่า', step_result: 'ผลลัพธ์',
-    calc_next: 'ถัดไป →', calc_color: 'เลือกสี', pick_variant: 'เลือกรุ่นย่อย', color_prefix: 'สี: ', unit_models: 'รุ่น', price_from: 'เริ่มต้น ', ask_price: 'สอบถามราคา', view_detail: 'ดูรายละเอียด →',
+    calc_next: 'ถัดไป →', calc_color: 'เลือกสี', pick_variant: 'เลือกรุ่นย่อย', color_prefix: 'สี: ', unit_models: 'รุ่น', price_from: 'เริ่มต้น ', ask_price: 'สอบถามราคา', view_detail: 'ดูรายละเอียด →', drag_to_spin: 'ลากเพื่อหมุน 360°',
     unit_month: 'เดือน', free_down: 'ฟรีดาวน์', rate_prefix: 'ดอกเบี้ย ', pct_per_year: '%/ปี', pct_per_month: '%/เดือน', no_rate: 'ไม่มีข้อมูลดอกเบี้ย', min_suffix: '% ขั้นต่ำ', ask_price2: 'ติดต่อสอบถามราคา', opt_pick: '-- เลือกรุ่น --', strip_pick: 'เลือกรุ่นรถ',
     pay_install: '💳 เงินผ่อน', pay_cash: '💵 เงินสด',
     lbl_financed: 'ยอดจัดไฟแนนซ์', lbl_est_install: 'ค่างวดโดยประมาณ', lbl_down: 'เงินดาวน์',
@@ -2784,7 +2828,7 @@ const I18N = {
     models_title: 'Honda ဆိုင်ကယ်များ', models_sub: 'စိတ်ဝင်စားသော ဆိုင်ကယ်ကိုနှိပ်၍ အရောင်/မော်ဒယ်ခွဲ ကြည့်ရန် · ဈေးနှင့် အရစ်ကျဇယား ဆိုင်တွင်မေးနိုင်သည်',
     nav_home: 'ပင်မ', nav_bikes: 'ဆိုင်ကယ်', nav_calc: 'အရစ်ကျ', nav_chat: 'LINE ချတ်', nav_social2: 'Social',
     calc_title: 'အရစ်ကျ တွက်ချက်ရန်', cta_calc: 'အရစ်ကျ တွက်ချက်ရန် →', gifts_title: '🎁 ဤမော်ဒယ်အတွက် လက်ဆောင်များ', price_hint: '💬 အောက်ရှိ အရစ်ကျတွက်ချက်ရန် ခလုတ်ကိုနှိပ်၍ အရစ်ကျဇယားနှင့် ဈေးကြည့်ရှုနိုင်သည်', step_choose: 'မော်ဒယ်ရွေး', step_setup: 'သတ်မှတ်', step_result: 'ရလဒ်',
-    calc_next: 'ဆက်သွား →', calc_color: 'အရောင်ရွေး', pick_variant: 'မော်ဒယ်ခွဲ ရွေးပါ', color_prefix: 'အရောင်: ', unit_models: 'မော်ဒယ်', price_from: 'စတင်ဈေး ', ask_price: 'ဈေးမေးရန်', view_detail: 'အသေးစိတ်ကြည့်ရန် →',
+    calc_next: 'ဆက်သွား →', calc_color: 'အရောင်ရွေး', pick_variant: 'မော်ဒယ်ခွဲ ရွေးပါ', color_prefix: 'အရောင်: ', unit_models: 'မော်ဒယ်', price_from: 'စတင်ဈေး ', ask_price: 'ဈေးမေးရန်', view_detail: 'အသေးစိတ်ကြည့်ရန် →', drag_to_spin: 'လှည့်ရန် ဆွဲပါ 360°',
     unit_month: 'လ', free_down: 'အခမဲ့စရံ', rate_prefix: 'အတိုး ', pct_per_year: '%/နှစ်', pct_per_month: '%/လ', no_rate: 'အတိုးအချက်အလက် မရှိ', min_suffix: '% အနည်းဆုံး', ask_price2: 'ဈေးမေးမြန်းရန် ဆက်သွယ်ပါ', opt_pick: '-- မော်ဒယ်ရွေးပါ --', strip_pick: 'ဆိုင်ကယ်ရွေးပါ',
     pay_install: '💳 အရစ်ကျ', pay_cash: '💵 ေငြသား',
     lbl_financed: 'ချေးငွေပမာဏ', lbl_est_install: 'ခန့်မှန်း လစဉ်ပေးချေ', lbl_down: 'စရံ',
