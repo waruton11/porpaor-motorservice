@@ -2792,7 +2792,7 @@ let langMode = (function(){
   return 'th';
 })();
 
-// ค่าธรรมเนียมลูกค้าพม่า (บวกที่ยอดจัด) — แก้ตรงนี้ได้ถ้าเงื่อนไขเปลี่ยน
+// ค่าธรรมเนียมลูกค้าพม่า (บวกที่ยอดจัด) — Honda: คิดตาม cc / แก้ตรงนี้ได้ถ้าเงื่อนไขเปลี่ยน
 function myFeeByCc(cc) {
   cc = parseInt(cc) || 0;
   if (cc >= 110 && cc <= 125) return 3700;
@@ -2801,6 +2801,9 @@ function myFeeByCc(cc) {
 }
 function mySurcharge() {
   if (langMode !== 'my' || !calcModel) return 0;
+  // Yamaha: บวกคงที่ 1,000 บาท ทั้งรถเล็กและบิ๊กไบค์
+  if (BRAND === 'yamaha') return 1000;
+  // Honda: คิดตาม cc
   const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
   return v ? myFeeByCc(v.engineCc) : 0;
 }
