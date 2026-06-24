@@ -2465,22 +2465,31 @@ async function _syncPriceListToServer(showUI) {
     const fp = d.finance_prices || {};
     items.push({ model_code: d.model, variant_code: '', price: prices[''] || 0, finance_price: fp[''] || 0, file_type: 'big' });
   });
-  if (items.length === 0) return { ok: true, count: 0 };
+  // dedupe (model_code, variant_code) — PostgreSQL ON CONFLICT ห้ามมี key ซ้ำใน INSERT เดียว
+  // (Yamaha ทุกแถว variant_code='' → โค้ดซ้ำในชุดเดียวทำให้ INSERT ล้มทั้งก้อน: "cannot affect row a second time")
+  // ถ้าซ้ำ เก็บตัวที่มีราคา > 0 ไว้ (กันแถวว่างทับแถวที่มีราคา)
+  const _seen = {};
+  items.forEach(function(it) {
+    const k = it.model_code + '␟' + it.variant_code;
+    if (!_seen[k] || ((it.price || 0) > 0 && !((_seen[k].price || 0) > 0))) _seen[k] = it;
+  });
+  const prices = Object.keys(_seen).map(function(k) { return _seen[k]; });
+  if (prices.length === 0) return { ok: true, count: 0 };
   try {
     const res = await apiFetch('https://n8n-wt11.onrender.com/webhook/save-price-list', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prices: items })
+      body: JSON.stringify({ prices: prices })
     });
     if (showUI) {
-      if (res.ok) showToast('ซิงค์ราคา ' + items.length + ' รายการไป server สำเร็จ ✅', 'success');
+      if (res.ok) showToast('ซิงค์ราคา ' + prices.length + ' รายการไป server สำเร็จ ✅', 'success');
       else showToast('ซิงค์ราคาไม่สำเร็จ HTTP ' + res.status + ' ⚠️', 'error');
     }
-    return { ok: res.ok, count: items.length, status: res.status };
+    return { ok: res.ok, count: prices.length, status: res.status };
   } catch(e) {
     if (showUI) showToast('ซิงค์ราคาล้มเหลว: ' + e.message, 'error');
     console.warn('_syncPriceListToServer failed', e);
-    return { ok: false, count: items.length, error: e.message };
+    return { ok: false, count: prices.length, error: e.message };
   }
 }
 
