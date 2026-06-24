@@ -1080,28 +1080,8 @@ data.categories = data.categoriesByBrand[activeBrand];
 let editModelIdx = null; // {ci, mi} or null
 let editNewsIdx = null;
 
-// ดอกเบี้ยรายงวด: object {งวด:เรต} ↔ string "24:1.06, 36:1.09, 42:1.10, 48:1.10"
-function ratesByTermToStr(o) {
-  if (!o) return '';
-  if (typeof o === 'string') { try { o = JSON.parse(o); } catch(e) { return o; } }
-  if (typeof o !== 'object') return '';
-  return Object.keys(o).map(Number).filter(function(n){ return n > 0; }).sort(function(a,b){ return a - b; })
-    .map(function(m){ return m + ':' + o[String(m)]; }).join(', ');
-}
-function parseRatesByTermStr(s) {
-  if (!s) return null;
-  if (typeof s === 'object') return Object.keys(s).length ? s : null;
-  const o = {};
-  String(s).split(',').forEach(function(pair) {
-    const m = pair.split(':');
-    if (m.length === 2) {
-      const term = parseInt(m[0].trim());
-      const rate = parseFloat(m[1].trim());
-      if (term > 0 && rate > 0) o[String(term)] = rate;
-    }
-  });
-  return Object.keys(o).length ? o : null;
-}
+// ดอกเบี้ยรายงวด (รถเล็ก): งวดมาตรฐานที่กรอกได้ — ช่องแยกต่องวดในแถว variant
+const RBT_TERMS = [24, 36, 42, 48];
 // แปลง JSON string จาก DB → object (ใช้ตอนโหลด catalog)
 function ratesByTermFromDb(v) {
   if (!v) return null;
@@ -1741,7 +1721,7 @@ function openEditModel(ci, mi) {
   // variants
   document.getElementById('variantRows').innerHTML = '';
   m.variants.forEach(v => {
-    addVariantRow(v.name, v.price, v.autoRate || '', v.autoRateUnit || 'month', v.autoDownPcts ? v.autoDownPcts.join(',') : '', v.autoRate2 || '', v.autoRate2MinDown || '', v.freebies || [], ratesByTermToStr(v.autoRatesByTerm));
+    addVariantRow(v.name, v.price, v.autoRate || '', v.autoRateUnit || 'month', v.autoDownPcts ? v.autoDownPcts.join(',') : '', v.autoRate2 || '', v.autoRate2MinDown || '', v.freebies || [], v.autoRatesByTerm || null);
   });
   // colors
   document.getElementById('colorRows').innerHTML = '';
@@ -1784,10 +1764,20 @@ function _buildFreebiesUI(freebies) {
   '</div>';
 }
 
-function addVariantRow(name='', price='', autoRate='', autoRateUnit='month', autoDownPcts='', autoRate2='', autoRate2MinDown='', freebies=[], autoRatesByTerm='') {
+function addVariantRow(name='', price='', autoRate='', autoRateUnit='month', autoDownPcts='', autoRate2='', autoRate2MinDown='', freebies=[], autoRatesByTerm=null) {
   const div = document.createElement('div');
   div.className = 'form-row variant-row';
   div.style.background = '#fafafa'; div.style.padding = '0.75rem'; div.style.borderRadius = '8px'; div.style.marginBottom = '0.5rem'; div.style.flexWrap = 'wrap';
+  // normalize ดอกเบี้ยรายงวด → object {งวด:เรต} (รองรับ object / JSON string)
+  const _rbt = (autoRatesByTerm && typeof autoRatesByTerm === 'object') ? autoRatesByTerm
+    : (typeof autoRatesByTerm === 'string' && autoRatesByTerm ? (function(){ try { return JSON.parse(autoRatesByTerm) || {}; } catch(e) { return {}; } })() : {});
+  const _rbtBoxes = RBT_TERMS.map(function(term){
+    const val = (_rbt && _rbt[String(term)] != null) ? _rbt[String(term)] : '';
+    return '<div style="display:flex;flex-direction:column;align-items:center;">'
+      + '<span style="font-size:.68rem;color:#666;margin-bottom:2px;">' + term + ' งวด</span>'
+      + '<input class="vrbt" data-term="' + term + '" type="number" step="0.01" min="0" max="30" value="' + val + '" placeholder="–" '
+      + 'style="width:58px;padding:.45rem .25rem;border:1.5px solid var(--gray2);border-radius:6px;font-size:.85rem;text-align:center;"></div>';
+  }).join('');
   div.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:2px;justify-content:center;padding-top:18px;margin-right:4px;">
       <button type="button" onclick="moveRow(this,'up')" style="background:#e0e0e0;border:none;border-radius:4px;cursor:pointer;padding:1px 6px;font-size:0.75rem;line-height:1.4;" title="เลื่อนขึ้น">▲</button>
@@ -1824,11 +1814,10 @@ function addVariantRow(name='', price='', autoRate='', autoRateUnit='month', aut
       </div>
       <div style="font-size:.68rem;color:#999;margin-top:2px;">เช่น ดาวน์≥15%→5%/ปี</div>
     </div>
-    <div class="form-group" style="flex:1 1 100%;min-width:240px;">
-      <label style="white-space:nowrap;">ดอกเบี้ยรายงวด (รถเล็ก)</label>
-      <input class="vautoRatesByTerm" value="${autoRatesByTerm}" placeholder="24:1.06, 36:1.09, 42:1.10, 48:1.10"
-        style="width:100%;padding:.45rem .4rem;border:1.5px solid var(--gray2);border-radius:6px;font-size:.85rem;">
-      <div style="font-size:.68rem;color:#999;margin-top:2px;">รูปแบบ <b>งวด:เรต</b> คั่นด้วย , — ใช้หน่วยตาม "อัตราดบ." ด้านบน · ตั้งช่องนี้แล้วจะใช้แทนอัตราเดี่ยว · บิ๊กไบค์เรตเดียว (เช่น 6.5%/ปี) เว้นว่างได้</div>
+    <div class="form-group" style="flex:1 1 100%;min-width:260px;">
+      <label style="white-space:nowrap;">ดอกเบี้ยรายงวด (รถเล็ก) — ใส่เฉพาะ % ตามหน่วย "อัตราดบ." ด้านบน</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">${_rbtBoxes}</div>
+      <div style="font-size:.68rem;color:#999;margin-top:2px;">เช่น 24 งวด→1.06 · เว้นว่าง = ไม่ใช้งวดนั้น · บิ๊กไบค์ใช้อัตราเดี่ยวด้านบน เว้นช่องนี้ทั้งหมด · ระบบบล็อกถ้ากรอกค่าเพี้ยน</div>
     </div>
     <div style="display:flex; align-items:flex-end; padding-bottom:2px;">
       <button class="btn btn-danger btn-sm" onclick="this.closest('.variant-row').remove()">✕</button>
@@ -2008,6 +1997,7 @@ function saveModel() {
   if (!name) { showToast('กรุณาใส่ชื่อรุ่น', 'error'); return; }
 
   const variants = [];
+  const rateErrors = []; // ดอกเบี้ยรายงวดที่กรอกค่าเพี้ยน — ใช้บล็อกการบันทึก
   document.querySelectorAll('#variantRows .variant-row').forEach(row => {
     const vnameRaw = row.querySelector('.vname').value.trim();
     const vname = vnameRaw || 'มาตรฐาน';
@@ -2027,9 +2017,21 @@ function saveModel() {
       const vautoRate2 = parseFloat(row.querySelector('.vautoRate2')?.value) || 0;
       const vautoRate2MinDown = parseInt(row.querySelector('.vautoRate2MinDown')?.value) || 0;
       if (vautoRate2 > 0 && vautoRate2MinDown > 0) { v.autoRate2 = vautoRate2; v.autoRate2MinDown = vautoRate2MinDown; }
-      // ดอกเบี้ยรายงวด (รถเล็ก) — เก็บเป็น object {งวด:เรต}
-      const vautoRatesByTerm = parseRatesByTermStr(row.querySelector('.vautoRatesByTerm')?.value.trim() || '');
-      if (vautoRatesByTerm) v.autoRatesByTerm = vautoRatesByTerm;
+      // ดอกเบี้ยรายงวด (รถเล็ก) — อ่านช่องแยกต่องวด + ตรวจกันพิมพ์ผิดขนาด (เช่น 11 แทน 1.1)
+      const rbt = {};
+      const rbtMax = vautoRateUnit === 'year' ? 30 : 5;
+      row.querySelectorAll('.vrbt').forEach(function(inp) {
+        const raw = (inp.value || '').trim();
+        if (raw === '') return;
+        const term = parseInt(inp.dataset.term);
+        const val = parseFloat(raw);
+        if (isNaN(val) || val < 0 || val > rbtMax) {
+          rateErrors.push(vname + ' · ' + term + ' งวด = "' + raw + '" (ต้อง 0–' + rbtMax + ' ' + (vautoRateUnit === 'year' ? '%/ปี' : '%/เดือน') + ')');
+        } else if (val > 0) {
+          rbt[String(term)] = val;
+        }
+      });
+      if (Object.keys(rbt).length) v.autoRatesByTerm = rbt;
       // ของแถม: checkbox มาตรฐาน + ช่อง custom หลายช่อง
       const freebies = [];
       row.querySelectorAll('.vfreebie:checked').forEach(function(cb) { freebies.push(cb.value); });
@@ -2053,6 +2055,10 @@ function saveModel() {
       variants.push(v);
     }
   });
+  if (rateErrors.length) {
+    showToast('⚠️ ดอกเบี้ยรายงวดมีค่าไม่ถูกต้อง — ยังไม่บันทึก แก้ให้ถูกก่อน: ' + rateErrors.join(' · '), 'error');
+    return;
+  }
   if (variants.length === 0) { showToast('กรุณาใส่ชื่อรุ่นย่อยอย่างน้อย 1 รุ่น', 'error'); return; }
 
   // สีเดิมของรุ่นนี้ (ตอน edit) — ใช้ preserve ค่าที่ฟอร์มไม่มีช่องแก้ เช่น gallery รายสี
