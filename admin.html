@@ -2388,18 +2388,20 @@ function _parsePriceXlsx(file, fileType, onDone) {
       const wb = XLSX.read(e.target.result, { type: 'array' });
 
       // เลือก sheet + คอลัมน์ตามแบรนด์ที่ active และประเภทไฟล์ (ไฟล์รวม Honda+Yamaha แยกด้วย sheet)
-      // โครงสร้างจริง (ตรวจไฟล์ 23/06/2569):
+      // โครงสร้างจริง (ยืนยันกับ owner + แกะไฟล์ 23/06/2569):
       //   เล็ก Honda  = Sheet1 : A=โค้ด, B=แบบ, F=ราคาเงินสด, K=ไฟแนนซ์
-      //   เล็ก Yamaha = Sheet2 : A=รุ่น, B=โค้ด, F=ราคาเงินสด
-      //   Big Honda   = sheet "HONDA"  : B=โค้ด, E=ราคาขาย
-      //   Big Yamaha  = sheet "YAMAHA" : B=โค้ด, E=ราคาขาย
+      //   เล็ก Yamaha = Sheet2 : A=รุ่น, B=โค้ด, F(idx5)=ราคาเงินสด, I(idx8)=ไฟแนนซ์(สช.จีอี-เอส-เน็ค)
+      //       — col I ว่างในบางรุ่น (PG-1/R15/XSR155/AEROX SP/R15 M) → fallback ใช้ราคาเงินสด
+      //       — col K="มากกว่าเงินสด" เป็นสูตร ว่าง/0 ห้ามใช้
+      //   Big Honda   = sheet "HONDA"  : B=โค้ด, E(idx4)=ราคาขาย
+      //   Big Yamaha  = sheet "YAMAHA" : B=โค้ด, E(idx4)=ราคาขาย (ใช้ทั้งเงินสด+ไฟแนนซ์)
       const isY = activeBrand === 'yamaha';
-      let L; // layout: {sheet, modelCol=คอลัมน์โค้ด(ค่า dropdown), variantCol(-1=ไม่มี), priceCol, financeCol(-1=ไม่มี)}
+      let L; // layout: {sheet, modelCol=คอลัมน์โค้ด(ค่า dropdown), variantCol(-1=ไม่มี), priceCol, financeCol(-1=ไม่มี), financeFallback}
       if (fileType === 'big') {
         L = { sheet: isY ? 'YAMAHA' : 'HONDA', modelCol: 1, variantCol: -1, priceCol: 4, financeCol: -1 };
       } else {
         L = isY
-          ? { sheet: 'Sheet2', modelCol: 1, variantCol: -1, priceCol: 5, financeCol: -1 }
+          ? { sheet: 'Sheet2', modelCol: 1, variantCol: -1, priceCol: 5, financeCol: 8, financeFallback: true }
           : { sheet: 'Sheet1', modelCol: 0, variantCol: 1, priceCol: 5, financeCol: 10 };
       }
       const wsName = wb.Sheets[L.sheet] ? L.sheet : wb.SheetNames[0];
@@ -2426,7 +2428,9 @@ function _parsePriceXlsx(file, fileType, onDone) {
         const entry = map.get(model);
         if (variant && !entry.variants.includes(variant)) entry.variants.push(variant);
         if (price > 0) entry.prices[variant || ''] = price;
-        if (financePrice > 0) entry.finance_prices[variant || ''] = financePrice;
+        // ไฟแนนซ์: ใช้ค่าจาก financeCol ถ้ามี ไม่มีและ financeFallback=true → ใช้ราคาเงินสด (กันไฟแนนซ์=0)
+        const fpFinal = financePrice > 0 ? financePrice : (L.financeFallback ? price : 0);
+        if (fpFinal > 0) entry.finance_prices[variant || ''] = fpFinal;
       });
 
       priceData[fileType] = Array.from(map.entries()).map(function(entry) {
