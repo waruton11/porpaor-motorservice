@@ -631,11 +631,10 @@ tr:hover td { background: #fafafa; }
     <div style="font-weight:700; margin: 1rem 0 0.5rem;">🎨 สีที่มีจำหน่าย</div>
     <p style="font-size:0.82rem; color:var(--text2); margin-bottom:0.75rem;">ใส่ชื่อสี เลือกรหัสสี และวาง URL รูปรถ (คลิกขวาที่รูปใน thaihonda.co.th → Copy image address)</p>
     <div id="colorRows"></div>
-    <button class="btn btn-gray btn-sm" onclick="addColorRow()">+ เพิ่มสี</button>
-
-    <div style="font-weight:700; margin: 1rem 0 0.5rem;">🖼️ แกลเลอรีรูป (หลายมุม)</div>
-    <p style="font-size:0.82rem; color:var(--text2); margin-bottom:0.5rem;">ใส่ URL รูปหลายมุมของรุ่นนี้ (บรรทัดละ 1 URL) · ลูกค้าจะปัดดูได้บนหน้าเว็บ · เว้นว่าง = ไม่มีแกลเลอรี</p>
-    <textarea id="m_gallery" rows="4" placeholder="https://.../มุม1.png&#10;https://.../มุม2.png" style="width:100%;padding:0.6rem;border:1px solid #ddd;border-radius:6px;font-family:monospace;font-size:0.82rem;box-sizing:border-box;"></textarea>
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+      <button class="btn btn-gray btn-sm" onclick="addColorRow()">+ เพิ่มสี</button>
+      <button class="btn btn-gray btn-sm" onclick="fetchAllGalleries()" title="ดึงรูปทุกมุม (360°) ให้ทุกสีจาก URL รูปหลัก">🔄 ดึงรูป 360° ทุกสี</button>
+    </div>
 
     <div style="margin-top:1.5rem; display:flex; gap:0.75rem;">
       <button class="btn btn-primary" onclick="saveModel()">💾 บันทึก</button>
@@ -1695,7 +1694,6 @@ function openAddModel() {
   document.getElementById('m_cat').value = '0';
   document.getElementById('variantRows').innerHTML = '';
   document.getElementById('colorRows').innerHTML = '';
-  document.getElementById('m_gallery').value = '';
   addVariantRow('มาตรฐาน');
   addColorRow('', '#cc0000', '', '');
   document.getElementById('modelModal').classList.add('open');
@@ -1717,8 +1715,7 @@ function openEditModel(ci, mi) {
   });
   // colors
   document.getElementById('colorRows').innerHTML = '';
-  (m.colors||[]).forEach(c => addColorRow(c.name, c.hex, c.hex2||'', c.img||'', c.variant||''));
-  document.getElementById('m_gallery').value = Array.isArray(m.gallery) ? m.gallery.join('\n') : '';
+  (m.colors||[]).forEach(c => addColorRow(c.name, c.hex, c.hex2||'', c.img||'', c.variant||'', c.gallery||[]));
   document.getElementById('modelModal').classList.add('open');
 }
 
@@ -1805,11 +1802,14 @@ function addVariantRow(name='', price='', autoRate='', autoRateUnit='month', aut
   document.getElementById('variantRows').appendChild(div);
 }
 
-function addColorRow(name='', hex='#cc0000', hex2='', img='', variant='') {
+function addColorRow(name='', hex='#cc0000', hex2='', img='', variant='', gallery=[]) {
   const div = document.createElement('div');
   div.className = 'color-row';
   div.style.cssText = 'background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;padding:0.75rem;margin-bottom:0.6rem;';
   const safeImg = img ? img.replace(/"/g, '&quot;') : '';
+  const galArr = Array.isArray(gallery) ? gallery : [];
+  const galAttr = galArr.length ? JSON.stringify(galArr).replace(/"/g, '&quot;') : '';
+  const galStatus = galArr.length ? ('✅ มี ' + galArr.length + ' มุม') : 'ยังไม่มี — กดปุ่มเพื่อดึงจาก URL';
   const previewBg = hex2
     ? `conic-gradient(${hex} 0deg 180deg,${hex2} 180deg 360deg)`
     : hex;
@@ -1865,8 +1865,62 @@ function addColorRow(name='', hex='#cc0000', hex2='', img='', variant='') {
         <button class="btn btn-danger btn-sm" onclick="this.closest('.color-row').remove()">✕</button>
       </div>
     </div>
+    <div style="margin-top:0.6rem;padding-top:0.6rem;border-top:1px dashed #e0e0e0;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+      <span style="font-size:0.8rem;font-weight:600;color:#555;">🔄 รูปหมุน 360° (หลายมุม):</span>
+      <button type="button" class="btn btn-gray btn-sm cgal-btn" onclick="fetchColorGallery(this)">ดึงทุกมุมจาก URL อัตโนมัติ</button>
+      <span class="cgal-status" style="font-size:0.8rem;color:${galArr.length ? '#2a7' : '#999'};">${galStatus}</span>
+      <input type="hidden" class="cgallery" value="${galAttr}">
+    </div>
   `;
   document.getElementById('colorRows').appendChild(div);
+}
+
+// เลขเฟรมในชื่อไฟล์ (…/N.png) ใช้เรียงมุมให้หมุนต่อเนื่อง
+function _frameNum(u) { const m = (u || '').split('?')[0].match(/(\d+)\.png$/i); return m ? parseInt(m[1], 10) : 0; }
+
+// ดึงรูป "ทุกมุม" ของสีนี้อัตโนมัติจาก URL รูปหลัก — เดาโฟลเดอร์เดียวกัน แล้วเช็คเฟรม 0..15.png
+// ใช้ Image() โหลดทดสอบ (ไม่ติด CORS) เก็บเฉพาะที่โหลดได้จริง → ไม่มีรูปเพี้ยน/ตาย
+function fetchColorGallery(btn, opts) {
+  opts = opts || {};
+  const row = btn.closest('.color-row');
+  const img = (row.querySelector('.cimg').value || '').trim();
+  const status = row.querySelector('.cgal-status');
+  const store = row.querySelector('.cgallery');
+  const mm = img.split('?')[0].match(/^(.*)\/([^\/]+)\.png$/i);
+  if (!mm) { status.textContent = '⚠️ ใส่ URL รูปรถ (.png) ก่อน'; status.style.color = '#c00'; return; }
+  const folder = mm[1], imgClean = img.split('?')[0];
+  status.textContent = '⏳ กำลังตรวจรูปทุกมุม...'; status.style.color = '#666';
+  btn.disabled = true;
+  const candidates = []; for (let i = 0; i <= 15; i++) candidates.push(folder + '/' + i + '.png');
+  let found = [], pending = candidates.length;
+  candidates.forEach(function(u) {
+    const im = new Image();
+    im.onload = function() { found.push(u); done(); };
+    im.onerror = function() { done(); };
+    im.src = u;
+  });
+  function done() {
+    if (--pending > 0) return;
+    found.sort(function(a, b) { return _frameNum(a) - _frameNum(b); });
+    const gallery = found.filter(function(u) { return u.split('?')[0] !== imgClean; });
+    store.value = gallery.length ? JSON.stringify(gallery) : '';
+    btn.disabled = false;
+    if (gallery.length) { status.textContent = '✅ พบ ' + found.length + ' มุม (เก็บ ' + gallery.length + ')'; status.style.color = '#2a7'; }
+    else { status.textContent = '⚠️ ไม่พบรูปมุมอื่นในโฟลเดอร์นี้'; status.style.color = '#c00'; }
+    if (opts.onDone) opts.onDone(gallery.length);
+  }
+}
+
+// ดึงรูป 360° ให้ "ทุกสี" ในรุ่นนี้พร้อมกัน
+function fetchAllGalleries() {
+  const rows = document.querySelectorAll('#colorRows .color-row');
+  if (!rows.length) { showToast('ยังไม่มีสีในรุ่นนี้', 'error'); return; }
+  let done = 0; const total = rows.length;
+  rows.forEach(function(row) {
+    const btn = row.querySelector('.cgal-btn');
+    if (btn) fetchColorGallery(btn, { onDone: function() { if (++done === total) showToast('ดึงรูป 360° ครบทุกสีแล้ว ✅ — กดบันทึก', 'success'); } });
+  });
+  showToast('⏳ กำลังดึงรูป 360° ทุกสี...', '');
 }
 
 function previewColorUrl(input) {
@@ -1976,16 +2030,21 @@ function saveModel() {
       const colorObj = { name: cname, hex: chex, img: cimg };
       if (chex2) colorObj.hex2 = chex2;
       if (cvariant) colorObj.variant = cvariant;
-      // preserve รูปหลายมุม (gallery) ราย "สี" — ฟอร์มนี้ไม่มีช่องแก้ gallery รายสี
-      // จับคู่สีเดิมด้วยชื่อ+รุ่นย่อย (fallback: img เดียวกัน) แล้วคงค่า gallery ไว้ ไม่ให้ถูกลบตอน save
-      const oldC = _oldColors.find(o => o.name === cname && (o.variant || '') === (cvariant || ''))
-                 || _oldColors.find(o => o.img && o.img === cimg);
-      if (oldC && Array.isArray(oldC.gallery) && oldC.gallery.length) colorObj.gallery = oldC.gallery;
+      // รูปหมุน 360° (gallery) ราย "สี": อ่านจากช่องในแถว (กดปุ่ม "ดึงทุกมุม" ไว้)
+      // ถ้าช่องว่าง → คงค่าเดิมไว้ (จับคู่ด้วยชื่อ+รุ่นย่อย, fallback img) กันถูกลบตอน save
+      let cgal = [];
+      const cgalRaw = row.querySelector('.cgallery')?.value || '';
+      if (cgalRaw) { try { cgal = JSON.parse(cgalRaw); } catch (e) { cgal = []; } }
+      if (Array.isArray(cgal) && cgal.length) {
+        colorObj.gallery = cgal;
+      } else {
+        const oldC = _oldColors.find(o => o.name === cname && (o.variant || '') === (cvariant || ''))
+                   || _oldColors.find(o => o.img && o.img === cimg);
+        if (oldC && Array.isArray(oldC.gallery) && oldC.gallery.length) colorObj.gallery = oldC.gallery;
+      }
       colors.push(colorObj);
     }
   });
-
-  const gallery = (document.getElementById('m_gallery')?.value || '').split('\n').map(s => s.trim()).filter(Boolean);
 
   const model = {
     name,
@@ -1995,8 +2054,7 @@ function saveModel() {
     logo: document.getElementById('m_logo').value.trim(),
     downText: document.getElementById('m_downtext').value.trim(),
     variants,
-    colors,
-    gallery
+    colors
   };
 
   if (editModelIdx) {
