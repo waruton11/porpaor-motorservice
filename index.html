@@ -121,6 +121,19 @@ img { display: block; max-width: 100%; }
   height: 100%;
   display: block;
   object-fit: cover;          /* เต็มพื้นที่ 5:2 — ถ้ารูปทำมา 5:2 จะไม่ crop */
+  position: relative;
+  z-index: 1;
+}
+/* โหมด "แสดงทั้งรูป + พื้นเบลอ": รูปเดิมขยายเบลอเติมขอบข้างแทนพื้นว่าง */
+.hero-bg-blur {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(22px) brightness(0.8);
+  transform: scale(1.12);     /* กันขอบเบลอโปร่งโผล่ */
+  z-index: 0;
 }
 .hero-fallback {
   text-align: center;
@@ -1531,6 +1544,7 @@ footer .footer-brand {
 
 <!-- ===== HERO ===== -->
 <div class="hero" id="heroSection">
+  <img id="heroImageBlur" class="hero-bg-blur" src="" alt="" aria-hidden="true" style="display:none;">
   <img id="heroImage" class="hero-image" src="" alt="" style="display:none;">
   <div class="hero-fallback" id="heroFallback">
     <div class="hero-emoji">🏍️</div>
@@ -3327,15 +3341,23 @@ function renderHero() {
   const fb = document.getElementById('heroFallback');
   // โหมดพม่า: ใช้รูป Hero พม่า ถ้ามี · ไม่มี → ใช้รูปไทย
   const src = (langMode === 'my' && siteConfig.heroImage_my) ? siteConfig.heroImage_my : siteConfig.heroImage;
+  const blur = document.getElementById('heroImageBlur');
   if (src) {
     img.src = src;
     img.style.display = 'block';
-    // การแสดงผลตามที่ตั้งในแอดมิน: cover=เต็มช่อง(ครอป) · contain=แสดงทั้งรูป
-    img.style.objectFit = (siteConfig.heroFit === 'contain') ? 'contain' : 'cover';
+    // การแสดงผลตามที่ตั้งในแอดมิน: cover=เต็มช่อง(ครอป) · contain=แสดงทั้งรูป+พื้นเบลอ
+    const fit = (siteConfig.heroFit === 'contain') ? 'contain' : 'cover';
+    img.style.objectFit = fit;
     img.style.objectPosition = siteConfig.heroPos || 'center center';
+    // contain → เติมพื้นเบลอด้วยรูปเดิมด้านหลัง · cover → ซ่อน
+    if (blur) {
+      if (fit === 'contain') { blur.src = src; blur.style.display = 'block'; }
+      else { blur.style.display = 'none'; }
+    }
     if (fb) fb.style.display = 'none';
   } else {
     img.style.display = 'none';
+    if (blur) blur.style.display = 'none';
     if (fb) fb.style.display = 'block';
   }
   // แคปชันพม่า: โชว์เฉพาะตอนยังไม่มีรูปพม่า (รูปพม่ามีข้อความอยู่แล้ว)

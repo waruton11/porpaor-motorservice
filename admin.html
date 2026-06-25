@@ -342,7 +342,7 @@ tr:hover td { background: #fafafa; }
                 <input type="radio" name="sc_heroFit" value="cover" id="sc_heroFit_cover" checked> เต็มช่อง (ครอปบางส่วน)
               </label>
               <label style="display:flex;align-items:center;gap:0.35rem;font-size:.88rem;cursor:pointer;">
-                <input type="radio" name="sc_heroFit" value="contain" id="sc_heroFit_contain"> แสดงทั้งรูป (ไม่ครอป · มีขอบข้าง)
+                <input type="radio" name="sc_heroFit" value="contain" id="sc_heroFit_contain"> แสดงทั้งรูป (เติมพื้นเบลอ · ไม่ตัดรูป)
               </label>
             </div>
             <div id="sc_heroPosWrap" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;margin-bottom:0.8rem;">
@@ -359,8 +359,9 @@ tr:hover td { background: #fafafa; }
               </select>
             </div>
             <div style="font-size:.8rem;color:#888;margin-bottom:0.35rem;">👁️ ตัวอย่างตามที่ลูกค้าเห็นจริง:</div>
-            <div style="width:100%;max-width:500px;aspect-ratio:5/2;background:linear-gradient(135deg,#f5f5f5,#e8e8e8);border:1px solid #ccc;border-radius:6px;overflow:hidden;">
-              <img id="sc_heroPreviewBox" src="" style="width:100%;height:100%;object-fit:cover;object-position:center center;display:none;">
+            <div style="width:100%;max-width:500px;aspect-ratio:5/2;background:linear-gradient(135deg,#f5f5f5,#e8e8e8);border:1px solid #ccc;border-radius:6px;overflow:hidden;position:relative;">
+              <img id="sc_heroPreviewBlur" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(16px) brightness(0.8);transform:scale(1.12);display:none;">
+              <img id="sc_heroPreviewBox" src="" style="position:relative;z-index:1;width:100%;height:100%;object-fit:cover;object-position:center center;display:none;">
             </div>
           </div>
         </div>
@@ -1650,6 +1651,7 @@ function _applyHeroFitToUI() {
 // พรีวิวกล่อง 5:2 ตามจริง + ซ่อนตัวเลือกตำแหน่งเมื่อเลือก "แสดงทั้งรูป"
 function _updateHeroFitPreview() {
   const box = document.getElementById('sc_heroPreviewBox');
+  const blur = document.getElementById('sc_heroPreviewBlur');
   const url = (document.getElementById('sc_heroImage')?.value || '').trim();
   const { fit, pos } = _readHeroFitFromUI();
   const posWrap = document.getElementById('sc_heroPosWrap');
@@ -1659,8 +1661,14 @@ function _updateHeroFitPreview() {
     box.src = url; box.style.display = 'block';
     box.style.objectFit = fit;
     box.style.objectPosition = pos;
+    // contain → โชว์พื้นเบลอด้านหลัง (ตรงกับเว็บลูกค้า)
+    if (blur) {
+      if (fit === 'contain') { blur.src = url; blur.style.display = 'block'; }
+      else { blur.style.display = 'none'; }
+    }
   } else {
     box.style.display = 'none';
+    if (blur) blur.style.display = 'none';
   }
 }
 
