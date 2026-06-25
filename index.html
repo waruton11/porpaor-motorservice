@@ -3266,6 +3266,8 @@ const DEFAULT_SITE_CONFIG = {
   faq: [],   // คำถามที่พบบ่อย ไทย — แก้ใน admin (ว่าง = ใช้ค่าเริ่มต้น FAQ_DATA)
   faq_my: [], // คำถามที่พบบ่อย พม่า (คนละชุด)
   heroImage_my: '', // รูป Hero พม่า (ว่าง = ใช้รูปไทย)
+  heroFit: 'cover',          // cover = เต็มช่อง(ครอป) · contain = แสดงทั้งรูป
+  heroPos: 'center center',  // object-position (focal) สำหรับโหมด cover
   svcTradeinIcon: '',  // ไอคอนการ์ดเทิร์นรถ (ว่าง = 🔄)
   svcTestrideIcon: ''  // ไอคอนการ์ดทดลองขับ (ว่าง = 🏍️)
 };
@@ -3279,6 +3281,8 @@ async function fetchSiteConfig() {
     if (d) {
       if (d.heroImage) siteConfig.heroImage = d.heroImage;
       if (typeof d.heroImage_my === 'string') siteConfig.heroImage_my = d.heroImage_my;
+      siteConfig.heroFit = (d.heroFit === 'contain') ? 'contain' : 'cover';
+      if (typeof d.heroPos === 'string' && d.heroPos.trim()) siteConfig.heroPos = d.heroPos.trim();
       if (typeof d.svcTradeinIcon === 'string') siteConfig.svcTradeinIcon = d.svcTradeinIcon;
       if (typeof d.svcTestrideIcon === 'string') siteConfig.svcTestrideIcon = d.svcTestrideIcon;
       if (Array.isArray(d.benefits) && d.benefits.length) siteConfig.benefits = d.benefits;
@@ -3326,6 +3330,9 @@ function renderHero() {
   if (src) {
     img.src = src;
     img.style.display = 'block';
+    // การแสดงผลตามที่ตั้งในแอดมิน: cover=เต็มช่อง(ครอป) · contain=แสดงทั้งรูป
+    img.style.objectFit = (siteConfig.heroFit === 'contain') ? 'contain' : 'cover';
+    img.style.objectPosition = siteConfig.heroPos || 'center center';
     if (fb) fb.style.display = 'none';
   } else {
     img.style.display = 'none';

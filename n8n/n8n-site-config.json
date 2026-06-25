@@ -45,7 +45,7 @@
       ],
       "parameters": {
         "operation": "executeQuery",
-        "query": "=SELECT hero_image, hero_image_my, svc_tradein_icon, svc_testride_icon, benefits, category_overrides, faq, faq_my FROM site_config WHERE brand = '{{ $json.brand }}' LIMIT 1;",
+        "query": "=SELECT hero_image, hero_image_my, hero_fit, hero_pos, svc_tradein_icon, svc_testride_icon, benefits, category_overrides, faq, faq_my FROM site_config WHERE brand = '{{ $json.brand }}' LIMIT 1;",
         "options": {}
       },
       "credentials": {
@@ -65,7 +65,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const row = $input.first()?.json || {};\nreturn [{ json: { heroImage: row.hero_image || '', heroImage_my: row.hero_image_my || '', svcTradeinIcon: row.svc_tradein_icon || '', svcTestrideIcon: row.svc_testride_icon || '', benefits: row.benefits || [], categoryOverrides: row.category_overrides || {}, faq: row.faq || [], faq_my: row.faq_my || [] } }];"
+        "jsCode": "const row = $input.first()?.json || {};\nreturn [{ json: { heroImage: row.hero_image || '', heroImage_my: row.hero_image_my || '', heroFit: row.hero_fit || 'cover', heroPos: row.hero_pos || 'center center', svcTradeinIcon: row.svc_tradein_icon || '', svcTestrideIcon: row.svc_testride_icon || '', benefits: row.benefits || [], categoryOverrides: row.category_overrides || {}, faq: row.faq || [], faq_my: row.faq_my || [] } }];"
       }
     },
     {
@@ -120,7 +120,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst brand = (body.brand === 'yamaha') ? 'yamaha' : 'honda';\nconst esc = (s) => String(s || '').replace(/'/g, \"''\");\nconst hero = esc(body.heroImage);\nconst heroMy = esc(body.heroImage_my);\nconst svcTradein = esc(body.svcTradeinIcon);\nconst svcTestride = esc(body.svcTestrideIcon);\nconst benefits = JSON.stringify(body.benefits || []).replace(/'/g, \"''\");\nconst catOv = JSON.stringify(body.categoryOverrides || {}).replace(/'/g, \"''\");\nconst faq = JSON.stringify(body.faq || []).replace(/'/g, \"''\");\nconst faqMy = JSON.stringify(body.faq_my || []).replace(/'/g, \"''\");\nconst sql = `INSERT INTO site_config (brand, hero_image, hero_image_my, svc_tradein_icon, svc_testride_icon, benefits, category_overrides, faq, faq_my, updated_at)\nVALUES ('${brand}', '${hero}', '${heroMy}', '${svcTradein}', '${svcTestride}', '${benefits}'::jsonb, '${catOv}'::jsonb, '${faq}'::jsonb, '${faqMy}'::jsonb, NOW())\nON CONFLICT (brand) DO UPDATE SET\n  hero_image = EXCLUDED.hero_image,\n  hero_image_my = EXCLUDED.hero_image_my,\n  svc_tradein_icon = EXCLUDED.svc_tradein_icon,\n  svc_testride_icon = EXCLUDED.svc_testride_icon,\n  benefits = EXCLUDED.benefits,\n  category_overrides = EXCLUDED.category_overrides,\n  faq = EXCLUDED.faq,\n  faq_my = EXCLUDED.faq_my,\n  updated_at = NOW();`;\nreturn [{ json: { sql } }];"
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst brand = (body.brand === 'yamaha') ? 'yamaha' : 'honda';\nconst esc = (s) => String(s || '').replace(/'/g, \"''\");\nconst hero = esc(body.heroImage);\nconst heroMy = esc(body.heroImage_my);\nconst heroFit = (body.heroFit === 'contain') ? 'contain' : 'cover';\nconst heroPos = (String(body.heroPos || 'center center').replace(/[^a-z0-9%\\s]/gi, '').trim().slice(0, 30)) || 'center center';\nconst svcTradein = esc(body.svcTradeinIcon);\nconst svcTestride = esc(body.svcTestrideIcon);\nconst benefits = JSON.stringify(body.benefits || []).replace(/'/g, \"''\");\nconst catOv = JSON.stringify(body.categoryOverrides || {}).replace(/'/g, \"''\");\nconst faq = JSON.stringify(body.faq || []).replace(/'/g, \"''\");\nconst faqMy = JSON.stringify(body.faq_my || []).replace(/'/g, \"''\");\nconst sql = `INSERT INTO site_config (brand, hero_image, hero_image_my, hero_fit, hero_pos, svc_tradein_icon, svc_testride_icon, benefits, category_overrides, faq, faq_my, updated_at)\nVALUES ('${brand}', '${hero}', '${heroMy}', '${heroFit}', '${heroPos}', '${svcTradein}', '${svcTestride}', '${benefits}'::jsonb, '${catOv}'::jsonb, '${faq}'::jsonb, '${faqMy}'::jsonb, NOW())\nON CONFLICT (brand) DO UPDATE SET\n  hero_image = EXCLUDED.hero_image,\n  hero_image_my = EXCLUDED.hero_image_my,\n  hero_fit = EXCLUDED.hero_fit,\n  hero_pos = EXCLUDED.hero_pos,\n  svc_tradein_icon = EXCLUDED.svc_tradein_icon,\n  svc_testride_icon = EXCLUDED.svc_testride_icon,\n  benefits = EXCLUDED.benefits,\n  category_overrides = EXCLUDED.category_overrides,\n  faq = EXCLUDED.faq,\n  faq_my = EXCLUDED.faq_my,\n  updated_at = NOW();`;\nreturn [{ json: { sql } }];"
       }
     },
     {

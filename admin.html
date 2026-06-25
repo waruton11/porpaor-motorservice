@@ -333,6 +333,36 @@ tr:hover td { background: #fafafa; }
             <img id="sc_heroPreviewMy" src="" style="max-width:100%;max-height:200px;border-radius:4px;display:none;">
             <div id="sc_heroPlaceholderMy" style="color:#999;font-size:0.85rem;padding:1.5rem;">วาง URL รูปพม่าด้านบนเพื่อดูตัวอย่าง</div>
           </div>
+
+          <!-- การแสดงรูปในช่อง Hero: เต็มช่อง/ทั้งรูป + ตำแหน่งโฟกัส -->
+          <div style="margin-top:1.1rem;padding-top:1rem;border-top:1px dashed #ddd;">
+            <label style="display:block;font-size:.9rem;color:#555;margin-bottom:0.5rem;font-weight:600;">🖼️ การแสดงรูปในช่อง Hero (สัดส่วน 5:2)</label>
+            <div style="display:flex;gap:1.25rem;flex-wrap:wrap;align-items:center;margin-bottom:0.7rem;">
+              <label style="display:flex;align-items:center;gap:0.35rem;font-size:.88rem;cursor:pointer;">
+                <input type="radio" name="sc_heroFit" value="cover" id="sc_heroFit_cover" checked> เต็มช่อง (ครอปบางส่วน)
+              </label>
+              <label style="display:flex;align-items:center;gap:0.35rem;font-size:.88rem;cursor:pointer;">
+                <input type="radio" name="sc_heroFit" value="contain" id="sc_heroFit_contain"> แสดงทั้งรูป (ไม่ครอป · มีขอบข้าง)
+              </label>
+            </div>
+            <div id="sc_heroPosWrap" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;margin-bottom:0.8rem;">
+              <span style="font-size:.85rem;color:#777;">ตำแหน่งที่อยากให้เห็น:</span>
+              <select id="sc_heroPosV" class="form-input" style="padding:0.4rem 0.5rem;border:1px solid #ddd;border-radius:6px;font-size:.85rem;width:auto;">
+                <option value="top">บน</option>
+                <option value="center" selected>กลาง</option>
+                <option value="bottom">ล่าง</option>
+              </select>
+              <select id="sc_heroPosH" class="form-input" style="padding:0.4rem 0.5rem;border:1px solid #ddd;border-radius:6px;font-size:.85rem;width:auto;">
+                <option value="left">ซ้าย</option>
+                <option value="center" selected>กลาง</option>
+                <option value="right">ขวา</option>
+              </select>
+            </div>
+            <div style="font-size:.8rem;color:#888;margin-bottom:0.35rem;">👁️ ตัวอย่างตามที่ลูกค้าเห็นจริง:</div>
+            <div style="width:100%;max-width:500px;aspect-ratio:5/2;background:linear-gradient(135deg,#f5f5f5,#e8e8e8);border:1px solid #ccc;border-radius:6px;overflow:hidden;">
+              <img id="sc_heroPreviewBox" src="" style="width:100%;height:100%;object-fit:cover;object-position:center center;display:none;">
+            </div>
+          </div>
         </div>
 
         <div class="card" style="margin-bottom:1.5rem;">
@@ -1427,6 +1457,8 @@ function crmEditName(uid) {
 let _siteCfg = {
   heroImage: '',
   heroImage_my: '',
+  heroFit: 'cover',          // cover = เต็มช่อง(ครอป) · contain = แสดงทั้งรูป
+  heroPos: 'center center',  // object-position (focal) สำหรับโหมด cover
   svcTradeinIcon: '',
   svcTestrideIcon: '',
   benefits: [
@@ -1553,6 +1585,8 @@ async function loadSiteConfig() {
       const d = await res.json();
       if (d.heroImage) _siteCfg.heroImage = d.heroImage;
       _siteCfg.heroImage_my = d.heroImage_my || '';
+      _siteCfg.heroFit = (d.heroFit === 'contain') ? 'contain' : 'cover';
+      _siteCfg.heroPos = (typeof d.heroPos === 'string' && d.heroPos.trim()) ? d.heroPos.trim() : 'center center';
       _siteCfg.svcTradeinIcon = d.svcTradeinIcon || '';
       _siteCfg.svcTestrideIcon = d.svcTestrideIcon || '';
       if (Array.isArray(d.benefits) && d.benefits.length === 3) _siteCfg.benefits = d.benefits;
@@ -1565,6 +1599,7 @@ async function loadSiteConfig() {
   const hiMy = document.getElementById('sc_heroImageMy'); if (hiMy) hiMy.value = _siteCfg.heroImage_my || '';
   const sti = document.getElementById('sc_svcTradeinIcon'); if (sti) sti.value = _siteCfg.svcTradeinIcon || '';
   const ste = document.getElementById('sc_svcTestrideIcon'); if (ste) ste.value = _siteCfg.svcTestrideIcon || '';
+  _applyHeroFitToUI();
   _updateHeroPreview();
   _updateSvcIconPreview();
   _renderBenefitsRows();
@@ -1583,6 +1618,50 @@ function _updateHeroPreview() {
   };
   set('sc_heroImage', 'sc_heroPreview', 'sc_heroPlaceholder');
   set('sc_heroImageMy', 'sc_heroPreviewMy', 'sc_heroPlaceholderMy');
+  _updateHeroFitPreview();
+}
+
+// อ่านค่า fit/pos จาก UI (radio + select 2 ตัว) → { fit, pos }
+function _readHeroFitFromUI() {
+  const fitEl = document.querySelector('input[name="sc_heroFit"]:checked');
+  const fit = (fitEl && fitEl.value === 'contain') ? 'contain' : 'cover';
+  const v = (document.getElementById('sc_heroPosV')?.value) || 'center';
+  const h = (document.getElementById('sc_heroPosH')?.value) || 'center';
+  return { fit: fit, pos: h + ' ' + v };   // object-position = "<แนวนอน> <แนวตั้ง>"
+}
+
+// เซ็ตค่า UI จาก _siteCfg.heroFit/heroPos
+function _applyHeroFitToUI() {
+  const fit = (_siteCfg.heroFit === 'contain') ? 'contain' : 'cover';
+  const rc = document.getElementById('sc_heroFit_cover'), rn = document.getElementById('sc_heroFit_contain');
+  if (rc) rc.checked = (fit === 'cover');
+  if (rn) rn.checked = (fit === 'contain');
+  const parts = String(_siteCfg.heroPos || 'center center').split(/\s+/);
+  let h = 'center', v = 'center';
+  parts.forEach(function(p) {
+    if (p === 'left' || p === 'right') h = p;
+    else if (p === 'top' || p === 'bottom') v = p;
+  });
+  const selH = document.getElementById('sc_heroPosH'); if (selH) selH.value = h;
+  const selV = document.getElementById('sc_heroPosV'); if (selV) selV.value = v;
+  _updateHeroFitPreview();
+}
+
+// พรีวิวกล่อง 5:2 ตามจริง + ซ่อนตัวเลือกตำแหน่งเมื่อเลือก "แสดงทั้งรูป"
+function _updateHeroFitPreview() {
+  const box = document.getElementById('sc_heroPreviewBox');
+  const url = (document.getElementById('sc_heroImage')?.value || '').trim();
+  const { fit, pos } = _readHeroFitFromUI();
+  const posWrap = document.getElementById('sc_heroPosWrap');
+  if (posWrap) posWrap.style.opacity = (fit === 'contain') ? '0.4' : '1';
+  if (!box) return;
+  if (url) {
+    box.src = url; box.style.display = 'block';
+    box.style.objectFit = fit;
+    box.style.objectPosition = pos;
+  } else {
+    box.style.display = 'none';
+  }
 }
 
 // พรีวิวไอคอนการ์ดบริการ (รูป = แสดง img · ไม่ใช่ = แสดง emoji/ข้อความ)
@@ -1602,6 +1681,9 @@ function _updateSvcIconPreview() {
 async function saveSiteConfig() {
   _siteCfg.heroImage = document.getElementById('sc_heroImage').value.trim();
   _siteCfg.heroImage_my = (document.getElementById('sc_heroImageMy')?.value || '').trim();
+  const _hf = _readHeroFitFromUI();
+  _siteCfg.heroFit = _hf.fit;
+  _siteCfg.heroPos = _hf.pos;
   _siteCfg.svcTradeinIcon = (document.getElementById('sc_svcTradeinIcon')?.value || '').trim();
   _siteCfg.svcTestrideIcon = (document.getElementById('sc_svcTestrideIcon')?.value || '').trim();
   // ดึงค่า benefit ล่าสุด
@@ -1654,6 +1736,9 @@ document.addEventListener('DOMContentLoaded', function() {
   if (hi) hi.addEventListener('input', _updateHeroPreview);
   const hiMy = document.getElementById('sc_heroImageMy');
   if (hiMy) hiMy.addEventListener('input', _updateHeroPreview);
+  // fit/position controls → อัปเดตพรีวิวกล่อง 5:2 ทันที
+  document.querySelectorAll('input[name="sc_heroFit"]').forEach(function(r) { r.addEventListener('change', _updateHeroFitPreview); });
+  ['sc_heroPosV', 'sc_heroPosH'].forEach(function(id) { const el = document.getElementById(id); if (el) el.addEventListener('change', _updateHeroFitPreview); });
   const sti = document.getElementById('sc_svcTradeinIcon');
   if (sti) sti.addEventListener('input', _updateSvcIconPreview);
   const ste = document.getElementById('sc_svcTestrideIcon');
