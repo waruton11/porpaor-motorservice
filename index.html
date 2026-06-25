@@ -147,6 +147,8 @@ img { display: block; max-width: 100%; }
 }
 @media (min-width: 1100px) {
   .hero { aspect-ratio: auto; height: 440px; }
+  /* Yamaha: คงสัดส่วน 5:2 บนเดสก์ท็อปด้วย (รูป Hero ทำมา 5:2 → ไม่ครอป/ไม่มีขอบเบลอโผล่) */
+  .brand-yamaha .hero { aspect-ratio: 5 / 2; height: auto; }
 }
 
 /* ===== CTA WIDE ===== */
