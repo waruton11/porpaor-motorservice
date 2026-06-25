@@ -249,6 +249,18 @@ img { display: block; max-width: 100%; }
   .svc-title { font-size: 1rem; }
   .svc-sub { font-size: 0.8rem; }
 }
+/* การ์ดทดลองขับแบบแบนเนอร์ (Yamaha) — รูปเต็มแถวของตัวเอง ไม่มีกรอบ/พื้น */
+.brand-yamaha .svc-wrap { flex-wrap: wrap; }
+.brand-yamaha .svc-card--banner {
+  flex: 1 1 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.brand-yamaha .svc-card--banner:hover { box-shadow: none; transform: none; }
+.brand-yamaha .svc-banner-img { width: 100%; height: auto; display: block; }
 
 /* ===== FAQ BAR ===== */
 .faq-bar-wrap { padding: 0 1rem 0.75rem; max-width: 1200px; margin: 0 auto; }
@@ -1582,7 +1594,7 @@ footer .footer-brand {
       <div class="svc-sub" data-i18n="svc_tradein_s">รับเทิร์นทุกรุ่น · ตีราคาที่ร้าน</div>
     </div>
   </a>
-  <a class="svc-card" href="javascript:void(0)" onclick="openTestRide()" style="position:relative;">
+  <a class="svc-card" id="svcTestrideCard" href="javascript:void(0)" onclick="openTestRide()" style="position:relative;">
     <span data-i18n="free_badge" style="position:absolute;top:-7px;right:8px;background:#22aa55;color:#fff;font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:10px;box-shadow:0 2px 6px rgba(34,170,85,.3);">ฟรี!</span>
     <div class="svc-ico" id="svcTestrideIco">🏍️</div>
     <div class="svc-body">
@@ -2657,8 +2669,9 @@ function formatThaiDate(iso) {
 }
 
 function buildTestRideCard(d) {
+  const loc = (BRAND_CFG.testRide && BRAND_CFG.testRide.locShort) || 'วังน้อย';
   const rows = [
-    cardBanner('🏍️ นัดทดลองขับขี่ฟรี (สาขาวังน้อย)', CARD_BLUE),
+    cardBanner('🏍️ นัดทดลองขับขี่ฟรี (สาขา' + loc + ')', CARD_BLUE),
     { type: 'text', text: d.bike, weight: 'bold', size: 'lg', color: CARD_BLUE, wrap: true, margin: 'md' },
     { type: 'separator', margin: 'md' }
   ];
@@ -2675,7 +2688,7 @@ function buildTestRideCard(d) {
       ]
     });
   });
-  rows.push({ type: 'text', text: 'ฟรีที่สาขาวังน้อย เดี๋ยวเจ้าหน้าที่ยืนยันนัดและเตรียมรถให้ครับ', size: 'xs', color: '#aaaaaa', wrap: true, margin: 'md' });
+  rows.push({ type: 'text', text: 'ฟรีที่สาขา' + loc + ' เดี๋ยวเจ้าหน้าที่ยืนยันนัดและเตรียมรถให้ครับ', size: 'xs', color: '#aaaaaa', wrap: true, margin: 'md' });
   return {
     type: 'flex', altText: 'นัดทดลองขับ: ' + d.bike,
     contents: { type: 'bubble', body: { type: 'box', layout: 'vertical', spacing: 'sm', contents: rows } }
@@ -3413,8 +3426,8 @@ function renderServiceIcons() {
 // ===== Brand (Honda / Yamaha) — parameterize: ?brand=yamaha → โหมด Yamaha =====
 const BRAND = (new URLSearchParams(location.search).get('brand') === 'yamaha') ? 'yamaha' : 'honda';
 const BRAND_CFG = ({
-  honda:  { name: 'ป.เปา มอเตอร์เซอร์วิส', tagline: 'ตัวแทนจำหน่าย Honda · วังน้อย', color: '#cc0000', colorDark: '#990000', oa: '@975ltwhp', title: 'ป.เปา มอเตอร์เซอร์วิส | Honda วังน้อย', liffId: '2010228940-rjXFOkmc', modelsTitle: 'รุ่นรถฮอนด้า', modelsTitleMy: 'Honda ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Honda · 189-191 ม.7 ต.ลำไทร อ.วังน้อย จ.พระนครศรีอยุธยา<br>เปิดทุกวัน 08:00 – 17:30 น. · โทร. 092-249968-6' },
-  yamaha: { name: 'สิงห์ชัยสยามยนต์', tagline: 'ตัวแทนจำหน่ายรถจักรยานยนต์ Yamaha · พระนครศรีอยุธยา', color: '#0a3aa0', colorDark: '#062a78', oa: '@459eeeog', title: 'สิงห์ชัยสยามยนต์ | Yamaha อยุธยา', liffId: '', modelsTitle: 'รุ่นรถยามาฮ่า', modelsTitleMy: 'Yamaha ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Yamaha — สิงห์ชัยสยามยนต์ · จ.พระนครศรีอยุธยา<br>(โปรดระบุที่อยู่ · เวลาเปิด · เบอร์โทร)' }
+  honda:  { name: 'ป.เปา มอเตอร์เซอร์วิส', tagline: 'ตัวแทนจำหน่าย Honda · วังน้อย', color: '#cc0000', colorDark: '#990000', oa: '@975ltwhp', title: 'ป.เปา มอเตอร์เซอร์วิส | Honda วังน้อย', liffId: '2010228940-rjXFOkmc', modelsTitle: 'รุ่นรถฮอนด้า', modelsTitleMy: 'Honda ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Honda · 189-191 ม.7 ต.ลำไทร อ.วังน้อย จ.พระนครศรีอยุธยา<br>เปิดทุกวัน 08:00 – 17:30 น. · โทร. 092-249968-6', testRide: { locShort: 'วังน้อย', bikes: [ { value: 'Honda PCX160 Roadsync (สีน้ำเงิน)', title: 'PCX160 Roadsync', sub: 'สีน้ำเงิน' }, { value: 'Honda UC3 ไฟฟ้า (สีดำ)', title: 'UC3 ไฟฟ้า', sub: 'สีดำ' } ] } },
+  yamaha: { name: 'สิงห์ชัยสยามยนต์', tagline: 'ตัวแทนจำหน่ายรถจักรยานยนต์ Yamaha · พระนครศรีอยุธยา', color: '#0a3aa0', colorDark: '#062a78', oa: '@459eeeog', title: 'สิงห์ชัยสยามยนต์ | Yamaha อยุธยา', liffId: '', modelsTitle: 'รุ่นรถยามาฮ่า', modelsTitleMy: 'Yamaha ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Yamaha — สิงห์ชัยสยามยนต์ · จ.พระนครศรีอยุธยา<br>(โปรดระบุที่อยู่ · เวลาเปิด · เบอร์โทร)', testRide: { locShort: 'อยุธยา', cardImage: 'images/svc-testride-yamaha.jpg', bikes: [ { value: 'Yamaha NMAX TECH MAX (2026)', title: 'NMAX TECH MAX', sub: 'รุ่นปี 2026' }, { value: 'Yamaha PG-1', title: 'PG-1', sub: '' } ] } }
 })[BRAND];
 function brandUrl(u) { return u + (u.indexOf('?') >= 0 ? '&' : '?') + 'brand=' + BRAND; }
 function applyBrand() {
@@ -3439,7 +3452,40 @@ function applyBrand() {
     document.querySelectorAll('a[href*="975ltwhp"]').forEach(function(a) {
       a.href = a.href.replace('@975ltwhp', BRAND_CFG.oa).replace('%40975ltwhp', '%40' + oaPlain);
     });
+    // ทดลองขับขี่ — รุ่นรถ + ข้อความสาขา ราย brand (Honda คงเดิม, Yamaha = NMAX/PG-1 · อยุธยา)
+    if (BRAND === 'yamaha') {
+      try {
+        I18N.th.svc_testride_s = 'NMAX & PG-1 · ที่อยุธยา';
+        I18N.my.svc_testride_s = 'NMAX & PG-1';
+        I18N.th.tr_hero_sub = 'ที่สาขาอยุธยา · เลือกรุ่นและวันที่สะดวก เดี๋ยวเจ้าหน้าที่เตรียมรถให้ครับ';
+        I18N.my.tr_hero_sub = 'မော်ဒယ်နှင့်အဆင်ပြေသည့်ရက်ရွေးပါ ဝန်ထမ်းကဆိုင်ကယ်ပြင်ဆင်ပေးပါမည်';
+      } catch (e) {}
+    }
+    renderTestRideBikes();
+    renderTestRideCard();
   } catch (e) { console.warn('applyBrand', e); }
+}
+
+// การ์ดทดลองขับหน้าแรก: ถ้า brand มี cardImage → เปลี่ยนเป็นแบนเนอร์รูปเต็มแถว (Yamaha) · ไม่มี → คงการ์ดไอคอนเดิม (Honda)
+function renderTestRideCard() {
+  const cfg = BRAND_CFG.testRide;
+  const card = document.getElementById('svcTestrideCard');
+  if (!card || !cfg || !cfg.cardImage) return;
+  card.classList.add('svc-card--banner');
+  card.innerHTML = '<img class="svc-banner-img" src="' + cfg.cardImage + '" alt="ทดลองขับขี่ฟรี ' + cfg.bikes.map(function(b){return b.title;}).join(' & ') + '" loading="lazy">';
+}
+
+// สร้างปุ่มเลือกรุ่นทดลองขับจาก BRAND_CFG.testRide (brand-aware) — ตั้ง testBike = รุ่นแรก
+function renderTestRideBikes() {
+  const cfg = BRAND_CFG.testRide;
+  const wrap = document.getElementById('testBikeToggle');
+  if (!cfg || !cfg.bikes || !cfg.bikes.length || !wrap) return;
+  wrap.innerHTML = cfg.bikes.map(function(b, i) {
+    const v = String(b.value).replace(/"/g, '&quot;');
+    const sub = b.sub ? '<br><span style="font-size:.72rem;font-weight:400;">' + b.sub + '</span>' : '';
+    return '<button class="pay-opt' + (i === 0 ? ' active' : '') + '" data-bike="' + v + '" onclick="selectTestBike(this)">' + b.title + sub + '</button>';
+  }).join('');
+  testBike = cfg.bikes[0].value;
 }
 
 applyBrand();
