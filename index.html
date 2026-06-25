@@ -195,9 +195,15 @@ img { display: block; max-width: 100%; }
 .trust-item:last-child { border-right: none; }
 .trust-icon { font-size: 1.4rem; line-height: 1; }
 .trust-icon img { width: 28px; height: 28px; object-fit: contain; display: block; }
+.trust-icon svg { width: 28px; height: 28px; display: block; }
 @media (min-width: 768px) {
   .trust-icon img { width: 32px; height: 32px; }
+  .trust-icon svg { width: 30px; height: 30px; }
 }
+/* Yamaha: ไอคอนน้ำเงิน + ไม่มีกล่อง/เส้นแบ่ง กลืนไปกับพื้นหลัง */
+.brand-yamaha .trust-strip { background: transparent; border-bottom: none; }
+.brand-yamaha .trust-item { border-right: none; }
+.brand-yamaha .trust-icon { color: var(--red); }
 .trust-label {
   font-size: 0.7rem;
   font-weight: 600;
@@ -3365,14 +3371,25 @@ function renderHero() {
   if (hc) hc.style.display = (langMode === 'my' && !siteConfig.heroImage_my) ? 'block' : 'none';
 }
 
+// ไอคอนเส้น (Tabler outline) — ใส่ค่า icon เป็น keyword เหล่านี้ → แสดง SVG (สีตาม .trust-icon)
+const TRUST_ICONS = {
+  'shield-check': '<path d="M11.46 20.846a12 12 0 0 1 -7.96 -14.846a12 12 0 0 0 8.5 -3a12 12 0 0 0 8.5 3a12 12 0 0 1 -.09 7.06" /><path d="M15 19l2 2l4 -4" />',
+  'credit-card': '<path d="M3 5m0 3a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3z" /><path d="M3 10l18 0" /><path d="M7 15l.01 0" /><path d="M11 15l2 0" />',
+  'tools': '<path d="M3 21h4l13 -13a1.5 1.5 0 0 0 -4 -4l-13 13v4" /><path d="M14.5 5.5l4 4" /><path d="M12 8l-5 -5l-4 4l5 5" /><path d="M7 8l-1.5 1.5" /><path d="M16 12l5 5l-4 4l-5 -5" /><path d="M16 17l-1.5 1.5" />'
+};
 function renderTrustStrip() {
   const items = (siteConfig.benefits || []).slice(0, 3);
   document.getElementById('trustStrip').innerHTML = items.map(b => {
     const ic = b.icon || '✨';
-    // ถ้าเป็น URL → แสดงเป็นรูป, ถ้าเป็น emoji/text → แสดงตรงๆ
-    const iconHtml = /^https?:\/\//.test(ic)
-      ? '<img src="' + ic + '" alt="">'
-      : ic;
+    // keyword → SVG เส้น · URL → รูป · อื่นๆ → emoji/text
+    let iconHtml;
+    if (TRUST_ICONS[ic]) {
+      iconHtml = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + TRUST_ICONS[ic] + '</svg>';
+    } else if (/^https?:\/\//.test(ic)) {
+      iconHtml = '<img src="' + ic + '" alt="">';
+    } else {
+      iconHtml = ic;
+    }
     const lbl = (langMode === 'my' && b.label_my) ? b.label_my : (b.label || '');
     return '<div class="trust-item"><div class="trust-icon">' + iconHtml + '</div><div class="trust-label">' + lbl + '</div></div>';
   }).join('');
@@ -3403,6 +3420,7 @@ function applyBrand() {
     const r = document.documentElement.style;
     r.setProperty('--red', BRAND_CFG.color);
     r.setProperty('--red-dark', BRAND_CFG.colorDark);
+    document.documentElement.classList.add('brand-' + BRAND);   // scope CSS ราย brand (เช่น Trust Strip Yamaha) — html มีเสมอ ไม่ขึ้นกับลำดับโหลด
     document.title = BRAND_CFG.title;
     const tb = document.querySelector('.top-bar-brand');
     if (tb) tb.innerHTML = BRAND_CFG.name + '<small>' + BRAND_CFG.tagline + '</small>';
