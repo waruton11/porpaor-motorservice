@@ -815,6 +815,8 @@ function setBrand(b) {
   try { if (typeof _loadCategoryList === 'function') _loadCategoryList(); } catch(e) {}
   try { if (typeof loadStoredPriceData === 'function') loadStoredPriceData(); } catch(e) {}   // สลับ priceData (dropdown รุ่น/แบบ ไฟล์ราคา) ตามแบรนด์
   try { loadCategoriesFromDB(); } catch(e) {}   // โหลด categories ของแบรนด์จาก DB (+ auto-migrate)
+  // ถ้ากำลังเปิดหน้า Hero/Trust อยู่ → reload site-config ของแบรนด์ใหม่ (กันค้างของแบรนด์เดิม)
+  try { var _sp = document.getElementById('page-sitepage'); if (_sp && _sp.classList.contains('active') && typeof loadSiteConfig === 'function') loadSiteConfig(); } catch(e) {}
   try { showToast('สลับเป็น ' + (activeBrand === 'yamaha' ? 'Yamaha (สิงห์ชัย)' : 'Honda (ป.เปา)'), 'success'); } catch(e) {}
 }
 
@@ -1546,7 +1548,7 @@ function _onCatIconInput(inp, i) {
 
 async function loadSiteConfig() {
   try {
-    const res = await fetch('https://n8n-wt11.onrender.com/webhook/site-config');
+    const res = await fetch(bq('https://n8n-wt11.onrender.com/webhook/site-config'));
     if (res.ok) {
       const d = await res.json();
       if (d.heroImage) _siteCfg.heroImage = d.heroImage;
@@ -1637,7 +1639,7 @@ async function saveSiteConfig() {
     const res = await fetch('https://n8n-wt11.onrender.com/webhook/save-site-config', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(_siteCfg)
+      body: JSON.stringify(Object.assign({}, _siteCfg, { brand: activeBrand }))
     });
     if (res.ok) showToast('บันทึกหน้าเว็บสำเร็จ ✅', 'success');
     else showToast('บันทึกไม่สำเร็จ HTTP ' + res.status, 'error');

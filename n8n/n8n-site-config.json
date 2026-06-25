@@ -1,0 +1,245 @@
+{
+  "name": "Site Config (hero/faq)",
+  "nodes": [
+    {
+      "id": "sc-get-001",
+      "name": "GET site-config",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "site-config",
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "site-config",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      }
+    },
+    {
+      "id": "sc-get-005",
+      "name": "Resolve brand",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const q = ($input.first().json.query) || {};\nconst brand = (q.brand === 'yamaha') ? 'yamaha' : 'honda';\nreturn [{ json: { brand } }];"
+      }
+    },
+    {
+      "id": "sc-get-002",
+      "name": "Read DB",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT hero_image, hero_image_my, svc_tradein_icon, svc_testride_icon, benefits, category_overrides, faq, faq_my FROM site_config WHERE brand = '{{ $json.brand }}' LIMIT 1;",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "sc-get-003",
+      "name": "Format response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const row = $input.first()?.json || {};\nreturn [{ json: { heroImage: row.hero_image || '', heroImage_my: row.hero_image_my || '', svcTradeinIcon: row.svc_tradein_icon || '', svcTestrideIcon: row.svc_testride_icon || '', benefits: row.benefits || [], categoryOverrides: row.category_overrides || {}, faq: row.faq || [], faq_my: row.faq_my || [] } }];"
+      }
+    },
+    {
+      "id": "sc-get-004",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        960,
+        300
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "sc-save-001",
+      "name": "POST save-site-config",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        600
+      ],
+      "webhookId": "save-site-config",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "save-site-config",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "sc-save-002",
+      "name": "Build SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        600
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst brand = (body.brand === 'yamaha') ? 'yamaha' : 'honda';\nconst esc = (s) => String(s || '').replace(/'/g, \"''\");\nconst hero = esc(body.heroImage);\nconst heroMy = esc(body.heroImage_my);\nconst svcTradein = esc(body.svcTradeinIcon);\nconst svcTestride = esc(body.svcTestrideIcon);\nconst benefits = JSON.stringify(body.benefits || []).replace(/'/g, \"''\");\nconst catOv = JSON.stringify(body.categoryOverrides || {}).replace(/'/g, \"''\");\nconst faq = JSON.stringify(body.faq || []).replace(/'/g, \"''\");\nconst faqMy = JSON.stringify(body.faq_my || []).replace(/'/g, \"''\");\nconst sql = `INSERT INTO site_config (brand, hero_image, hero_image_my, svc_tradein_icon, svc_testride_icon, benefits, category_overrides, faq, faq_my, updated_at)\nVALUES ('${brand}', '${hero}', '${heroMy}', '${svcTradein}', '${svcTestride}', '${benefits}'::jsonb, '${catOv}'::jsonb, '${faq}'::jsonb, '${faqMy}'::jsonb, NOW())\nON CONFLICT (brand) DO UPDATE SET\n  hero_image = EXCLUDED.hero_image,\n  hero_image_my = EXCLUDED.hero_image_my,\n  svc_tradein_icon = EXCLUDED.svc_tradein_icon,\n  svc_testride_icon = EXCLUDED.svc_testride_icon,\n  benefits = EXCLUDED.benefits,\n  category_overrides = EXCLUDED.category_overrides,\n  faq = EXCLUDED.faq,\n  faq_my = EXCLUDED.faq_my,\n  updated_at = NOW();`;\nreturn [{ json: { sql } }];"
+      }
+    },
+    {
+      "id": "sc-save-003",
+      "name": "Execute SQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        600,
+        600
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "sc-save-004",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        780,
+        600
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true }) }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "GET site-config": {
+      "main": [
+        [
+          {
+            "node": "Resolve brand",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve brand": {
+      "main": [
+        [
+          {
+            "node": "Read DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read DB": {
+      "main": [
+        [
+          {
+            "node": "Format response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format response": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST save-site-config": {
+      "main": [
+        [
+          {
+            "node": "Build SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build SQL": {
+      "main": [
+        [
+          {
+            "node": "Execute SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute SQL": {
+      "main": [
+        [
+          {
+            "node": "Respond OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
