@@ -1086,6 +1086,33 @@ img { display: block; max-width: 100%; }
   color: var(--red);
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
+/* ปุ่มเลือกรุ่นทดลองขับแบบมีรูปรถ "ทะลุกล่อง" (Yamaha) — scope เฉพาะ testBikeToggle */
+#testBikeToggle.has-bike-img { margin-top: 52px; }
+#testBikeToggle.has-bike-img .pay-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: visible;
+  padding: 0.4rem 0.4rem 0.6rem;
+  line-height: 1.2;
+}
+#testBikeToggle.has-bike-img .bike-img {
+  width: 100%;
+  max-width: 130px;
+  height: auto;
+  margin-top: -46px;
+  pointer-events: none;
+  filter: drop-shadow(0 5px 7px rgba(0,0,0,0.22));
+  transition: transform 0.15s ease;
+}
+#testBikeToggle.has-bike-img .pay-opt.active .bike-img { transform: scale(1.05); }
+#testBikeToggle.has-bike-img .bike-label { display: block; margin-top: 2px; }
+/* ไอคอนเส้นในฟอร์มทดลองขับ — โชว์เฉพาะ Yamaha (Honda ซ่อน ใช้อีโมจิเดิม) */
+.tr-ico-slot { display: none; }
+.brand-yamaha .tr-ico-slot { display: inline-flex; align-items: center; vertical-align: -0.13em; margin-right: 6px; }
+.brand-yamaha .tr-ico-slot svg { width: 1.05em; height: 1.05em; }
+.brand-yamaha .customer-info-title .tr-ico-slot { color: var(--red); }
+.tr-map-ico { width: 15px; height: 15px; }
 /* Cash-only preview */
 .cash-preview {
   background: linear-gradient(180deg, #fff5f5 0%, #ffffff 100%);
@@ -1923,8 +1950,9 @@ footer .footer-brand {
     </div>
     <div class="calc-inner">
       <div style="background:linear-gradient(180deg,#e9f9ef 0%,#fff 100%);border:1.5px solid #b6e6c6;border-radius:10px;padding:.85rem 1rem;margin-bottom:1rem;text-align:center;">
-        <div style="font-size:1.05rem;font-weight:700;color:#1a8c47;" data-i18n="tr_hero">🎉 ทดลองขับขี่ ฟรี! ไม่มีค่าใช้จ่าย</div>
+        <div style="font-size:1.05rem;font-weight:700;color:#1a8c47;"><span class="tr-ico-slot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z" /><path d="M12 8l0 13" /><path d="M19 12v7a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-7" /><path d="M7.5 8a2.5 2.5 0 0 1 0 -5a4.8 8 0 0 1 4.5 5a4.8 8 0 0 1 4.5 -5a2.5 2.5 0 0 1 0 5" /></svg></span><span data-i18n="tr_hero">🎉 ทดลองขับขี่ ฟรี! ไม่มีค่าใช้จ่าย</span></div>
         <div style="font-size:.82rem;color:#3a7d56;margin-top:3px;" data-i18n="tr_hero_sub">ที่สาขาวังน้อย · เลือกรุ่นและวันที่สะดวก เดี๋ยวเจ้าหน้าที่เตรียมรถให้ครับ</div>
+        <a id="trMapBtn" href="#" target="_blank" rel="noopener" style="display:none;align-items:center;justify-content:center;gap:6px;margin:8px auto 0;padding:6px 14px;background:#fff;border:1.5px solid #1a8c47;border-radius:20px;color:#1a8c47;font-size:.82rem;font-weight:700;text-decoration:none;width:fit-content;"><svg class="tr-map-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" /></svg><span data-i18n="tr_map">ดูตำแหน่งร้าน / นำทาง</span></a>
       </div>
       <div class="slbl" style="margin-bottom:8px;" data-i18n="tr_pick_bike">เลือกรุ่นที่อยากลอง</div>
       <div class="pay-toggle" id="testBikeToggle" style="margin-bottom:1rem;">
@@ -1932,12 +1960,12 @@ footer .footer-brand {
         <button class="pay-opt" data-bike="Honda UC3 ไฟฟ้า (สีดำ)" onclick="selectTestBike(this)">UC3 ไฟฟ้า<br><span style="font-size:.72rem;font-weight:400;">สีดำ</span></button>
       </div>
       <div class="customer-info" style="margin-bottom:1rem;">
-        <div class="customer-info-title" data-i18n="tr_pick_date">📅 เลือกวันที่สะดวก</div>
+        <div class="customer-info-title"><span class="tr-ico-slot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z" /><path d="M16 3v4" /><path d="M8 3v4" /><path d="M4 11h16" /><path d="M8 15h2" /></svg></span><span data-i18n="tr_pick_date">📅 เลือกวันที่สะดวก</span></div>
         <input type="date" id="trDate" class="customer-input" style="color-scheme:light;">
-        <div class="customer-info-title" style="margin-top:.6rem;" data-i18n="tr_time">⏰ ช่วงเวลา</div>
+        <div class="customer-info-title" style="margin-top:.6rem;"><span class="tr-ico-slot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l3 3" /></svg></span><span data-i18n="tr_time">⏰ ช่วงเวลา</span></div>
         <div id="trPeriodRow" style="display:flex;gap:8px;margin-top:4px;">
-          <button class="period-pill active" data-period="ช่วงเช้า (9:00-12:00 น.)" onclick="selectTestPeriod(this)" style="flex:1;" data-i18n="tr_morning">🌅 ช่วงเช้า</button>
-          <button class="period-pill" data-period="ช่วงบ่าย (13:00-17:00 น.)" onclick="selectTestPeriod(this)" style="flex:1;" data-i18n="tr_afternoon">🌇 ช่วงบ่าย</button>
+          <button class="period-pill active" data-period="ช่วงเช้า (9:00-12:00 น.)" onclick="selectTestPeriod(this)" style="flex:1;"><span class="tr-ico-slot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h18" /><path d="M8 17a4 4 0 0 1 8 0" /><path d="M12 3v5" /><path d="M9.5 5.5l2.5 -2.5l2.5 2.5" /></svg></span><span data-i18n="tr_morning">🌅 ช่วงเช้า</span></button>
+          <button class="period-pill" data-period="ช่วงบ่าย (13:00-17:00 น.)" onclick="selectTestPeriod(this)" style="flex:1;"><span class="tr-ico-slot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h18" /><path d="M8 17a4 4 0 0 1 8 0" /><path d="M12 3v5" /><path d="M9.5 5.5l2.5 2.5l2.5 -2.5" /></svg></span><span data-i18n="tr_afternoon">🌇 ช่วงบ่าย</span></button>
         </div>
         <input type="text" id="trName" class="customer-input" style="margin-top:.7rem;" placeholder="ชื่อ-นามสกุล (ถ้าสะดวก)" data-i18n-ph="ph_name">
         <input type="tel" id="trPhone" class="customer-input" placeholder="เบอร์โทร — ให้เจ้าหน้าที่ยืนยันนัด" data-i18n-ph="ph_phone3">
@@ -2877,7 +2905,7 @@ const I18N = {
     ti_old_title: '🏍️ รถเก่าที่จะเทิร์น', ti_old_note: 'ดูรุ่นรถได้ที่เล่มทะเบียนรถ (สมุดคู่มือจดทะเบียน)', ti_contact: '📝 ข้อมูลติดต่อ', ti_submit: 'ส่งข้อมูลเทิร์นให้ร้าน',
     ph_oldbike: 'รุ่นรถเก่า * เช่น Honda Wave110i', ph_oldyear: 'ปีที่จดทะเบียน (ถ้าทราบ) เช่น 2563', ph_newmodel: 'สนใจรุ่นใหม่รุ่นไหน (ถ้ามี)', ph_phone2: 'เบอร์โทร — ให้เจ้าหน้าที่โทรนัดตีราคา',
     tr_title: '🏍️ ทดลองขับขี่ฟรี', tr_hero: '🎉 ทดลองขับขี่ ฟรี! ไม่มีค่าใช้จ่าย', tr_hero_sub: 'ที่สาขาวังน้อย · เลือกรุ่นและวันที่สะดวก เดี๋ยวเจ้าหน้าที่เตรียมรถให้ครับ',
-    tr_pick_bike: 'เลือกรุ่นที่อยากลอง', tr_pick_date: '📅 เลือกวันที่สะดวก', tr_time: '⏰ ช่วงเวลา', tr_morning: '🌅 ช่วงเช้า', tr_afternoon: '🌇 ช่วงบ่าย', ph_phone3: 'เบอร์โทร — ให้เจ้าหน้าที่ยืนยันนัด', tr_submit: 'ส่งนัดทดลองขับให้ร้าน',
+    tr_pick_bike: 'เลือกรุ่นที่อยากลอง', tr_pick_date: '📅 เลือกวันที่สะดวก', tr_time: '⏰ ช่วงเวลา', tr_morning: '🌅 ช่วงเช้า', tr_afternoon: '🌇 ช่วงบ่าย', ph_phone3: 'เบอร์โทร — ให้เจ้าหน้าที่ยืนยันนัด', tr_submit: 'ส่งนัดทดลองขับให้ร้าน', tr_map: 'ดูตำแหน่งร้าน / นำทาง',
     faq_overlay_title: '❓ คำถามที่พบบ่อย', faq_more: 'ยังไม่หายสงสัย? ทักถามเจ้าหน้าที่ได้เลยครับ 😊', faq_chat_btn: '💬 แชทถามเจ้าหน้าที่'
   },
   my: {
@@ -2912,7 +2940,7 @@ const I18N = {
     ti_old_title: '🏍️ လဲမည့် ဆိုင်ကယ်အဟောင်း', ti_old_note: 'ဆိုင်ကယ်မော်ဒယ်ကို မှတ်ပုံတင်စာအုပ်တွင်ကြည့်နိုင်သည်', ti_contact: '📝 ဆက်သွယ်ရန်အချက်အလက်', ti_submit: 'လဲလှယ်အချက်အလက် ဆိုင်သို့ပို့ရန်',
     ph_oldbike: 'ဆိုင်ကယ်အဟောင်း * ဥပမာ Honda Wave110i', ph_oldyear: 'မှတ်ပုံတင်နှစ် (သိလျှင်) ဥပမာ 2563', ph_newmodel: 'စိတ်ဝင်စားသော မော်ဒယ်အသစ် (ရှိလျှင်)', ph_phone2: 'ဖုန်းနံပါတ် — တန်ဖိုးဖြတ်ချိန်းဆိုရန်',
     tr_title: '🏍️ အခမဲ့ စမ်းသပ်စီးနင်း', tr_hero: '🎉 စမ်းသပ်စီးနင်း အခမဲ့! ကုန်ကျစရိတ်မရှိ', tr_hero_sub: 'ဝမ်ညွိုင်ဆိုင်တွင် · မော်ဒယ်နှင့်အဆင်ပြေသည့်ရက်ရွေးပါ ဝန်ထမ်းကဆိုင်ကယ်ပြင်ဆင်ပေးပါမည်',
-    tr_pick_bike: 'စမ်းချင်သော မော်ဒယ်ရွေးပါ', tr_pick_date: '📅 အဆင်ပြေသည့်ရက်ရွေးပါ', tr_time: '⏰ အချိန်ပိုင်း', tr_morning: '🌅 မနက်ပိုင်း', tr_afternoon: '🌇 နေ့လယ်ပိုင်း', ph_phone3: 'ဖုန်းနံပါတ် — ချိန်းဆိုအတည်ပြုရန်', tr_submit: 'စမ်းသပ်စီးနင်းချိန်းဆိုမှု ဆိုင်သို့ပို့ရန်',
+    tr_pick_bike: 'စမ်းချင်သော မော်ဒယ်ရွေးပါ', tr_pick_date: '📅 အဆင်ပြေသည့်ရက်ရွေးပါ', tr_time: '⏰ အချိန်ပိုင်း', tr_morning: '🌅 မနက်ပိုင်း', tr_afternoon: '🌇 နေ့လယ်ပိုင်း', ph_phone3: 'ဖုန်းနံပါတ် — ချိန်းဆိုအတည်ပြုရန်', tr_submit: 'စမ်းသပ်စီးနင်းချိန်းဆိုမှု ဆိုင်သို့ပို့ရန်', tr_map: 'ဆိုင်တည်နေရာ / လမ်းညွှန်',
     faq_overlay_title: '❓ မေးလေ့ရှိသောမေးခွန်းများ', faq_more: 'သေချာမသိသေးဘူးလား? ဝန်ထမ်းကိုမေးနိုင်သည် 😊', faq_chat_btn: '💬 ဝန်ထမ်းကိုချတ်မေးရန်'
   }
 };
@@ -3427,7 +3455,7 @@ function renderServiceIcons() {
 const BRAND = (new URLSearchParams(location.search).get('brand') === 'yamaha') ? 'yamaha' : 'honda';
 const BRAND_CFG = ({
   honda:  { name: 'ป.เปา มอเตอร์เซอร์วิส', tagline: 'ตัวแทนจำหน่าย Honda · วังน้อย', color: '#cc0000', colorDark: '#990000', oa: '@975ltwhp', title: 'ป.เปา มอเตอร์เซอร์วิส | Honda วังน้อย', liffId: '2010228940-rjXFOkmc', modelsTitle: 'รุ่นรถฮอนด้า', modelsTitleMy: 'Honda ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Honda · 189-191 ม.7 ต.ลำไทร อ.วังน้อย จ.พระนครศรีอยุธยา<br>เปิดทุกวัน 08:00 – 17:30 น. · โทร. 092-249968-6', testRide: { locShort: 'วังน้อย', bikes: [ { value: 'Honda PCX160 Roadsync (สีน้ำเงิน)', title: 'PCX160 Roadsync', sub: 'สีน้ำเงิน' }, { value: 'Honda UC3 ไฟฟ้า (สีดำ)', title: 'UC3 ไฟฟ้า', sub: 'สีดำ' } ] } },
-  yamaha: { name: 'สิงห์ชัยสยามยนต์', tagline: 'ตัวแทนจำหน่ายรถจักรยานยนต์ Yamaha · พระนครศรีอยุธยา', color: '#0a3aa0', colorDark: '#062a78', oa: '@459eeeog', title: 'สิงห์ชัยสยามยนต์ | Yamaha อยุธยา', liffId: '', modelsTitle: 'รุ่นรถยามาฮ่า', modelsTitleMy: 'Yamaha ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Yamaha — สิงห์ชัยสยามยนต์ · จ.พระนครศรีอยุธยา<br>(โปรดระบุที่อยู่ · เวลาเปิด · เบอร์โทร)', testRide: { locShort: 'อยุธยา', cardImage: 'images/svc-testride-yamaha.jpg', bikes: [ { value: 'Yamaha NMAX TECH MAX (2026)', title: 'NMAX TECH MAX', sub: 'รุ่นปี 2026' }, { value: 'Yamaha PG-1', title: 'PG-1', sub: '' } ] } }
+  yamaha: { name: 'สิงห์ชัยสยามยนต์', tagline: 'ตัวแทนจำหน่ายรถจักรยานยนต์ Yamaha · พระนครศรีอยุธยา', color: '#0a3aa0', colorDark: '#062a78', oa: '@459eeeog', title: 'สิงห์ชัยสยามยนต์ | Yamaha อยุธยา', liffId: '', modelsTitle: 'รุ่นรถยามาฮ่า', modelsTitleMy: 'Yamaha ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Yamaha — สิงห์ชัยสยามยนต์ · จ.พระนครศรีอยุธยา<br>(โปรดระบุที่อยู่ · เวลาเปิด · เบอร์โทร)', testRide: { locShort: 'อยุธยา', cardImage: 'images/svc-testride-yamaha.jpg', mapUrl: 'https://maps.app.goo.gl/RqXQoUT3woy2Jwgz8', bikes: [ { value: 'Yamaha NMAX TECH MAX (2026)', title: 'NMAX TECH MAX', sub: 'รุ่นปี 2026', img: 'images/bike-nmax.png' }, { value: 'Yamaha PG-1', title: 'PG-1', sub: 'รุ่นปี 2025', img: 'images/bike-pg1.png' } ] } }
 })[BRAND];
 function brandUrl(u) { return u + (u.indexOf('?') >= 0 ? '&' : '?') + 'brand=' + BRAND; }
 function applyBrand() {
@@ -3459,10 +3487,24 @@ function applyBrand() {
         I18N.my.svc_testride_s = 'NMAX & PG-1';
         I18N.th.tr_hero_sub = 'ที่สาขาอยุธยา · เลือกรุ่นและวันที่สะดวก เดี๋ยวเจ้าหน้าที่เตรียมรถให้ครับ';
         I18N.my.tr_hero_sub = 'မော်ဒယ်နှင့်အဆင်ပြေသည့်ရက်ရွေးပါ ဝန်ထမ်းကဆိုင်ကယ်ပြင်ဆင်ပေးပါမည်';
+        // ตัดอีโมจินำหน้าออก (Yamaha ใช้ไอคอนเส้น SVG แทน) — Honda คงอีโมจิเดิม
+        I18N.th.tr_title = 'ทดลองขับขี่ฟรี'; I18N.my.tr_title = 'အခမဲ့ စမ်းသပ်စီးနင်း';
+        I18N.th.tr_hero = 'ทดลองขับขี่ ฟรี! ไม่มีค่าใช้จ่าย'; I18N.my.tr_hero = 'စမ်းသပ်စီးနင်း အခမဲ့! ကုန်ကျစရိတ်မရှိ';
+        I18N.th.tr_pick_date = 'เลือกวันที่สะดวก'; I18N.my.tr_pick_date = 'အဆင်ပြေသည့်ရက်ရွေးပါ';
+        I18N.th.tr_time = 'ช่วงเวลา'; I18N.my.tr_time = 'အချိန်ပိုင်း';
+        I18N.th.tr_morning = 'ช่วงเช้า'; I18N.my.tr_morning = 'မနက်ပိုင်း';
+        I18N.th.tr_afternoon = 'ช่วงบ่าย'; I18N.my.tr_afternoon = 'နေ့လယ်ပိုင်း';
       } catch (e) {}
     }
     renderTestRideBikes();
     renderTestRideCard();
+    // ปุ่มดูตำแหน่งร้านในฟอร์มทดลองขับ — โชว์เฉพาะ brand ที่มีลิงก์แผนที่
+    const mapBtn = document.getElementById('trMapBtn');
+    if (mapBtn) {
+      const mapUrl = BRAND_CFG.testRide && BRAND_CFG.testRide.mapUrl;
+      if (mapUrl) { mapBtn.href = mapUrl; mapBtn.style.display = 'inline-flex'; }
+      else { mapBtn.style.display = 'none'; }
+    }
   } catch (e) { console.warn('applyBrand', e); }
 }
 
@@ -3483,8 +3525,10 @@ function renderTestRideBikes() {
   wrap.innerHTML = cfg.bikes.map(function(b, i) {
     const v = String(b.value).replace(/"/g, '&quot;');
     const sub = b.sub ? '<br><span style="font-size:.72rem;font-weight:400;">' + b.sub + '</span>' : '';
-    return '<button class="pay-opt' + (i === 0 ? ' active' : '') + '" data-bike="' + v + '" onclick="selectTestBike(this)">' + b.title + sub + '</button>';
+    const img = b.img ? '<img class="bike-img" src="' + b.img + '" alt="' + b.title + '">' : '';
+    return '<button class="pay-opt' + (i === 0 ? ' active' : '') + '" data-bike="' + v + '" onclick="selectTestBike(this)">' + img + '<span class="bike-label">' + b.title + sub + '</span></button>';
   }).join('');
+  wrap.classList.toggle('has-bike-img', cfg.bikes.some(function(b){ return !!b.img; }));
   testBike = cfg.bikes[0].value;
 }
 
