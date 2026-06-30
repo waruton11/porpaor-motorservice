@@ -3555,7 +3555,7 @@ function renderServiceIcons() {
 const BRAND = (new URLSearchParams(location.search).get('brand') === 'yamaha') ? 'yamaha' : 'honda';
 const BRAND_CFG = ({
   honda:  { name: 'ป.เปา มอเตอร์เซอร์วิส', tagline: 'ตัวแทนจำหน่าย Honda · วังน้อย', color: '#cc0000', colorDark: '#990000', oa: '@975ltwhp', title: 'ป.เปา มอเตอร์เซอร์วิส | Honda วังน้อย', liffId: '2010228940-rjXFOkmc', modelsTitle: 'รุ่นรถฮอนด้า', modelsTitleMy: 'Honda ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Honda · 189-191 ม.7 ต.ลำไทร อ.วังน้อย จ.พระนครศรีอยุธยา<br>เปิดทุกวัน 08:00 – 17:30 น. · โทร. 092-249968-6', testRide: { locShort: 'วังน้อย', bikes: [ { value: 'Honda PCX160 Roadsync (สีน้ำเงิน)', title: 'PCX160 Roadsync', sub: 'สีน้ำเงิน' }, { value: 'Honda UC3 ไฟฟ้า (สีดำ)', title: 'UC3 ไฟฟ้า', sub: 'สีดำ' } ] } },
-  yamaha: { name: 'สิงห์ชัยสยามยนต์', tagline: 'ตัวแทนจำหน่ายรถจักรยานยนต์ Yamaha · พระนครศรีอยุธยา', color: '#0a3aa0', colorDark: '#062a78', oa: '@459eeeog', title: 'สิงห์ชัยสยามยนต์ | Yamaha อยุธยา', liffId: '', modelsTitle: 'รุ่นรถยามาฮ่า', modelsTitleMy: 'Yamaha ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Yamaha — สิงห์ชัยสยามยนต์ · จ.พระนครศรีอยุธยา<br>(โปรดระบุที่อยู่ · เวลาเปิด · เบอร์โทร)', tradeIn: { cardImage: 'images/svc-tradein-yamaha.jpg' }, testRide: { locShort: 'อยุธยา', cardImage: 'images/svc-testride-yamaha.jpg', mapUrl: 'https://maps.app.goo.gl/RqXQoUT3woy2Jwgz8', bikes: [ { value: 'Yamaha NMAX TECH MAX (2026)', title: 'NMAX TECH MAX', sub: 'รุ่นปี 2026', img: 'images/bike-nmax.png' }, { value: 'Yamaha PG-1', title: 'PG-1', sub: 'รุ่นปี 2025', img: 'images/bike-pg1.png' } ] } }
+  yamaha: { name: 'สิงห์ชัยสยามยนต์', tagline: 'ตัวแทนจำหน่ายรถจักรยานยนต์ Yamaha · พระนครศรีอยุธยา', color: '#0a3aa0', colorDark: '#062a78', oa: '@459eeeog', title: 'สิงห์ชัยสยามยนต์ | Yamaha อยุธยา', liffId: '2010557863-oPg9ROHK', modelsTitle: 'รุ่นรถยามาฮ่า', modelsTitleMy: 'Yamaha ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Yamaha — สิงห์ชัยสยามยนต์ · จ.พระนครศรีอยุธยา<br>(โปรดระบุที่อยู่ · เวลาเปิด · เบอร์โทร)', tradeIn: { cardImage: 'images/svc-tradein-yamaha.jpg' }, testRide: { locShort: 'อยุธยา', cardImage: 'images/svc-testride-yamaha.jpg', mapUrl: 'https://maps.app.goo.gl/RqXQoUT3woy2Jwgz8', bikes: [ { value: 'Yamaha NMAX TECH MAX (2026)', title: 'NMAX TECH MAX', sub: 'รุ่นปี 2026', img: 'images/bike-nmax.png' }, { value: 'Yamaha PG-1', title: 'PG-1', sub: 'รุ่นปี 2025', img: 'images/bike-pg1.png' } ] } }
 })[BRAND];
 function brandUrl(u) { return u + (u.indexOf('?') >= 0 ? '&' : '?') + 'brand=' + BRAND; }
 function applyBrand() {
@@ -3983,6 +3983,8 @@ async function sendToLine() {
 // ===== รายการสนใจ (เลือกหลายรุ่น → ส่งรวดเป็น carousel) =====
 let interestedList = [];
 const SAVE_LEADS_URL = 'https://n8n-wt11.onrender.com/webhook/save-leads';
+const ACK_LEAD_URL = 'https://n8n-wt11.onrender.com/webhook/ack-lead' + (BRAND === 'yamaha' ? '-yamaha' : '');
+const PUSH_CARD_URL = 'https://n8n-wt11.onrender.com/webhook/push-lead-card' + (BRAND === 'yamaha' ? '-yamaha' : '');
 
 function addToInterested() {
   const card = buildCalcCard();
@@ -4077,7 +4079,7 @@ async function sendAllInterested() {
   const cname = (document.getElementById('custName')?.value || '').trim();
   // batch save → n8n รวมเป็นการ์ดสรุปเข้ากลุ่มเซล
   fetch(SAVE_LEADS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ line_user_id: userId || '', line_name: displayName, cust_name: cname, cust_phone: phone, lang: langMode, leads: interestedList.map(function(it){ return it.leadObj; }) }) }).catch(function(){});
-  if (userId) fetch('https://n8n-wt11.onrender.com/webhook/ack-lead', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: userId }) }).catch(function(){});
+  if (userId) fetch(ACK_LEAD_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: userId }) }).catch(function(){});
   try {
     await liff.sendMessages([carousel]);
     interestedList = []; updateInterestedFab(); closeInterestedModal();
@@ -4110,7 +4112,7 @@ async function deliverFlexToLine(flexMsg, fallbackText, opts) {
 
   function fireAck() {
     if (!userId || !opts.ack) return;
-    fetch('https://n8n-wt11.onrender.com/webhook/ack-lead', {
+    fetch(ACK_LEAD_URL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: userId })
     }).catch(function(){});
@@ -4146,7 +4148,7 @@ async function pushCardWithRetry(userId, flexMsg) {
   for (let i = 0; i < delays.length; i++) {
     if (delays[i]) await new Promise(function(r){ setTimeout(r, delays[i]); });
     try {
-      const res = await fetch('https://n8n-wt11.onrender.com/webhook/push-lead-card', {
+      const res = await fetch(PUSH_CARD_URL, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: userId, message: flexMsg })
       });
