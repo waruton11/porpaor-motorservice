@@ -282,6 +282,10 @@ img { display: block; max-width: 100%; }
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .faq-bar:hover { border-color: #f5a623; box-shadow: 0 4px 14px rgba(245,166,35,.12); }
+/* FAQ bar แบบแบนเนอร์รูปเต็มแถว (เมื่อ brand มี faqBanner) */
+.faq-bar--banner { display: block; padding: 0; border: none; background: transparent; border-radius: 16px; overflow: hidden; }
+.faq-bar--banner:hover { border: none; box-shadow: none; }
+.faq-banner-img { width: 100%; height: auto; display: block; }
 .faq-bar-ico { font-size: 1.5rem; flex-shrink: 0; }
 .faq-bar-text { flex: 1; font-size: 0.9rem; color: var(--text); line-height: 1.35; }
 .faq-bar-sub { font-size: 0.74rem; color: #a07b2e; font-weight: 400; }
@@ -366,6 +370,58 @@ img { display: block; max-width: 100%; }
 }
 .brand-yamaha .faq-cta-line svg { width: 19px; height: 19px; }
 .brand-yamaha .faq-cta-line:hover { background: #05b14c; }
+
+/* ===== FAQ พรีเมียม (Honda — โทนแดง, mirror Yamaha) ===== */
+/* FAQ bar หน้าแรก: อีโมจิ→ไอคอนเส้น + การ์ดโทนแดงสะอาด */
+.brand-honda .faq-bar-ico { display: none; }
+.brand-honda .faq-bar-ico-svg { display: inline-flex; align-items: center; color: var(--red); }
+.brand-honda .faq-bar-arrow { display: none; }
+.brand-honda .faq-bar-arrow-svg { display: inline-flex; align-items: center; color: #d3a3a3; }
+.brand-honda .faq-bar { background: #fff6f6; border-color: #f3d6d6; }
+.brand-honda .faq-bar:hover { border-color: var(--red); box-shadow: 0 4px 14px rgba(204,0,0,.12); }
+.brand-honda .faq-bar:hover .faq-bar-arrow-svg { color: var(--red); }
+.brand-honda .faq-bar-sub { color: var(--text2); }
+/* FAQ overlay hero: แถบแดง + ลายน้ำ "?" */
+.brand-honda #faqCtaYamaha { display: none; }
+.brand-honda #faqHero {
+  display: block; position: relative; overflow: hidden;
+  background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+  color: #fff; border-radius: 14px; padding: 1.05rem 1.2rem; margin-bottom: 1.1rem;
+}
+.brand-honda #faqHero .faq-hero-title { font-size: 1.18rem; font-weight: 700; margin-bottom: 4px; }
+.brand-honda #faqHero .faq-hero-sub { font-size: .82rem; line-height: 1.5; opacity: .92; max-width: 84%; }
+.brand-honda #faqHero .faq-hero-mark {
+  position: absolute; right: 6px; bottom: -34px; font-size: 8rem; font-weight: 800;
+  line-height: 1; color: rgba(255,255,255,.13); pointer-events: none; font-family: 'Kanit', sans-serif;
+}
+/* รายการคำถาม + ไทล์ไอคอน (โทนแดง) */
+.brand-honda #faqList .faq-item { border: 1.5px solid #f0e2e2; border-radius: 13px; margin-bottom: .55rem; }
+.brand-honda #faqList .faq-q { gap: 11px; padding: .85rem .95rem; background: #fff; }
+.brand-honda #faqList .faq-q:hover { background: #fff7f7; }
+.brand-honda #faqList .faq-item.open { border-color: #f0c4c4; box-shadow: 0 4px 16px rgba(204,0,0,.08); }
+.brand-honda #faqList .faq-q-text { flex: 1; }
+.brand-honda .faq-ico-tile {
+  flex-shrink: 0; width: 38px; height: 38px; border-radius: 10px;
+  background: #fdeaea; color: var(--red);
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background .18s, color .18s;
+}
+.brand-honda .faq-ico-tile svg { width: 20px; height: 20px; }
+.brand-honda #faqList .faq-item.open .faq-ico-tile { background: var(--red); color: #fff; }
+/* การ์ด CTA พรีเมียม (โทนแดง, ไม่มีภาพทีม) */
+.brand-honda #faqCtaHonda {
+  display: flex; flex-direction: column; align-items: center; text-align: center; margin-top: 1.1rem;
+  background: #fff6f6; border: 1.5px solid #f3d6d6; border-radius: 14px; padding: 1.1rem 1rem;
+}
+.brand-honda #faqCtaHonda .faq-cta-title { font-size: 1rem; font-weight: 700; color: var(--text); }
+.brand-honda #faqCtaHonda .faq-cta-sub { font-size: .8rem; color: var(--text2); line-height: 1.5; margin: 3px 0 11px; }
+.brand-honda #faqCtaHonda .faq-cta-line {
+  display: inline-flex; align-items: center; gap: 7px; text-decoration: none;
+  background: #06c755; color: #fff; font-weight: 700; font-size: .85rem;
+  padding: .5rem 1.1rem; border-radius: 22px;
+}
+.brand-honda #faqCtaHonda .faq-cta-line svg { width: 19px; height: 19px; }
+.brand-honda #faqCtaHonda .faq-cta-line:hover { background: #05b14c; }
 
 /* ===== CATEGORY ICONS (mobile only) ===== */
 .cat-icons-wrap {
@@ -1732,7 +1788,7 @@ footer .footer-brand {
 
 <!-- ===== FAQ BAR ===== -->
 <div class="faq-bar-wrap">
-  <button class="faq-bar" onclick="openFAQ()">
+  <button class="faq-bar" id="faqBar" onclick="openFAQ()">
     <span class="faq-bar-ico">❓</span>
     <span class="faq-bar-ico-svg" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 17l0 .01" /><path d="M12 13.5a1.5 1.5 0 0 1 1 -1.5a2.6 2.6 0 1 0 -3 -4" /></svg></span>
     <span class="faq-bar-text"><b data-i18n="faq_t">คำถามที่พบบ่อย</b><br><span class="faq-bar-sub" data-i18n="faq_s">ผ่อนไม่ผ่าน? ติดแบล็คลิสต์? ดาวน์เท่าไหร่? — อ่านคำตอบ</span></span>
@@ -2093,9 +2149,13 @@ footer .footer-brand {
         <span class="faq-hero-mark" aria-hidden="true">?</span>
       </div>
       <div id="faqList"></div>
-      <div id="faqCtaHonda" style="background:#e9f9ef;border:1px solid #b6e6c6;border-radius:10px;padding:.85rem 1rem;margin-top:1rem;text-align:center;">
-        <div style="font-size:.88rem;color:#1a8c47;font-weight:600;margin-bottom:.5rem;" data-i18n="faq_more">ยังไม่หายสงสัย? ทักถามเจ้าหน้าที่ได้เลยครับ 😊</div>
-        <a href="https://line.me/R/ti/p/@975ltwhp" target="_blank" class="calc-primary-btn liff-send-btn" style="display:inline-flex;text-decoration:none;padding:0.6rem 1.5rem;" data-i18n="faq_chat_btn">💬 แชทถามเจ้าหน้าที่</a>
+      <div id="faqCtaHonda">
+        <div class="faq-cta-title" data-i18n="faq_cta_title">ยังไม่เจอคำตอบที่ต้องการ?</div>
+        <div class="faq-cta-sub" data-i18n="faq_cta_sub">ทักเจ้าหน้าที่ได้เลย ปรึกษาฟรี ไม่มีค่าใช้จ่าย</div>
+        <a href="https://line.me/R/ti/p/@975ltwhp" target="_blank" rel="noopener" class="faq-cta-line">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+          <span data-i18n="faq_cta_line">แชทผ่าน LINE</span>
+        </a>
       </div>
       <div id="faqCtaYamaha">
         <img class="faq-cta-team" src="images/faq-team-yamaha.jpg" alt="ทีมเจ้าหน้าที่ พูดได้ทั้งไทยและพม่า" loading="lazy">
@@ -2774,8 +2834,8 @@ function renderFAQ() {
   // โหมดพม่า: ใช้ชุดคำถามพม่า (คนละชุดกับไทย) ถ้ามี · ไม่มี → ใช้ชุดไทย
   const useMy = (langMode === 'my' && Array.isArray(siteConfig.faq_my) && siteConfig.faq_my.length);
   const list = useMy ? siteConfig.faq_my : ((siteConfig.faq && siteConfig.faq.length) ? siteConfig.faq : FAQ_DATA);
-  // Yamaha: ไอคอนเส้นในไทล์โทนน้ำเงิน (วนตามลำดับ ให้ดูมีดีไซน์ แต่คุมโทนเดียว) — Honda คงรายการเดิม
-  const premium = (BRAND === 'yamaha');
+  // ไอคอนเส้นในไทล์ (วนตามลำดับ ให้ดูมีดีไซน์ แต่คุมโทนเดียว) — ทั้ง Honda (แดง) + Yamaha (น้ำเงิน)
+  const premium = true;
   el.innerHTML = list.map(function(f, i) {
     const tile = premium ? '<span class="faq-ico-tile" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + FAQ_TILE_ICONS[i % FAQ_TILE_ICONS.length] + '</svg></span>' : '';
     return '<div class="faq-item" id="faqItem' + i + '">' +
@@ -3608,7 +3668,7 @@ function renderServiceIcons() {
 const BRAND = (new URLSearchParams(location.search).get('brand') === 'yamaha') ? 'yamaha' : 'honda';
 const BRAND_CFG = ({
   honda:  { name: 'ป.เปา มอเตอร์เซอร์วิส', tagline: 'ตัวแทนจำหน่าย Honda · วังน้อย', color: '#cc0000', colorDark: '#990000', oa: '@975ltwhp', title: 'ป.เปา มอเตอร์เซอร์วิส | Honda วังน้อย', liffId: '2010228940-rjXFOkmc', modelsTitle: 'รุ่นรถฮอนด้า', modelsTitleMy: 'Honda ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Honda · 189-191 ม.7 ต.ลำไทร อ.วังน้อย จ.พระนครศรีอยุธยา<br>เปิดทุกวัน 08:00 – 17:30 น. · โทร. 092-249968-6', tradeIn: { cardImage: 'images/svc-tradein-honda.jpg' }, testRide: { locShort: 'วังน้อย', cardImage: 'images/svc-testride-honda.jpg', mapUrl: 'https://maps.app.goo.gl/WExhokKJEB9JxvjGA', bikes: [ { value: 'Honda PCX160 Roadsync (สีน้ำเงิน)', title: 'PCX160 Roadsync', sub: 'สีน้ำเงิน', img: 'images/bike-pcx160.png' }, { value: 'Honda UC3 ไฟฟ้า (สีดำ)', title: 'UC3 ไฟฟ้า', sub: 'สีดำ', img: 'images/bike-uc3.png', badge: 'EV' } ] } },
-  yamaha: { name: 'สิงห์ชัยสยามยนต์', tagline: 'ตัวแทนจำหน่ายรถจักรยานยนต์ Yamaha · พระนครศรีอยุธยา', color: '#0a3aa0', colorDark: '#062a78', oa: '@459eeeog', title: 'สิงห์ชัยสยามยนต์ | Yamaha อยุธยา', liffId: '2010557863-oPg9ROHK', modelsTitle: 'รุ่นรถยามาฮ่า', modelsTitleMy: 'Yamaha ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Yamaha — สิงห์ชัยสยามยนต์ · จ.พระนครศรีอยุธยา<br>(โปรดระบุที่อยู่ · เวลาเปิด · เบอร์โทร)', tradeIn: { cardImage: 'images/svc-tradein-yamaha.jpg' }, testRide: { locShort: 'อยุธยา', cardImage: 'images/svc-testride-yamaha.jpg', mapUrl: 'https://maps.app.goo.gl/RqXQoUT3woy2Jwgz8', bikes: [ { value: 'Yamaha NMAX TECH MAX (2026)', title: 'NMAX TECH MAX', sub: 'รุ่นปี 2026', img: 'images/bike-nmax.png' }, { value: 'Yamaha PG-1', title: 'PG-1', sub: 'รุ่นปี 2025', img: 'images/bike-pg1.png' } ] } }
+  yamaha: { name: 'สิงห์ชัยสยามยนต์', tagline: 'ตัวแทนจำหน่ายรถจักรยานยนต์ Yamaha · พระนครศรีอยุธยา', color: '#0a3aa0', colorDark: '#062a78', oa: '@459eeeog', title: 'สิงห์ชัยสยามยนต์ | Yamaha อยุธยา', liffId: '2010557863-oPg9ROHK', modelsTitle: 'รุ่นรถยามาฮ่า', modelsTitleMy: 'Yamaha ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Yamaha — สิงห์ชัยสยามยนต์ · จ.พระนครศรีอยุธยา<br>(โปรดระบุที่อยู่ · เวลาเปิด · เบอร์โทร)', faqBanner: 'images/faq-yamaha.jpg', tradeIn: { cardImage: 'images/svc-tradein-yamaha.jpg' }, testRide: { locShort: 'อยุธยา', cardImage: 'images/svc-testride-yamaha.jpg', mapUrl: 'https://maps.app.goo.gl/RqXQoUT3woy2Jwgz8', bikes: [ { value: 'Yamaha NMAX TECH MAX (2026)', title: 'NMAX TECH MAX', sub: 'รุ่นปี 2026', img: 'images/bike-nmax.png' }, { value: 'Yamaha PG-1', title: 'PG-1', sub: 'รุ่นปี 2025', img: 'images/bike-pg1.png' } ] } }
 })[BRAND];
 function brandUrl(u) { return u + (u.indexOf('?') >= 0 ? '&' : '?') + 'brand=' + BRAND; }
 function applyBrand() {
@@ -3647,6 +3707,8 @@ function applyBrand() {
       I18N.my.ti_info = 'အမျိုးအစားအားလုံး လဲပေးပါသည် ဆိုင်ကယ်အဟောင်းအချက်အလက်ဖြည့်ပါ ဝန်ထမ်းကဆိုင်သို့ယူလာတန်ဖိုးဖြတ်ရန် ဖုန်းဆက်ပါမည်';
       I18N.th.ti_old_title = 'รถเก่าที่จะเทิร์น'; I18N.my.ti_old_title = 'လဲမည့် ဆိုင်ကယ်အဟောင်း';
       I18N.th.ti_contact = 'ข้อมูลติดต่อ'; I18N.my.ti_contact = 'ဆက်သွယ်ရန်အချက်အလက်';
+      // หน้าคำถาม (FAQ) — ตัดอีโมจิหัวข้อ (พรีเมียมทั้ง Honda + Yamaha)
+      I18N.th.faq_overlay_title = 'คำถามที่พบบ่อย'; I18N.my.faq_overlay_title = 'မေးလေ့ရှိသောမေးခွန်းများ';
     } catch (e) {}
     // รุ่นรถ + ข้อความสาขา เฉพาะ Yamaha (NMAX/PG-1 · อยุธยา; Honda ใช้ default = PCX160/UC3 · วังน้อย)
     if (BRAND === 'yamaha') {
@@ -3655,13 +3717,12 @@ function applyBrand() {
         I18N.my.svc_testride_s = 'NMAX & PG-1';
         I18N.th.tr_hero_sub = 'ที่สาขาอยุธยา · เลือกรุ่นและวันที่สะดวก เดี๋ยวเจ้าหน้าที่เตรียมรถให้ครับ';
         I18N.my.tr_hero_sub = 'မော်ဒယ်နှင့်အဆင်ပြေသည့်ရက်ရွေးပါ ဝန်ထမ်းကဆိုင်ကယ်ပြင်ဆင်ပေးပါမည်';
-        // หน้าคำถาม (FAQ) — ตัดอีโมจิหัวข้อ (Yamaha ใช้ดีไซน์พรีเมียม)
-        I18N.th.faq_overlay_title = 'คำถามที่พบบ่อย'; I18N.my.faq_overlay_title = 'မေးလေ့ရှိသောမေးခွန်းများ';
       } catch (e) {}
     }
     renderTestRideBikes();
     renderTestRideCard();
     renderTradeInCard();
+    renderFaqBar();
     // ปุ่มดูตำแหน่งร้านในฟอร์มทดลองขับ — โชว์เฉพาะ brand ที่มีลิงก์แผนที่
     const mapBtn = document.getElementById('trMapBtn');
     if (mapBtn) {
@@ -3688,6 +3749,15 @@ function renderTradeInCard() {
   if (!card || !cfg || !cfg.cardImage) return;
   card.classList.add('svc-card--banner');
   card.innerHTML = '<img class="svc-banner-img" src="' + cfg.cardImage + '" alt="เทิร์นรถเก่า รับเทิร์นทุกรุ่น ตีราคาที่ร้าน" loading="lazy">';
+}
+
+// ช่องคำถามที่พบบ่อยหน้าแรก: ถ้า brand มี faqBanner → เปลี่ยนเป็นแบนเนอร์รูปเต็มแถว (Yamaha) · ไม่มี → คงแถบเดิม (Honda โทนแดง)
+function renderFaqBar() {
+  const img = BRAND_CFG.faqBanner;
+  const bar = document.getElementById('faqBar');
+  if (!bar || !img) return;
+  bar.classList.add('faq-bar--banner');
+  bar.innerHTML = '<img class="faq-banner-img" src="' + img + '" alt="คำถามที่พบบ่อย — คลิกอ่านคำตอบ" loading="lazy">';
 }
 
 // สร้างปุ่มเลือกรุ่นทดลองขับจาก BRAND_CFG.testRide (brand-aware) — ตั้ง testBike = รุ่นแรก
