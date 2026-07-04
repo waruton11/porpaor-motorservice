@@ -249,9 +249,9 @@ img { display: block; max-width: 100%; }
   .svc-title { font-size: 1rem; }
   .svc-sub { font-size: 0.8rem; }
 }
-/* การ์ดทดลองขับแบบแบนเนอร์ (Yamaha) — รูปเต็มแถวของตัวเอง ไม่มีกรอบ/พื้น */
-.brand-yamaha .svc-wrap { flex-wrap: wrap; }
-.brand-yamaha .svc-card--banner {
+/* การ์ดทดลองขับ/เทิร์นรถแบบแบนเนอร์ — รูปเต็มแถวของตัวเอง ไม่มีกรอบ/พื้น (ใช้เมื่อ brand มี cardImage: Yamaha + Honda) */
+.svc-wrap { flex-wrap: wrap; }
+.svc-card--banner {
   flex: 1 1 100%;
   padding: 0;
   border: none;
@@ -259,11 +259,11 @@ img { display: block; max-width: 100%; }
   border-radius: 14px;
   overflow: hidden;
 }
-.brand-yamaha .svc-card--banner:hover { box-shadow: none; transform: none; }
-.brand-yamaha .svc-banner-img { width: 100%; height: auto; display: block; }
-/* Yamaha: แบนเนอร์ทดลองขับอยู่บน เทิร์นรถอยู่ล่าง (Honda คงลำดับเดิม) */
-.brand-yamaha #svcTestrideCard { order: 1; }
-.brand-yamaha #svcTradeinCard { order: 2; }
+.svc-card--banner:hover { box-shadow: none; transform: none; }
+.svc-banner-img { width: 100%; height: auto; display: block; }
+/* การ์ดแบนเนอร์ทดลองขับอยู่บน เทิร์นรถอยู่ล่าง (จัดลำดับเฉพาะการ์ดที่เป็นแบนเนอร์) */
+#svcTestrideCard.svc-card--banner { order: 1; }
+#svcTradeinCard { order: 2; }
 
 /* ===== FAQ BAR ===== */
 .faq-bar-wrap { padding: 0 1rem 0.75rem; max-width: 1200px; margin: 0 auto; }
@@ -1180,11 +1180,37 @@ img { display: block; max-width: 100%; }
 }
 #testBikeToggle.has-bike-img .pay-opt.active .bike-img { transform: scale(1.05); }
 #testBikeToggle.has-bike-img .bike-label { display: block; margin-top: 2px; }
+/* ป้าย "EV" บนรถ (เช่น UC3) — วางบนรูปรถที่ทะลุปุ่ม */
+#testBikeToggle.has-bike-img .pay-opt { position: relative; }
+.bike-badge {
+  position: absolute;
+  top: -34px;
+  right: 12px;
+  background: #16a34a;
+  color: #fff;
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .6px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  box-shadow: 0 2px 5px rgba(0,0,0,.28);
+  z-index: 3;
+  pointer-events: none;
+}
 /* ไอคอนเส้นในฟอร์มทดลองขับ — โชว์เฉพาะ Yamaha (Honda ซ่อน ใช้อีโมจิเดิม) */
 .tr-ico-slot { display: none; }
 .brand-yamaha .tr-ico-slot { display: inline-flex; align-items: center; vertical-align: -0.13em; margin-right: 6px; }
 .brand-yamaha .tr-ico-slot svg { width: 1.05em; height: 1.05em; }
 .brand-yamaha .customer-info-title .tr-ico-slot { color: var(--red); }
+/* Honda: ไอคอนเส้นพรีเมียมในหน้าต่างทดลองขับ (เฉพาะ #testOverlay — เทิร์นรถ/FAQ ยังคงอีโมจิเดิม) เน้นสีแดง */
+.brand-honda #testOverlay .tr-ico-slot { display: inline-flex; align-items: center; vertical-align: -0.13em; margin-right: 6px; }
+.brand-honda #testOverlay .tr-ico-slot svg { width: 1.05em; height: 1.05em; }
+.brand-honda #testOverlay .customer-info-title .tr-ico-slot,
+.brand-honda #testOverlay .tr-hero-title .tr-ico-slot { color: var(--red); }
+/* Honda: ไอคอนเส้นพรีเมียมในหน้าต่างเทิร์นรถเก่า (#tradeOverlay) เน้นสีแดง */
+.brand-honda #tradeOverlay .tr-ico-slot { display: inline-flex; align-items: center; vertical-align: -0.13em; margin-right: 6px; }
+.brand-honda #tradeOverlay .tr-ico-slot svg { width: 1.05em; height: 1.05em; }
+.brand-honda #tradeOverlay .customer-info-title .tr-ico-slot { color: var(--red); }
 .tr-map-ico { width: 15px; height: 15px; }
 /* Cash-only preview */
 .cash-preview {
@@ -3581,7 +3607,7 @@ function renderServiceIcons() {
 // ===== Brand (Honda / Yamaha) — parameterize: ?brand=yamaha → โหมด Yamaha =====
 const BRAND = (new URLSearchParams(location.search).get('brand') === 'yamaha') ? 'yamaha' : 'honda';
 const BRAND_CFG = ({
-  honda:  { name: 'ป.เปา มอเตอร์เซอร์วิส', tagline: 'ตัวแทนจำหน่าย Honda · วังน้อย', color: '#cc0000', colorDark: '#990000', oa: '@975ltwhp', title: 'ป.เปา มอเตอร์เซอร์วิส | Honda วังน้อย', liffId: '2010228940-rjXFOkmc', modelsTitle: 'รุ่นรถฮอนด้า', modelsTitleMy: 'Honda ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Honda · 189-191 ม.7 ต.ลำไทร อ.วังน้อย จ.พระนครศรีอยุธยา<br>เปิดทุกวัน 08:00 – 17:30 น. · โทร. 092-249968-6', testRide: { locShort: 'วังน้อย', bikes: [ { value: 'Honda PCX160 Roadsync (สีน้ำเงิน)', title: 'PCX160 Roadsync', sub: 'สีน้ำเงิน' }, { value: 'Honda UC3 ไฟฟ้า (สีดำ)', title: 'UC3 ไฟฟ้า', sub: 'สีดำ' } ] } },
+  honda:  { name: 'ป.เปา มอเตอร์เซอร์วิส', tagline: 'ตัวแทนจำหน่าย Honda · วังน้อย', color: '#cc0000', colorDark: '#990000', oa: '@975ltwhp', title: 'ป.เปา มอเตอร์เซอร์วิส | Honda วังน้อย', liffId: '2010228940-rjXFOkmc', modelsTitle: 'รุ่นรถฮอนด้า', modelsTitleMy: 'Honda ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Honda · 189-191 ม.7 ต.ลำไทร อ.วังน้อย จ.พระนครศรีอยุธยา<br>เปิดทุกวัน 08:00 – 17:30 น. · โทร. 092-249968-6', tradeIn: { cardImage: 'images/svc-tradein-honda.jpg' }, testRide: { locShort: 'วังน้อย', cardImage: 'images/svc-testride-honda.jpg', mapUrl: 'https://maps.app.goo.gl/WExhokKJEB9JxvjGA', bikes: [ { value: 'Honda PCX160 Roadsync (สีน้ำเงิน)', title: 'PCX160 Roadsync', sub: 'สีน้ำเงิน', img: 'images/bike-pcx160.png' }, { value: 'Honda UC3 ไฟฟ้า (สีดำ)', title: 'UC3 ไฟฟ้า', sub: 'สีดำ', img: 'images/bike-uc3.png', badge: 'EV' } ] } },
   yamaha: { name: 'สิงห์ชัยสยามยนต์', tagline: 'ตัวแทนจำหน่ายรถจักรยานยนต์ Yamaha · พระนครศรีอยุธยา', color: '#0a3aa0', colorDark: '#062a78', oa: '@459eeeog', title: 'สิงห์ชัยสยามยนต์ | Yamaha อยุธยา', liffId: '2010557863-oPg9ROHK', modelsTitle: 'รุ่นรถยามาฮ่า', modelsTitleMy: 'Yamaha ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Yamaha — สิงห์ชัยสยามยนต์ · จ.พระนครศรีอยุธยา<br>(โปรดระบุที่อยู่ · เวลาเปิด · เบอร์โทร)', tradeIn: { cardImage: 'images/svc-tradein-yamaha.jpg' }, testRide: { locShort: 'อยุธยา', cardImage: 'images/svc-testride-yamaha.jpg', mapUrl: 'https://maps.app.goo.gl/RqXQoUT3woy2Jwgz8', bikes: [ { value: 'Yamaha NMAX TECH MAX (2026)', title: 'NMAX TECH MAX', sub: 'รุ่นปี 2026', img: 'images/bike-nmax.png' }, { value: 'Yamaha PG-1', title: 'PG-1', sub: 'รุ่นปี 2025', img: 'images/bike-pg1.png' } ] } }
 })[BRAND];
 function brandUrl(u) { return u + (u.indexOf('?') >= 0 ? '&' : '?') + 'brand=' + BRAND; }
@@ -3607,26 +3633,28 @@ function applyBrand() {
     document.querySelectorAll('a[href*="975ltwhp"]').forEach(function(a) {
       a.href = a.href.replace('@975ltwhp', BRAND_CFG.oa).replace('%40975ltwhp', '%40' + oaPlain);
     });
-    // ทดลองขับขี่ — รุ่นรถ + ข้อความสาขา ราย brand (Honda คงเดิม, Yamaha = NMAX/PG-1 · อยุธยา)
+    // หน้าต่างทดลองขับ — ใช้ไอคอนเส้นแทนอีโมจิ ทั้ง Honda + Yamaha (ตัดอีโมจินำหน้าออก)
+    try {
+      I18N.th.tr_title = 'ทดลองขับขี่ฟรี'; I18N.my.tr_title = 'အခမဲ့ စမ်းသပ်စီးနင်း';
+      I18N.th.tr_hero = 'ทดลองขับขี่ ฟรี! ไม่มีค่าใช้จ่าย'; I18N.my.tr_hero = 'စမ်းသပ်စီးနင်း အခမဲ့! ကုန်ကျစရိတ်မရှိ';
+      I18N.th.tr_pick_date = 'เลือกวันที่สะดวก'; I18N.my.tr_pick_date = 'အဆင်ပြေသည့်ရက်ရွေးပါ';
+      I18N.th.tr_time = 'ช่วงเวลา'; I18N.my.tr_time = 'အချိန်ပိုင်း';
+      I18N.th.tr_morning = 'ช่วงเช้า'; I18N.my.tr_morning = 'မနက်ပိုင်း';
+      I18N.th.tr_afternoon = 'ช่วงบ่าย'; I18N.my.tr_afternoon = 'နေ့လယ်ပိုင်း';
+      // เทิร์นรถเก่า — ตัดอีโมจิ (ใช้ไอคอนเส้น) ทั้ง Honda + Yamaha
+      I18N.th.ti_title = 'เทิร์นรถเก่า'; I18N.my.ti_title = 'ဆိုင်ကယ်အဟောင်း လဲရန်';
+      I18N.th.ti_info = 'รับเทิร์นทุกรุ่นครับ กรอกข้อมูลรถเก่า เดี๋ยวเจ้าหน้าที่โทรนัดเอารถมาตีราคาที่ร้าน';
+      I18N.my.ti_info = 'အမျိုးအစားအားလုံး လဲပေးပါသည် ဆိုင်ကယ်အဟောင်းအချက်အလက်ဖြည့်ပါ ဝန်ထမ်းကဆိုင်သို့ယူလာတန်ဖိုးဖြတ်ရန် ဖုန်းဆက်ပါမည်';
+      I18N.th.ti_old_title = 'รถเก่าที่จะเทิร์น'; I18N.my.ti_old_title = 'လဲမည့် ဆိုင်ကယ်အဟောင်း';
+      I18N.th.ti_contact = 'ข้อมูลติดต่อ'; I18N.my.ti_contact = 'ဆက်သွယ်ရန်အချက်အလက်';
+    } catch (e) {}
+    // รุ่นรถ + ข้อความสาขา เฉพาะ Yamaha (NMAX/PG-1 · อยุธยา; Honda ใช้ default = PCX160/UC3 · วังน้อย)
     if (BRAND === 'yamaha') {
       try {
         I18N.th.svc_testride_s = 'NMAX & PG-1 · ที่อยุธยา';
         I18N.my.svc_testride_s = 'NMAX & PG-1';
         I18N.th.tr_hero_sub = 'ที่สาขาอยุธยา · เลือกรุ่นและวันที่สะดวก เดี๋ยวเจ้าหน้าที่เตรียมรถให้ครับ';
         I18N.my.tr_hero_sub = 'မော်ဒယ်နှင့်အဆင်ပြေသည့်ရက်ရွေးပါ ဝန်ထမ်းကဆိုင်ကယ်ပြင်ဆင်ပေးပါမည်';
-        // ตัดอีโมจินำหน้าออก (Yamaha ใช้ไอคอนเส้น SVG แทน) — Honda คงอีโมจิเดิม
-        I18N.th.tr_title = 'ทดลองขับขี่ฟรี'; I18N.my.tr_title = 'အခမဲ့ စမ်းသပ်စီးနင်း';
-        I18N.th.tr_hero = 'ทดลองขับขี่ ฟรี! ไม่มีค่าใช้จ่าย'; I18N.my.tr_hero = 'စမ်းသပ်စီးနင်း အခမဲ့! ကုန်ကျစရိတ်မရှိ';
-        I18N.th.tr_pick_date = 'เลือกวันที่สะดวก'; I18N.my.tr_pick_date = 'အဆင်ပြေသည့်ရက်ရွေးပါ';
-        I18N.th.tr_time = 'ช่วงเวลา'; I18N.my.tr_time = 'အချိန်ပိုင်း';
-        I18N.th.tr_morning = 'ช่วงเช้า'; I18N.my.tr_morning = 'မနက်ပိုင်း';
-        I18N.th.tr_afternoon = 'ช่วงบ่าย'; I18N.my.tr_afternoon = 'နေ့လယ်ပိုင်း';
-        // เทิร์นรถเก่า — ตัดอีโมจินำหน้า/ในข้อความออก (ใช้ไอคอนเส้น SVG แทน) — Honda คงอีโมจิเดิม
-        I18N.th.ti_title = 'เทิร์นรถเก่า'; I18N.my.ti_title = 'ဆိုင်ကယ်အဟောင်း လဲရန်';
-        I18N.th.ti_info = 'รับเทิร์นทุกรุ่นครับ กรอกข้อมูลรถเก่า เดี๋ยวเจ้าหน้าที่โทรนัดเอารถมาตีราคาที่ร้าน';
-        I18N.my.ti_info = 'အမျိုးအစားအားလုံး လဲပေးပါသည် ဆိုင်ကယ်အဟောင်းအချက်အလက်ဖြည့်ပါ ဝန်ထမ်းကဆိုင်သို့ယူလာတန်ဖိုးဖြတ်ရန် ဖုန်းဆက်ပါမည်';
-        I18N.th.ti_old_title = 'รถเก่าที่จะเทิร์น'; I18N.my.ti_old_title = 'လဲမည့် ဆိုင်ကယ်အဟောင်း';
-        I18N.th.ti_contact = 'ข้อมูลติดต่อ'; I18N.my.ti_contact = 'ဆက်သွယ်ရန်အချက်အလက်';
         // หน้าคำถาม (FAQ) — ตัดอีโมจิหัวข้อ (Yamaha ใช้ดีไซน์พรีเมียม)
         I18N.th.faq_overlay_title = 'คำถามที่พบบ่อย'; I18N.my.faq_overlay_title = 'မေးလေ့ရှိသောမေးခွန်းများ';
       } catch (e) {}
@@ -3671,7 +3699,8 @@ function renderTestRideBikes() {
     const v = String(b.value).replace(/"/g, '&quot;');
     const sub = b.sub ? '<br><span style="font-size:.72rem;font-weight:400;">' + b.sub + '</span>' : '';
     const img = b.img ? '<img class="bike-img" src="' + b.img + '" alt="' + b.title + '">' : '';
-    return '<button class="pay-opt' + (i === 0 ? ' active' : '') + '" data-bike="' + v + '" onclick="selectTestBike(this)">' + img + '<span class="bike-label">' + b.title + sub + '</span></button>';
+    const badge = b.badge ? '<span class="bike-badge">' + b.badge + '</span>' : '';
+    return '<button class="pay-opt' + (i === 0 ? ' active' : '') + '" data-bike="' + v + '" onclick="selectTestBike(this)">' + img + badge + '<span class="bike-label">' + b.title + sub + '</span></button>';
   }).join('');
   wrap.classList.toggle('has-bike-img', cfg.bikes.some(function(b){ return !!b.img; }));
   testBike = cfg.bikes[0].value;
