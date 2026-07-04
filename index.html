@@ -746,6 +746,12 @@ img { display: block; max-width: 100%; }
   display: block;
   object-fit: cover;
 }
+/* Honda: โชว์แบนเนอร์เต็มรูป ไม่ครอป (แบนเนอร์ Honda เป็น 2.5:1 ไม่พอดีช่อง 3.45:1) */
+.brand-honda .modal-banner {
+  aspect-ratio: auto;
+  overflow: visible;
+  background: transparent;
+}
 .modal-price {
   color: var(--red);
   font-size: 1.3rem;
@@ -2137,7 +2143,28 @@ const MODEL_BANNERS = {
   'Yamaha R3 (YZF-R3)': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2025/r3-2025/banner/yamaha-r3-2025_1900x550px.jpg?sfvrsn=83155c8_2',
   'Yamaha MT-15': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2024/mt-15-2024/banner/banner-yamaha-mt-15-2024_1900x550px.jpg?sfvrsn=caa8bdc2_4',
   'Yamaha WR155R': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2022/wr155r-2022/banner/yamaha-wr155r-2022_1900x550.jpg?sfvrsn=c1f78d45_2',
-  'Yamaha XSR155': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2024/xsr155-2024/banner/yamaha-xsr155-2024-banner-1900x550.jpg?sfvrsn=c9ceb747_2'
+  'Yamaha XSR155': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2024/xsr155-2024/banner/yamaha-xsr155-2024-banner-1900x550.jpg?sfvrsn=c9ceb747_2',
+  // ===== Honda lifestyle banners (จาก thaihonda.co.th, 1920x768) =====
+  'Honda PCX160': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/001-pcx-2025/Home_page_Banner-2.jpg',
+  'Honda Click160': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/2022_Product-Page/Automatic/All-New-Click160-2022/ThHonda_Product_Page_Click160.jpg',
+  'Honda Click125': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/Page_benner_Desktop_1920x768-02.jpg',
+  'Honda Scoopy': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/2026/SCOOPY2026/banner/modelpage/SCOOPY-Modelpage-d.jpg',
+  'Honda Giorno+': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/giorno-2026/HondaGiorno_-Modelpage_banner_Banner_W1920_x_H768_px.jpg',
+  'Honda Lead125': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/2026/Lead125/ModelPage/Honda_LEAD125-Modelpage_banner_Banner_d.jpg',
+  'Honda ADV160': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/2026_ADV160/Model_Banner_ADV160_W1920xH768px.jpg',
+  'Honda ADV350': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/2025_New_ADV350/Model-Page-Banner_ADV350__W1920xH768px.jpg',
+  'Honda Forza350': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/2026/new-forza350-2026/Banner/Homapage_Banner-d.jpg',
+  'Honda Wave110i': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/2026/Wave110/ThHonda_Desktop-Wave110-New_2025-ModelpageBanner-1920x768.jpg',
+  'Honda Wave125i': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/all-new-honda-wave-125-2025/ThHonda_Desktop-Wave125_2025-ModelPage-1920x768-new.jpg',
+  'Honda Super Cub': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/00-All-New-Supercub-2025/ThHonda_Desktop-Supercub-Homepage_2025-HomepageBanner-1920x768.jpg',
+  'Honda CBR150R': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/2025_New_CBR150R/ThHonda_Desktop-CBR150R_HomepageBanner-1920x768.jpg',
+  'Honda CB150R': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/NewCB150R/ThHonda_Desktop-CB150R-2023-ModelpageBanner-1920x768.jpg',
+  'Honda CB300R': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/CB300R/ThHonda_Desktop_ModelPage-Banner_WingCenter_CB300R_1920x768.jpg',
+  'Honda CL300': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/2025_CL300/ThHonda_Desktop-CL300_ModelpageBanner-1920x768.jpg',
+  'Honda Rebel300': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/2025_Rebel300/ThHonda_Desktop-Rebel300_HomepageBanner-1920x768.jpg',
+  'Honda CRF300 L': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/CRF300L_2024/ThHonda_Desktop-CRF300L_2024-ModelPage-1920x768.jpg',
+  // UC3 เป็นรถไฟฟ้า (EV) — แบนเนอร์มาจาก ev.thaihonda.co.th (1920x1080)
+  'Honda UC3': 'https://ev.thaihonda.co.th/content/dam/e2w/apac/thai/products/uc3/image/vlcsnap-2026-01-09-15h14m56s128.png'
 };
 let modalModel = null, modalVariantIdx = 0, modalColorIdx = 0;
 
