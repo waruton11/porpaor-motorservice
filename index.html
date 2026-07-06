@@ -199,7 +199,7 @@ img { display: block; max-width: 100%; }
   text-align: center;
 }
 .trust-item:last-child { border-right: none; }
-.trust-icon { font-size: 1.4rem; line-height: 1; }
+.trust-icon { font-size: 1.4rem; line-height: 1; color: var(--red); }
 .trust-icon img { width: 28px; height: 28px; object-fit: contain; display: block; }
 .trust-icon svg { width: 28px; height: 28px; display: block; }
 @media (min-width: 768px) {
@@ -3541,9 +3541,9 @@ async function fetchCatalogDisplay() {
 const DEFAULT_SITE_CONFIG = {
   heroImage: '',  // url รูป hero (ตั้งใน admin)
   benefits: [
-    { icon: '🏅', label: 'รับประกัน Honda' },
-    { icon: '💳', label: 'ดาวน์ 0%' },
-    { icon: '📞', label: 'ช่วยเหลือ 24ชม' }
+    { icon: 'tools', label: 'ศูนย์บริการฮอนด้าครบวงจร' },
+    { icon: 'credit-card', label: 'ฟรีดาวน์ ผ่อนสบาย' },
+    { icon: 'shield-check', label: 'บริการหลังการขาย อุ่นใจทุกการใช้งาน' }
   ],
   // override icon/ชื่อหมวด — key = bike_type เดิม (ไม่กระทบข้อมูลรถ)
   categoryOverrides: {},
