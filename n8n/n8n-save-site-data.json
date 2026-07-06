@@ -88,7 +88,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $('Webhook').first().json.body || $('Webhook').first().json;\nconst cats = JSON.stringify(body.categories || []).replace(/'/g, \"''\");\nconst news = JSON.stringify(body.news || []).replace(/'/g, \"''\");\nconst shop = JSON.stringify(body.shop || {}).replace(/'/g, \"''\");\nreturn [{ json: {\n  sql: `UPDATE site_data SET categories='${cats}'::jsonb, news='${news}'::jsonb, shop='${shop}'::jsonb, updated_at=NOW() WHERE id=1`\n}}];"
+        "jsCode": "const body = $('Webhook').first().json.body || $('Webhook').first().json;\nconst b = String(body.brand || 'honda').toLowerCase();\nconst brand = (b === 'yamaha') ? 'yamaha' : 'honda';\nconst news = JSON.stringify(body.news || []).replace(/'/g, \"''\");\nconst shop = JSON.stringify(body.shop || {}).replace(/'/g, \"''\");\nreturn [{ json: {\n  sql: `UPDATE site_data SET news='${news}'::jsonb, shop='${shop}'::jsonb, updated_at=NOW() WHERE brand='${brand}'`\n}}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,

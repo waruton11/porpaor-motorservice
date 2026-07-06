@@ -19,14 +19,28 @@
     },
     {
       "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const j = $input.first().json;\nconst b = String((j.query && j.query.brand) || j.brand || 'honda').toLowerCase();\nreturn [{ json: { brand: (b === 'yamaha' ? 'yamaha' : 'honda') } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        0
+      ],
+      "id": "gsd-resolvebrand",
+      "name": "Resolve brand"
+    },
+    {
+      "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT categories, news, shop FROM site_data WHERE id = 1",
+        "query": "SELECT categories, news, shop FROM site_data WHERE brand = '{{ $json.brand }}'",
         "options": {}
       },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        208,
+        368,
         0
       ],
       "id": "27a1a4c7-12a3-4011-b375-3ed04013488c",
@@ -43,9 +57,9 @@
         "options": {}
       },
       "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.4,
+      "typeVersion": 1.1,
       "position": [
-        416,
+        576,
         0
       ],
       "id": "b6de4ed2-4c24-466a-84a8-efd1a54d5bf5",
@@ -55,6 +69,17 @@
   "pinData": {},
   "connections": {
     "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Resolve brand",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve brand": {
       "main": [
         [
           {
