@@ -1,0 +1,154 @@
+{
+  "name": "GET ga-stats",
+  "nodes": [
+    {
+      "id": "ga-001",
+      "name": "GET ga-stats",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "ga-stats",
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "ga-stats",
+        "responseMode": "responseNode",
+        "options": { "allowedOrigins": "*" }
+      }
+    },
+    {
+      "id": "ga-auth1",
+      "name": "Auth SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const q = ($input.first().json.query) || {};\nconst t = String(q.token || '').replace(/'/g, \"''\");\nconst sql = `SELECT role FROM sessions WHERE token = '${t}' AND expires_at > NOW() LIMIT 1;`;\nreturn [{ json: { sql } }];"
+      }
+    },
+    {
+      "id": "ga-auth2",
+      "name": "Verify session",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [640, 300],
+      "alwaysOutputData": true,
+      "parameters": { "operation": "executeQuery", "query": "={{ $json.sql }}", "options": {} },
+      "credentials": { "postgres": { "name": "Postgres account" } }
+    },
+    {
+      "id": "ga-if",
+      "name": "Authorized?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [840, 300],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [
+            {
+              "id": "cond-role",
+              "leftValue": "={{ $json.role }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "notEmpty", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "ga-http",
+      "name": "GA4 runReport",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1060, 200],
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "https://analyticsdata.googleapis.com/v1beta/properties/544999102:runReport",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleAnalyticsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"dateRanges\": [{ \"startDate\": \"29daysAgo\", \"endDate\": \"today\" }],\n  \"dimensions\": [{ \"name\": \"date\" }],\n  \"metrics\": [{ \"name\": \"activeUsers\" }, { \"name\": \"screenPageViews\" }],\n  \"orderBys\": [{ \"dimension\": { \"dimensionName\": \"date\" } }]\n}",
+        "options": {}
+      },
+      "credentials": { "googleAnalyticsOAuth2Api": { "name": "Google Analytics account" } }
+    },
+    {
+      "id": "ga-shape",
+      "name": "Shape rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1280, 200],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const r = ($input.first() && $input.first().json) || {};\nconst src = Array.isArray(r.rows) ? r.rows : [];\nconst rows = src.map(function(row){\n  const d = (row.dimensionValues && row.dimensionValues[0] && row.dimensionValues[0].value) || '';\n  const users = Number((row.metricValues && row.metricValues[0] && row.metricValues[0].value) || 0);\n  const views = Number((row.metricValues && row.metricValues[1] && row.metricValues[1].value) || 0);\n  return { date: d, users: users, views: views };\n});\nreturn [{ json: { ok: true, rows } }];"
+      }
+    },
+    {
+      "id": "ga-resp",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1500, 200],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": { "responseHeaders": { "entries": [ { "name": "Access-Control-Allow-Origin", "value": "*" } ] } }
+      }
+    },
+    {
+      "id": "ga-resp-err",
+      "name": "Respond GA error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1280, 380],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: false, error: 'ga_error', detail: ($json.error && $json.error.message) || 'GA4 request failed' }) }}",
+        "options": {
+          "responseCode": 502,
+          "responseHeaders": { "entries": [ { "name": "Access-Control-Allow-Origin", "value": "*" } ] }
+        }
+      }
+    },
+    {
+      "id": "ga-401",
+      "name": "Respond 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1060, 420],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: false, error: 'unauthorized' }) }}",
+        "options": {
+          "responseCode": 401,
+          "responseHeaders": { "entries": [ { "name": "Access-Control-Allow-Origin", "value": "*" } ] }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "GET ga-stats": { "main": [ [ { "node": "Auth SQL", "type": "main", "index": 0 } ] ] },
+    "Auth SQL": { "main": [ [ { "node": "Verify session", "type": "main", "index": 0 } ] ] },
+    "Verify session": { "main": [ [ { "node": "Authorized?", "type": "main", "index": 0 } ] ] },
+    "Authorized?": {
+      "main": [
+        [ { "node": "GA4 runReport", "type": "main", "index": 0 } ],
+        [ { "node": "Respond 401", "type": "main", "index": 0 } ]
+      ]
+    },
+    "GA4 runReport": {
+      "main": [
+        [ { "node": "Shape rows", "type": "main", "index": 0 } ],
+        [ { "node": "Respond GA error", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Shape rows": { "main": [ [ { "node": "Respond", "type": "main", "index": 0 } ] ] }
+  },
+  "active": true,
+  "settings": { "executionOrder": "v1" }
+}
