@@ -1318,6 +1318,9 @@ function showPage(id) {
 let _dashLeads = [];
 let _dashCust  = [];
 const TH_MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+let _dashSelModel = null;   // รุ่นที่เลือกดูสี (drill-down)
+let _dashModelRows = [];    // เก็บ modelRows ปัจจุบันไว้ให้ปุ่มกดอ้างอิงตาม index (เลี่ยงปัญหา escape ชื่อรุ่น)
+function dashSelectModel(i){ if (_dashModelRows[i]) { _dashSelModel = _dashModelRows[i][0]; renderDashboard(); } }
 
 // แยกแบรนด์จากชื่อรุ่น (คอลัมน์ brand ใน DB เชื่อถือไม่ได้)
 function _dashBrandOf(model) {
@@ -1338,8 +1341,12 @@ function _dashBar(label, value, max, opts){
   const w   = value>0 ? Math.max(pct,3) : 0;
   const lw  = opts.labelW || 120;
   const disp = opts.disp!=null ? opts.disp : value;
-  return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
-    + '<div style="width:'+lw+'px;font-size:0.78rem;color:var(--text);flex-shrink:0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+_dashEsc(label)+'">'+_dashEsc(label)+'</div>'
+  const active = !!opts.active;
+  const wrapStyle = 'display:flex;align-items:center;gap:8px;'
+    + (opts.onClick ? 'cursor:pointer;padding:3px 5px;border-radius:6px;margin-bottom:2px;background:'+(active?'#fff3f3':'transparent')+';' : 'margin-bottom:6px;');
+  const labColor = active ? 'var(--red)' : 'var(--text)';
+  return '<div style="'+wrapStyle+'"'+(opts.onClick? ' onclick="'+opts.onClick+'"' : '')+'>'
+    + '<div style="width:'+lw+'px;font-size:0.78rem;color:'+labColor+';font-weight:'+(active?'700':'400')+';flex-shrink:0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+_dashEsc(label)+'">'+(opts.onClick?'<span style="color:#bbb;font-size:0.7rem;">▸ </span>':'')+_dashEsc(label)+'</div>'
     + '<div style="flex:1;background:#f0f0f0;border-radius:6px;height:20px;overflow:hidden;">'
     +   '<div style="width:'+w+'%;background:'+(opts.color||'var(--red)')+';height:100%;border-radius:6px;transition:width .3s;"></div>'
     + '</div>'
@@ -1457,11 +1464,14 @@ function renderDashboard(){
   const fMax = Math.max(1, fOrder.map(function(s){return fCount[s];}).reduce(function(a,b){return Math.max(a,b);},0));
   const funnel = totalCust ? fOrder.map(function(s){ return _dashBar(CRM_STATUS[s].label, fCount[s], fMax, {color:CRM_STATUS[s].dot, labelW:90}); }).join('') : _dashEmpty();
 
-  // ---------- Top interested models (leads, exclude tradein) ----------
+  // ---------- Top interested models (leads, exclude tradein) — คลิกได้เพื่อดูสีตามรุ่น ----------
   const modelC = _dashCountBy(leads.filter(function(l){ return l.lead_type!=='tradein'; }), function(l){ return (l.model||'').trim(); });
   const modelRows = _dashTop(modelC, 10);
+  _dashModelRows = modelRows;
+  // ถ้ารุ่นที่เลือกไว้ไม่อยู่ในชุดปัจจุบัน (เปลี่ยนแบรนด์/ยังไม่เคยเลือก) → เลือกรุ่นอันดับ 1 อัตโนมัติ
+  if (_dashSelModel == null || !modelC[_dashSelModel]) _dashSelModel = modelRows.length ? modelRows[0][0] : null;
   const mMax = Math.max(1, modelRows.map(function(r){return r[1];}).reduce(function(a,b){return Math.max(a,b);},0));
-  const topModels = modelRows.length ? modelRows.map(function(r){ return _dashBar(r[0], r[1], mMax, {color:'var(--red)', labelW:135}); }).join('') : _dashEmpty();
+  const topModels = modelRows.length ? modelRows.map(function(r,i){ return _dashBar(r[0], r[1], mMax, {color:'var(--red)', labelW:135, onClick:'dashSelectModel('+i+')', active: r[0]===_dashSelModel}); }).join('') : _dashEmpty();
 
   // ---------- ⭐ Interest vs conversion by model (customers.interest_model) ----------
   const im = {};
@@ -1489,11 +1499,17 @@ function renderDashboard(){
     }).join('');
   } else { starInner = _dashEmpty('ยังไม่มีข้อมูลรุ่นที่สนใจในตารางลูกค้า'); }
 
-  // ---------- Color demand (leads, exclude tradein) ----------
-  const colorC = _dashCountBy(leads.filter(function(l){ return l.lead_type!=='tradein'; }), function(l){ return (l.color||'').trim(); });
-  const colorRows = _dashTop(colorC, 10);
-  const cMax = Math.max(1, colorRows.map(function(r){return r[1];}).reduce(function(a,b){return Math.max(a,b);},0));
-  const colors = colorRows.length ? colorRows.map(function(r){ return _dashBar(r[0], r[1], cMax, {color:'#8e24aa', labelW:135}); }).join('') : _dashEmpty();
+  // ---------- Color demand by SELECTED model (drill-down จากรุ่นยอดนิยม) ----------
+  let colors;
+  if (_dashSelModel) {
+    const selColorC = _dashCountBy(leads.filter(function(l){ return l.lead_type!=='tradein' && (l.model||'').trim()===_dashSelModel; }), function(l){ return (l.color||'').trim(); });
+    const selRows = _dashTop(selColorC, 12);
+    const scMax = Math.max(1, selRows.map(function(r){return r[1];}).reduce(function(a,b){return Math.max(a,b);},0));
+    const head = '<div style="font-size:0.76rem;color:var(--text2);margin-bottom:8px;">สีที่สนใจของรุ่น <b style="color:var(--red);">'+_dashEsc(_dashSelModel)+'</b></div>';
+    colors = head + (selRows.length ? selRows.map(function(r){ return _dashBar(r[0], r[1], scMax, {color:'#8e24aa', labelW:130}); }).join('') : _dashEmpty('รุ่นนี้ยังไม่มีข้อมูลสี'));
+  } else {
+    colors = _dashEmpty('กดที่รุ่นในกราฟ "รุ่นยอดนิยม" เพื่อดูสีที่ลูกค้าสนใจ');
+  }
 
   // ---------- Lead type mix ----------
   const ltLabel = { installment:'ผ่อน (ค่างวด)', cash:'เงินสด', tradein:'เทิร์นรถ', testride:'ทดลองขับ' };
@@ -1561,8 +1577,8 @@ function renderDashboard(){
   const grid = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1rem;align-items:start;">'
     + _dashCard('🔻 ช่องทางการขาย (Funnel)', funnel, 'สถานะลูกค้า')
     + _dashCard('⭐ รุ่นที่สนใจ vs ปิดได้', starInner, 'เรียงตามที่ยังปิดไม่ได้')
-    + _dashCard('🏍️ รุ่นยอดนิยม (ลีด)', topModels, 'ไม่รวมรถเทิร์น')
-    + _dashCard('🎨 สีที่นิยม', colors, 'ไม่รวมรถเทิร์น')
+    + _dashCard('🏍️ รุ่นยอดนิยม (ลีด)', topModels, '👆 กดที่รุ่นเพื่อดูสี')
+    + _dashCard('🎨 สีที่ลูกค้าสนใจ (ตามรุ่น)', colors, 'ไม่รวมรถเทิร์น')
     + _dashCard('📋 ประเภทลีด', leadType)
     + _dashCard('💳 ผ่อน vs เงินสด', payType)
     + _dashCard('💰 เงินดาวน์', downPay, downVals.length && downMode==='pct' ? 'เป็น %' : '')
