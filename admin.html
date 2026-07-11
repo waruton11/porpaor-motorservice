@@ -1524,19 +1524,73 @@ function renderDashboard(){
   const payKeys = ['installment','cash'].filter(function(k){ return payC[k]; });
   const payType = payKeys.length ? payKeys.map(function(k){ return _dashBar(k==='installment'?'ผ่อน':'เงินสด', payC[k], payMax, {color: k==='installment'?'#5c6bc0':'#43a047', labelW:70}); }).join('') : _dashEmpty('ลีดยังไม่ได้ระบุวิธีชำระ');
 
-  // ---------- Down payment distribution ----------
+  // ---------- Down payment distribution (จัดเป็นช่วง %) ----------
   const downVals = leads.map(function(l){ return l.down_pct; }).filter(function(v){ return v!=null && v!==''; }).map(Number).filter(function(v){ return !isNaN(v); });
-  const downMode = downVals.length && Math.max.apply(null, downVals) <= 100 ? 'pct' : 'baht';
-  const downC = {}; downVals.forEach(function(v){ downC[v]=(downC[v]||0)+1; });
-  const downRows = Object.keys(downC).map(function(k){ return [Number(k), downC[k]]; }).sort(function(a,b){ return a[0]-b[0]; });
-  const dMax = Math.max(1, downRows.map(function(r){return r[1];}).reduce(function(a,b){return Math.max(a,b);},0));
-  const downPay = downRows.length ? downRows.map(function(r){ const lab = downMode==='pct' ? (r[0]+'%') : ('฿'+r[0].toLocaleString('th-TH')); return _dashBar(lab, r[1], dMax, {color:'#fb8c00', labelW:85}); }).join('') : _dashEmpty();
+  const dBuckets = [
+    { lab:'0% (ไม่วางดาวน์)', test:function(v){ return v<=0; } },
+    { lab:'1–10%',        test:function(v){ return v>0  && v<=10; } },
+    { lab:'11–20%',       test:function(v){ return v>10 && v<=20; } },
+    { lab:'21–30%',       test:function(v){ return v>20 && v<=30; } },
+    { lab:'31–50%',       test:function(v){ return v>30 && v<=50; } },
+    { lab:'มากกว่า 50%',   test:function(v){ return v>50; } }
+  ];
+  const dCounts = dBuckets.map(function(b){ return downVals.filter(b.test).length; });
+  const dMax = Math.max(1, dCounts.reduce(function(a,b){ return Math.max(a,b); }, 0));
+  const downPay = downVals.length ? dBuckets.map(function(b,i){ return _dashBar(b.lab, dCounts[i], dMax, {color:'#fb8c00', labelW:120}); }).join('') : _dashEmpty();
 
   // ---------- Term (period) distribution ----------
   const perC = _dashCountBy(leads.filter(function(l){ return l.period!=null && l.period!==''; }), function(l){ return l.period; });
   const perRows = Object.keys(perC).map(function(k){ return [Number(k), perC[k]]; }).sort(function(a,b){ return a[0]-b[0]; });
   const pMax = Math.max(1, perRows.map(function(r){return r[1];}).reduce(function(a,b){return Math.max(a,b);},0));
   const term = perRows.length ? perRows.map(function(r){ return _dashBar(r[0]+' งวด', r[1], pMax, {color:'#3949ab', labelW:85}); }).join('') : _dashEmpty();
+
+  // ---------- 💪 ความพร้อมทางการเงิน (รวมเงินดาวน์ + จำนวนงวด → ดัชนี 0–100) ----------
+  const finLeads = leads.filter(function(l){
+    const isInst = l.lead_type==='installment' || l.pay_type==='installment';
+    return isInst && l.down_pct!=null && l.down_pct!=='' && l.period!=null && l.period!=='';
+  });
+  function _dashReadiness(l){
+    const d = Number(l.down_pct)||0, t = Number(l.period)||60;
+    const ds = Math.min(Math.max(d,0),30)/30*50;       // ดาวน์ 0→0, ≥30%→50 คะแนน
+    const ts = Math.max(0, Math.min(1, (60-t)/48))*50;  // งวด 60→0, ≤12→50 คะแนน
+    return Math.round(ds + ts);
+  }
+  let finInner;
+  if (finLeads.length) {
+    const finScores = finLeads.map(_dashReadiness);
+    const finAvg  = Math.round(finScores.reduce(function(a,b){return a+b;},0)/finScores.length);
+    const finDown = Math.round(finLeads.reduce(function(a,l){return a+(Number(l.down_pct)||0);},0)/finLeads.length);
+    const finTerm = Math.round(finLeads.reduce(function(a,l){return a+(Number(l.period)||0);},0)/finLeads.length);
+    const finColor = finAvg>=60?'#22aa55':(finAvg>=35?'#f9a825':'#e53935');
+    const finLevels = [
+      { lab:'🟢 พร้อมสูง (60+)',   color:'#22aa55', test:function(s){return s>=60;} },
+      { lab:'🟡 ปานกลาง (35–59)', color:'#f9a825', test:function(s){return s>=35 && s<60;} },
+      { lab:'🔴 พร้อมน้อย (<35)',  color:'#e53935', test:function(s){return s<35;} }
+    ];
+    const finLvBars = finLevels.map(function(x){ return _dashBar(x.lab, finScores.filter(x.test).length, finLeads.length, {color:x.color, labelW:130}); }).join('');
+    const finMon = {};
+    finLeads.forEach(function(l){ const dt=_dashThDate(l.created_at); if(!dt) return; const k=dt.getUTCFullYear()+'-'+String(dt.getUTCMonth()+1).padStart(2,'0'); if(!finMon[k]) finMon[k]={sum:0,n:0}; finMon[k].sum+=_dashReadiness(l); finMon[k].n++; });
+    const finMonKeys = Object.keys(finMon).sort().slice(-8);
+    const finTrendMax = Math.max(1, finMonKeys.map(function(k){return Math.round(finMon[k].sum/finMon[k].n);}).reduce(function(a,b){return Math.max(a,b);},0));
+    let finTrend = '<div style="font-size:0.72rem;font-weight:700;color:var(--text2);margin:12px 0 6px;">📈 ดัชนีเฉลี่ยรายเดือน (วัดกำลังซื้อ)</div><div style="display:flex;align-items:flex-end;gap:6px;height:74px;">';
+    finMonKeys.forEach(function(k){
+      const v = Math.round(finMon[k].sum/finMon[k].n);
+      const h = Math.round(v/finTrendMax*54);
+      const p = k.split('-'); const lab = TH_MONTHS[Number(p[1])-1]+' '+String((Number(p[0])+543)%100);
+      finTrend += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;" title="'+lab+' — ดัชนี '+v+'">'
+        + '<div style="font-size:0.58rem;font-weight:700;color:#3949ab;">'+v+'</div>'
+        + '<div style="width:62%;background:#3949ab;height:'+Math.max(h,3)+'px;border-radius:3px 3px 0 0;"></div>'
+        + '<div style="font-size:0.52rem;color:#aaa;">'+lab+'</div>'
+      + '</div>';
+    });
+    finTrend += '</div>';
+    finInner = '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px;">'
+      + '<span style="font-size:1.8rem;font-weight:800;color:'+finColor+';">'+finAvg+'</span>'
+      + '<span style="font-size:0.72rem;color:#999;">/100 · เฉลี่ยตอนนี้ (ดาวน์ '+finDown+'% · ผ่อน '+finTerm+' งวด)</span>'
+    + '</div>' + finLvBars + finTrend;
+  } else {
+    finInner = _dashEmpty('ยังไม่มีลีดผ่อนที่ระบุดาวน์ + งวด');
+  }
 
   // ---------- Leads by hour (staffing, TH time) ----------
   const hours = new Array(24).fill(0);
@@ -1581,8 +1635,9 @@ function renderDashboard(){
     + _dashCard('🎨 สีที่ลูกค้าสนใจ (ตามรุ่น)', colors, 'ไม่รวมรถเทิร์น')
     + _dashCard('📋 ประเภทลีด', leadType)
     + _dashCard('💳 ผ่อน vs เงินสด', payType)
-    + _dashCard('💰 เงินดาวน์', downPay, downVals.length && downMode==='pct' ? 'เป็น %' : '')
+    + _dashCard('💰 เงินดาวน์', downPay, 'ตามช่วง %')
     + _dashCard('📆 จำนวนงวด', term)
+    + _dashCard('💪 ความพร้อมทางการเงิน', finInner, 'ดาวน์+งวด → ดัชนี 0–100')
     + _dashCard('🕐 ลีดรายชั่วโมง', byHour, 'เวลาไทย')
     + _dashCard('📈 แนวโน้มรายเดือน', monthly)
     + _dashCard('⏳ อายุลีดค้าง', aging, 'รอติดต่อ')
