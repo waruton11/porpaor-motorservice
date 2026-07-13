@@ -66,7 +66,7 @@
       "position": [1060, 200],
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id, lead_type, model, variant, color, pay_type, down_pct, installment, period, price, created_at, line_user_id FROM leads ORDER BY created_at DESC;",
+        "query": "SELECT id, lead_type, model, variant, color, pay_type, down_pct, installment, period, price, created_at, line_user_id, lang FROM leads ORDER BY created_at DESC;",
         "options": {}
       },
       "credentials": { "postgres": { "name": "Postgres account" } }

@@ -1367,6 +1367,10 @@ function _dashKpi(label, value, color, sub){
   + '</div>';
 }
 function _dashEmpty(msg){ return '<div style="color:#bbb;font-size:0.82rem;padding:0.6rem 0;">'+(msg||'ยังไม่มีข้อมูล')+'</div>'; }
+function _dashSection(title, cards){
+  return '<div style="font-size:0.98rem;font-weight:700;color:var(--text);margin:1.5rem 0 0.8rem;padding-bottom:5px;border-bottom:2px solid var(--gray2);">'+title+'</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;align-items:start;">'+cards+'</div>';
+}
 
 async function loadDashboard(){
   const body = document.getElementById('dashBody');
@@ -1627,23 +1631,57 @@ function renderDashboard(){
   const agMax = Math.max(1, Object.keys(agB).map(function(k){return agB[k];}).reduce(function(a,b){return Math.max(a,b);},0));
   const aging = newCust ? Object.keys(agB).map(function(k){ return _dashBar(k, agB[k], agMax, {color:agColor[k], labelW:70}); }).join('') : _dashEmpty('ไม่มีลีดค้างรอติดต่อ 🎉');
 
-  // ---------- Assemble ----------
-  const grid = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1rem;align-items:start;">'
-    + _dashCard('🔻 ช่องทางการขาย (Funnel)', funnel, 'สถานะลูกค้า')
-    + _dashCard('⭐ รุ่นที่สนใจ vs ปิดได้', starInner, 'เรียงตามที่ยังปิดไม่ได้')
-    + _dashCard('🏍️ รุ่นยอดนิยม (ลีด)', topModels, '👆 กดที่รุ่นเพื่อดูสี')
-    + _dashCard('🎨 สีที่ลูกค้าสนใจ (ตามรุ่น)', colors, 'ไม่รวมรถเทิร์น')
-    + _dashCard('📋 ประเภทลีด', leadType)
-    + _dashCard('💳 ผ่อน vs เงินสด', payType)
-    + _dashCard('💰 เงินดาวน์', downPay, 'ตามช่วง %')
-    + _dashCard('📆 จำนวนงวด', term)
-    + _dashCard('💪 ความพร้อมทางการเงิน', finInner, 'ดาวน์+งวด → ดัชนี 0–100')
-    + _dashCard('🕐 ลีดรายชั่วโมง', byHour, 'เวลาไทย')
-    + _dashCard('📈 แนวโน้มรายเดือน', monthly)
-    + _dashCard('⏳ อายุลีดค้าง', aging, 'รอติดต่อ')
-  + '</div>';
+  // ---------- 🌏 ไทย vs พม่า (lang — forward-only) ----------
+  const langC = { th:0, my:0, unknown:0 };
+  leads.forEach(function(l){ const lg=(l.lang||'').toLowerCase(); if(lg==='my') langC.my++; else if(lg==='th') langC.th++; else langC.unknown++; });
+  const langKnown = langC.th + langC.my;
+  const langMax = Math.max(1, langC.th, langC.my, langC.unknown);
+  let langInner;
+  if (leads.length) {
+    const myPct = langKnown ? Math.round(langC.my/langKnown*100) : 0;
+    langInner = _dashBar('🇹🇭 ไทย', langC.th, langMax, {color:'#2e7d32', labelW:80})
+      + _dashBar('🇲🇲 พม่า', langC.my, langMax, {color:'#d24726', labelW:80})
+      + (langC.unknown ? _dashBar('ไม่ระบุ (ลีดเก่า)', langC.unknown, langMax, {color:'#9e9e9e', labelW:110}) : '')
+      + (langKnown
+          ? '<div style="font-size:0.74rem;color:var(--text2);margin-top:8px;">ในลีดที่ระบุภาษา: พม่า <b style="color:#d24726;">'+myPct+'%</b> · ไทย <b style="color:#2e7d32;">'+(100-myPct)+'%</b></div>'
+          : '<div style="font-size:0.74rem;color:#e08a00;margin-top:8px;">⏳ เพิ่งเริ่มเก็บภาษา — ตัวเลขจะขึ้นเมื่อมีลีดใหม่เข้ามา (ลีดเก่าไม่มีข้อมูลย้อนหลัง)</div>');
+  } else { langInner = _dashEmpty(); }
+  function _langTopModels(lg){
+    const c = _dashCountBy(leads.filter(function(l){ return l.lead_type!=='tradein' && (l.lang||'').toLowerCase()===lg; }), function(l){ return (l.model||'').trim(); });
+    return _dashTop(c, 5);
+  }
+  function _langModelCol(flag, rows){
+    const inner = rows.length
+      ? rows.map(function(r){ return '<div style="display:flex;justify-content:space-between;gap:6px;font-size:0.76rem;padding:3px 0;border-bottom:1px solid #f2f2f2;"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+_dashEsc(r[0])+'</span><b style="flex-shrink:0;">'+r[1]+'</b></div>'; }).join('')
+      : '<div style="color:#bbb;font-size:0.76rem;padding:4px 0;">ยังไม่มี</div>';
+    return '<div style="flex:1;min-width:135px;"><div style="font-size:0.8rem;font-weight:700;margin-bottom:5px;">'+flag+'</div>'+inner+'</div>';
+  }
+  const langModelsInner = '<div style="display:flex;gap:16px;flex-wrap:wrap;">'
+    + _langModelCol('🇹🇭 ไทยสนใจ', _langTopModels('th'))
+    + _langModelCol('🇲🇲 พม่าสนใจ', _langTopModels('my'))
+    + '</div>';
 
-  body.innerHTML = kpi + grid;
+  // ---------- Assemble (จัดเป็นหมวดให้อ่านง่าย) ----------
+  body.innerHTML = kpi
+    + _dashSection('🌏 ลูกค้าไทย vs พม่า',
+        _dashCard('🌏 สัดส่วนภาษา', langInner, 'เก็บใหม่ forward-only')
+      + _dashCard('🏍️ รุ่นที่แต่ละภาษาสนใจ', langModelsInner, 'Top 5'))
+    + _dashSection('🎯 ความสนใจของลูกค้า',
+        _dashCard('🏍️ รุ่นยอดนิยม (ลีด)', topModels, '👆 กดที่รุ่นเพื่อดูสี')
+      + _dashCard('🎨 สีที่ลูกค้าสนใจ (ตามรุ่น)', colors, 'ไม่รวมรถเทิร์น')
+      + _dashCard('⭐ รุ่นที่สนใจ vs ปิดได้', starInner, 'เรียงตามที่ยังปิดไม่ได้')
+      + _dashCard('📋 ประเภทลีด', leadType))
+    + _dashSection('💰 การเงิน & ความพร้อมของลูกค้า',
+        _dashCard('💪 ความพร้อมทางการเงิน', finInner, 'ดาวน์+งวด → ดัชนี 0–100')
+      + _dashCard('💳 ผ่อน vs เงินสด', payType)
+      + _dashCard('💰 เงินดาวน์', downPay, 'ตามช่วง %')
+      + _dashCard('📆 จำนวนงวด', term))
+    + _dashSection('📊 ช่องทางการขาย & งานค้าง',
+        _dashCard('🔻 ช่องทางการขาย (Funnel)', funnel, 'สถานะลูกค้า')
+      + _dashCard('⏳ อายุลีดค้าง', aging, 'รอติดต่อ'))
+    + _dashSection('🕐 เวลา & แนวโน้ม',
+        _dashCard('🕐 ลีดรายชั่วโมง', byHour, 'เวลาไทย')
+      + _dashCard('📈 แนวโน้มรายเดือน', monthly));
 }
 
 // ========== USERS (จัดการเซล) ==========
