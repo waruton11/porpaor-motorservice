@@ -59,21 +59,30 @@
       }
     },
     {
-      "id": "ga-http",
-      "name": "GA4 runReport",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "id": "ga-report",
+      "name": "GA4 Report",
+      "type": "n8n-nodes-base.googleAnalytics",
+      "typeVersion": 2,
       "position": [1060, 200],
       "onError": "continueErrorOutput",
       "parameters": {
-        "method": "POST",
-        "url": "https://analyticsdata.googleapis.com/v1beta/properties/544999102:runReport",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "googleAnalyticsOAuth2Api",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"dateRanges\": [{ \"startDate\": \"29daysAgo\", \"endDate\": \"today\" }],\n  \"dimensions\": [{ \"name\": \"date\" }],\n  \"metrics\": [{ \"name\": \"activeUsers\" }, { \"name\": \"screenPageViews\" }],\n  \"orderBys\": [{ \"dimension\": { \"dimensionName\": \"date\" } }]\n}",
-        "options": {}
+        "propertyType": "ga4",
+        "resource": "report",
+        "operation": "get",
+        "propertyId": "544999102",
+        "dateRange": "last30days",
+        "metricsGA4": {
+          "metricValues": [
+            { "listName": "totalUsers" },
+            { "listName": "screenPageViews" }
+          ]
+        },
+        "dimensionsGA4": {
+          "dimensionValues": [
+            { "listName": "date" }
+          ]
+        },
+        "additionalFields": {}
       },
       "credentials": { "googleAnalyticsOAuth2Api": { "name": "Google Analytics account" } }
     },
@@ -85,7 +94,7 @@
       "position": [1280, 200],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const r = ($input.first() && $input.first().json) || {};\nconst src = Array.isArray(r.rows) ? r.rows : [];\nconst rows = src.map(function(row){\n  const d = (row.dimensionValues && row.dimensionValues[0] && row.dimensionValues[0].value) || '';\n  const users = Number((row.metricValues && row.metricValues[0] && row.metricValues[0].value) || 0);\n  const views = Number((row.metricValues && row.metricValues[1] && row.metricValues[1].value) || 0);\n  return { date: d, users: users, views: views };\n});\nreturn [{ json: { ok: true, rows } }];"
+        "jsCode": "const all = $input.all().map(i => i.json);\nlet rows = [];\nfunction fromRaw(r){\n  const d = (r.dimensionValues && r.dimensionValues[0] && r.dimensionValues[0].value) || '';\n  const users = Number((r.metricValues && r.metricValues[0] && r.metricValues[0].value) || 0);\n  const views = Number((r.metricValues && r.metricValues[1] && r.metricValues[1].value) || 0);\n  return { date: String(d), users, views };\n}\nif (all.length && Array.isArray(all[0].rows)) {\n  rows = all[0].rows.map(fromRaw);\n} else {\n  rows = all.map(function(r){\n    if (Array.isArray(r.dimensionValues)) return fromRaw(r);\n    return { date: String(r.date || ''), users: Number(r.totalUsers || r.activeUsers || r.active1DayUsers || r.newUsers || 0), views: Number(r.screenPageViews || r.pageViews || 0) };\n  });\n}\nrows = rows.filter(function(r){ return r.date; });\nreturn [{ json: { ok: true, rows } }];"
       }
     },
     {
@@ -137,11 +146,11 @@
     "Verify session": { "main": [ [ { "node": "Authorized?", "type": "main", "index": 0 } ] ] },
     "Authorized?": {
       "main": [
-        [ { "node": "GA4 runReport", "type": "main", "index": 0 } ],
+        [ { "node": "GA4 Report", "type": "main", "index": 0 } ],
         [ { "node": "Respond 401", "type": "main", "index": 0 } ]
       ]
     },
-    "GA4 runReport": {
+    "GA4 Report": {
       "main": [
         [ { "node": "Shape rows", "type": "main", "index": 0 } ],
         [ { "node": "Respond GA error", "type": "main", "index": 0 } ]
