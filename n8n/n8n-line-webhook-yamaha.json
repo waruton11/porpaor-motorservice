@@ -6,7 +6,10 @@
       "name": "POST push-lead-card-yamaha",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [200, 300],
+      "position": [
+        200,
+        300
+      ],
       "webhookId": "push-lead-card-yamaha",
       "parameters": {
         "httpMethod": "POST",
@@ -20,7 +23,10 @@
       "name": "Build push",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [420, 300],
+      "position": [
+        420,
+        300
+      ],
       "parameters": {
         "mode": "runOnceForAllItems",
         "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst userId = body.userId;\nconst message = body.message;\nif (!userId || !message) return [{ json: { ok: false, skip: true } }];\nreturn [{ json: { userId, message, token: 'YAMAHA_TOKEN_HERE' } }];"
@@ -31,20 +37,35 @@
       "name": "LINE Push",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [640, 300],
+      "position": [
+        640,
+        300
+      ],
       "onError": "continueRegularOutput",
       "parameters": {
         "method": "POST",
         "url": "https://api.line.me/v2/bot/message/push",
         "sendHeaders": true,
         "headerParameters": {
-          "parameters": [{ "name": "Authorization", "value": "={{ 'Bearer ' + $json.token }}" }]
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $json.token }}"
+            }
+          ]
         },
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
         "body": "={{ JSON.stringify({ to: $json.userId, messages: [$json.message] }) }}",
-        "options": { "response": { "response": { "fullResponse": true, "neverError": true } } }
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
       }
     },
     {
@@ -52,7 +73,10 @@
       "name": "Check Result",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [860, 300],
+      "position": [
+        860,
+        300
+      ],
       "parameters": {
         "mode": "runOnceForAllItems",
         "jsCode": "const r = $input.first().json || {};\nconst status = r.statusCode || r.status || 0;\nreturn [{ json: { ok: status >= 200 && status < 300, status } }];"
@@ -63,7 +87,10 @@
       "name": "Respond",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1080, 300],
+      "position": [
+        1080,
+        300
+      ],
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ JSON.stringify({ ok: $json.ok, status: $json.status }) }}",
@@ -75,7 +102,10 @@
       "name": "POST ack-lead-yamaha",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [200, 520],
+      "position": [
+        200,
+        520
+      ],
       "webhookId": "ack-lead-yamaha",
       "parameters": {
         "httpMethod": "POST",
@@ -89,7 +119,10 @@
       "name": "Build ack",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [420, 520],
+      "position": [
+        420,
+        520
+      ],
       "parameters": {
         "mode": "runOnceForAllItems",
         "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst userId = body.userId;\nif (!userId) return [{ json: { skip: true } }];\n\nfunction qr(items) {\n  return { items: items.map(it => ({ type: 'action', action: { type: 'message', label: it.label, text: it.text } })) };\n}\n\nconst message = {\n  type: 'text',\n  text: 'ขอบคุณที่สนใจ Yamaha กับ สิงห์ชัยสยามยนต์ครับ 🙏\\nทีมงานได้รับรุ่นที่คุณเลือกแล้ว เดี๋ยวเจ้าหน้าที่ติดต่อกลับนะครับ\\n\\nสะดวกให้ติดต่อแบบไหนดีครับ?',\n  quickReply: qr([\n    { label: '📞 โทรได้เลย', text: 'พร้อมให้โทรได้เลย' },\n    { label: '⏰ นัดเวลาโทร', text: 'ขอนัดเวลาให้โทร' },\n    { label: '💬 ขอแชทก่อน', text: 'ขอสอบถามทางแชทก่อน' }\n  ])\n};\n\nreturn [{ json: { userId, message, token: 'YAMAHA_TOKEN_HERE' } }];"
@@ -100,14 +133,22 @@
       "name": "Show Typing",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [640, 520],
+      "position": [
+        640,
+        520
+      ],
       "onError": "continueRegularOutput",
       "parameters": {
         "method": "POST",
         "url": "https://api.line.me/v2/bot/chat/loading/start",
         "sendHeaders": true,
         "headerParameters": {
-          "parameters": [{ "name": "Authorization", "value": "={{ 'Bearer ' + $('Build ack').item.json.token }}" }]
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('Build ack').item.json.token }}"
+            }
+          ]
         },
         "sendBody": true,
         "contentType": "raw",
@@ -121,22 +162,36 @@
       "name": "Wait 2s",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
-      "position": [860, 520],
+      "position": [
+        860,
+        520
+      ],
       "webhookId": "wait-ack-yamaha",
-      "parameters": { "amount": 2, "unit": "seconds" }
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
+      }
     },
     {
       "id": "y1-ack-003",
       "name": "LINE Push 2",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1080, 520],
+      "position": [
+        1080,
+        520
+      ],
       "parameters": {
         "method": "POST",
         "url": "https://api.line.me/v2/bot/message/push",
         "sendHeaders": true,
         "headerParameters": {
-          "parameters": [{ "name": "Authorization", "value": "={{ 'Bearer ' + $('Build ack').item.json.token }}" }]
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('Build ack').item.json.token }}"
+            }
+          ]
         },
         "sendBody": true,
         "contentType": "raw",
@@ -150,7 +205,10 @@
       "name": "Respond OK",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1300, 520],
+      "position": [
+        1300,
+        520
+      ],
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ JSON.stringify({ ok: true }) }}",
@@ -162,7 +220,10 @@
       "name": "LINE Webhook Yamaha",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [200, 740],
+      "position": [
+        200,
+        740
+      ],
       "webhookId": "line-oa-yamaha",
       "parameters": {
         "httpMethod": "POST",
@@ -176,7 +237,10 @@
       "name": "Process LINE Events",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [420, 740],
+      "position": [
+        420,
+        740
+      ],
       "parameters": {
         "mode": "runOnceForAllItems",
         "jsCode": "const TOKEN = 'YAMAHA_TOKEN_HERE';\nconst LIFF_URL = 'https://liff.line.me/2010557863-oPg9ROHK';\nconst BRAND_COLOR = '#0a3aa0';\n// ... (see IMPORT-LINE-yamaha.json for full bot logic)"
@@ -187,14 +251,22 @@
       "name": "Show Typing 3",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [640, 740],
+      "position": [
+        640,
+        740
+      ],
       "onError": "continueRegularOutput",
       "parameters": {
         "method": "POST",
         "url": "https://api.line.me/v2/bot/chat/loading/start",
         "sendHeaders": true,
         "headerParameters": {
-          "parameters": [{ "name": "Authorization", "value": "={{ 'Bearer ' + $('Process LINE Events').item.json.token }}" }]
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('Process LINE Events').item.json.token }}"
+            }
+          ]
         },
         "sendBody": true,
         "contentType": "raw",
@@ -208,22 +280,36 @@
       "name": "Wait 2s 3",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
-      "position": [860, 740],
+      "position": [
+        860,
+        740
+      ],
       "webhookId": "wait-line-yamaha-reply",
-      "parameters": { "amount": 2, "unit": "seconds" }
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
+      }
     },
     {
       "id": "y2-oa-003",
       "name": "Send LINE Reply",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1080, 740],
+      "position": [
+        1080,
+        740
+      ],
       "parameters": {
         "method": "POST",
         "url": "https://api.line.me/v2/bot/message/reply",
         "sendHeaders": true,
         "headerParameters": {
-          "parameters": [{ "name": "Authorization", "value": "={{ 'Bearer ' + $('Process LINE Events').item.json.token }}" }]
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('Process LINE Events').item.json.token }}"
+            }
+          ]
         },
         "sendBody": true,
         "contentType": "raw",
@@ -237,31 +323,226 @@
       "name": "Save Phone",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [640, 920],
+      "position": [
+        640,
+        920
+      ],
       "onError": "continueRegularOutput",
       "parameters": {
         "operation": "executeQuery",
         "query": "={{ $json.savePhone ? (\"UPDATE customers SET phone='\" + $json.savePhone + \"', last_seen=NOW() WHERE line_user_id='\" + $json.userId + \"'; UPDATE leads SET cust_phone='\" + $json.savePhone + \"' WHERE line_user_id='\" + $json.userId + \"' AND (cust_phone IS NULL OR cust_phone='');\") : \"SELECT 1;\" }}",
         "options": {}
       },
-      "credentials": { "postgres": { "name": "Postgres account" } }
+      "credentials": {
+        "postgres": {
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "y3-log-001",
+      "name": "Log Inbound Messages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        1120
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// เก็บเฉพาะข้อความตัวอักษรที่ลูกค้าพิมพ์เข้ามา — ระบบเก็บคำถามลูกค้าอัตโนมัติ (FAQ)\n// ทำงานเป็นสาขาแยกจาก bot reply: ไม่กระทบการตอบแชท และเก็บได้แม้เป็นคำถามที่ bot ไม่รู้จัก\n// เซ็นเซอร์เบอร์โทรก่อนบันทึก (PDPA) + escape ' กัน SQL injection จากข้อความลูกค้า\nconst body = $input.first().json.body || $input.first().json;\nconst events = body.events || [];\nconst esc = (s) => String(s).replace(/'/g, \"''\");\nconst rows = [];\nfor (const event of events) {\n  if (event.type !== 'message' || !event.message || event.message.type !== 'text') continue;\n  let text = (event.message.text || '').trim();\n  if (!text) continue;\n  // เซ็นเซอร์เบอร์โทร: ลำดับเลขที่ล้างแล้วยาว 9–10 หลัก (โทรศัพท์ไทย) → [เบอร์โทร]\n  text = text.replace(/0[\\d\\s-]{8,12}/g, (m) => {\n    const d = m.replace(/\\D/g, '');\n    return (d.length >= 9 && d.length <= 10) ? '[เบอร์โทร]' : m;\n  });\n  const userId = (event.source && event.source.userId) ? event.source.userId : '';\n  rows.push({ json: {\n    sql: \"INSERT INTO messages (line_user_id, brand, message_type, text) VALUES ('\"\n      + esc(userId) + \"', 'yamaha', 'text', '\" + esc(text) + \"');\"\n  }});\n}\nreturn rows;"
+      }
+    },
+    {
+      "id": "y3-log-002",
+      "name": "Save Message",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        640,
+        1120
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "name": "Postgres account"
+        }
+      }
     }
   ],
   "connections": {
-    "POST push-lead-card-yamaha": { "main": [[{ "node": "Build push", "type": "main", "index": 0 }]] },
-    "Build push": { "main": [[{ "node": "LINE Push", "type": "main", "index": 0 }]] },
-    "LINE Push": { "main": [[{ "node": "Check Result", "type": "main", "index": 0 }]] },
-    "Check Result": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] },
-    "POST ack-lead-yamaha": { "main": [[{ "node": "Build ack", "type": "main", "index": 0 }]] },
-    "Build ack": { "main": [[{ "node": "Show Typing", "type": "main", "index": 0 }]] },
-    "Show Typing": { "main": [[{ "node": "Wait 2s", "type": "main", "index": 0 }]] },
-    "Wait 2s": { "main": [[{ "node": "LINE Push 2", "type": "main", "index": 0 }]] },
-    "LINE Push 2": { "main": [[{ "node": "Respond OK", "type": "main", "index": 0 }]] },
-    "LINE Webhook Yamaha": { "main": [[{ "node": "Process LINE Events", "type": "main", "index": 0 }]] },
-    "Process LINE Events": { "main": [[{ "node": "Show Typing 3", "type": "main", "index": 0 }, { "node": "Save Phone", "type": "main", "index": 0 }]] },
-    "Show Typing 3": { "main": [[{ "node": "Wait 2s 3", "type": "main", "index": 0 }]] },
-    "Wait 2s 3": { "main": [[{ "node": "Send LINE Reply", "type": "main", "index": 0 }]] }
+    "POST push-lead-card-yamaha": {
+      "main": [
+        [
+          {
+            "node": "Build push",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build push": {
+      "main": [
+        [
+          {
+            "node": "LINE Push",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LINE Push": {
+      "main": [
+        [
+          {
+            "node": "Check Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Result": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST ack-lead-yamaha": {
+      "main": [
+        [
+          {
+            "node": "Build ack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build ack": {
+      "main": [
+        [
+          {
+            "node": "Show Typing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Show Typing": {
+      "main": [
+        [
+          {
+            "node": "Wait 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2s": {
+      "main": [
+        [
+          {
+            "node": "LINE Push 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LINE Push 2": {
+      "main": [
+        [
+          {
+            "node": "Respond OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LINE Webhook Yamaha": {
+      "main": [
+        [
+          {
+            "node": "Process LINE Events",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Inbound Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process LINE Events": {
+      "main": [
+        [
+          {
+            "node": "Show Typing 3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save Phone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Show Typing 3": {
+      "main": [
+        [
+          {
+            "node": "Wait 2s 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2s 3": {
+      "main": [
+        [
+          {
+            "node": "Send LINE Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Inbound Messages": {
+      "main": [
+        [
+          {
+            "node": "Save Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
   "active": true,
-  "settings": { "executionOrder": "v1" }
+  "settings": {
+    "executionOrder": "v1"
+  }
 }

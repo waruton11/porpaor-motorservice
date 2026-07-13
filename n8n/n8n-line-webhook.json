@@ -124,6 +124,41 @@
           "name": "Postgres account"
         }
       }
+    },
+    {
+      "id": "h3-log-001",
+      "name": "Log Inbound Messages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        1120
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// เก็บเฉพาะข้อความตัวอักษรที่ลูกค้าพิมพ์เข้ามา — ระบบเก็บคำถามลูกค้าอัตโนมัติ (FAQ)\n// ทำงานเป็นสาขาแยกจาก bot reply: ไม่กระทบการตอบแชท และเก็บได้แม้เป็นคำถามที่ bot ไม่รู้จัก\n// เซ็นเซอร์เบอร์โทรก่อนบันทึก (PDPA) + escape ' กัน SQL injection จากข้อความลูกค้า\nconst body = $input.first().json.body || $input.first().json;\nconst events = body.events || [];\nconst esc = (s) => String(s).replace(/'/g, \"''\");\nconst rows = [];\nfor (const event of events) {\n  if (event.type !== 'message' || !event.message || event.message.type !== 'text') continue;\n  let text = (event.message.text || '').trim();\n  if (!text) continue;\n  // เซ็นเซอร์เบอร์โทร: ลำดับเลขที่ล้างแล้วยาว 9–10 หลัก (โทรศัพท์ไทย) → [เบอร์โทร]\n  text = text.replace(/0[\\d\\s-]{8,12}/g, (m) => {\n    const d = m.replace(/\\D/g, '');\n    return (d.length >= 9 && d.length <= 10) ? '[เบอร์โทร]' : m;\n  });\n  const userId = (event.source && event.source.userId) ? event.source.userId : '';\n  rows.push({ json: {\n    sql: \"INSERT INTO messages (line_user_id, brand, message_type, text) VALUES ('\"\n      + esc(userId) + \"', 'honda', 'text', '\" + esc(text) + \"');\"\n  }});\n}\nreturn rows;"
+      }
+    },
+    {
+      "id": "h3-log-002",
+      "name": "Save Message",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        640,
+        1120
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "name": "Postgres account"
+        }
+      }
     }
   ],
   "connections": {
@@ -132,6 +167,11 @@
         [
           {
             "node": "Process LINE Events",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Inbound Messages",
             "type": "main",
             "index": 0
           }
@@ -170,6 +210,17 @@
         [
           {
             "node": "Send LINE Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Inbound Messages": {
+      "main": [
+        [
+          {
+            "node": "Save Message",
             "type": "main",
             "index": 0
           }

@@ -1322,6 +1322,7 @@ function showPage(id) {
 // ========== DASHBOARD (พฤติกรรมลูกค้า) ==========
 let _dashLeads = [];
 let _dashCust  = [];
+let _dashMsgs  = [];   // คำถาม/ข้อความลูกค้าจาก LINE OA (ระบบเก็บคำถามอัตโนมัติ — Yamaha)
 const TH_MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 let _dashSelModel = null;   // รุ่นที่เลือกดูสี (drill-down)
 let _dashModelRows = [];    // เก็บ modelRows ปัจจุบันไว้ให้ปุ่มกดอ้างอิงตาม index (เลี่ยงปัญหา escape ชื่อรุ่น)
@@ -1383,17 +1384,20 @@ async function loadDashboard(){
   try {
     const results = await Promise.all([
       apiFetch('https://n8n-wt11.onrender.com/webhook/leads-stats'),
-      apiFetch('https://n8n-wt11.onrender.com/webhook/customers')
+      apiFetch('https://n8n-wt11.onrender.com/webhook/customers'),
+      apiFetch('https://n8n-wt11.onrender.com/webhook/messages-stats').catch(function(){ return { ok:false }; })
     ]);
     _dashLeads = results[0].ok ? await results[0].json() : [];
     _dashCust  = results[1].ok ? await results[1].json() : [];
+    _dashMsgs  = (results[2] && results[2].ok) ? await results[2].json() : [];
     if (!Array.isArray(_dashLeads)) _dashLeads = [];
     if (!Array.isArray(_dashCust))  _dashCust  = [];
+    if (!Array.isArray(_dashMsgs))  _dashMsgs  = [];
   } catch(e) { console.warn('loadDashboard', e.message); }
   const info = document.getElementById('dashInfo');
   if (info) {
     const t = new Date().toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
-    info.textContent = 'อัปเดต ' + t + ' · ' + _dashLeads.length + ' ลีด · ' + _dashCust.length + ' ลูกค้า';
+    info.textContent = 'อัปเดต ' + t + ' · ' + _dashLeads.length + ' ลีด · ' + _dashCust.length + ' ลูกค้า · ' + _dashMsgs.length + ' ข้อความ';
   }
   renderDashboard();
   loadGaStats(); // คนเข้าเว็บรายวัน (GA4) — โหลดแยก ไม่ให้พังกระทบกราฟหลัก
@@ -1507,6 +1511,7 @@ function _dashBounds(){
   function c(iso){ if(!iso) return; if(!min||iso<min) min=iso; if(!max||iso>max) max=iso; }
   _dashLeads.forEach(function(l){ c(_dashIsoOf(l.created_at)); });
   _dashCust.forEach(function(x){ c(_dashIsoOf(x.first_seen||x.last_seen||x.created_at)); });
+  _dashMsgs.forEach(function(m){ c(_dashIsoOf(m.created_at)); });
   _gaRows.forEach(function(r){ c(_gaIso(r.date)); });
   return { min:min, max:max };
 }
@@ -1517,6 +1522,31 @@ function dashSetDates(){
   renderDashboard(); _gaDrawCard();
 }
 function dashResetDates(){ var b = _dashBounds(); _dashFrom = b.min; _dashTo = b.max; renderDashboard(); _gaDrawCard(); }
+
+// ดาวน์โหลดข้อความลูกค้าเป็นไฟล์ CSV (ตามช่วงวันที่/แบรนด์ที่เลือก) — ไว้ส่งให้ AI วิเคราะห์ต่อ
+function dashExportMessages(){
+  const brand = (document.getElementById('dashBrand')||{}).value || 'all';
+  const fromD = _dashFrom, toD = _dashTo;
+  function inR(iso){ return !iso || ((!fromD||iso>=fromD) && (!toD||iso<=toD)); }
+  const rows = _dashMsgs
+    .filter(function(m){ return inR(_dashIsoOf(m.created_at)); })
+    .filter(function(m){ return brand==='all' || (m.brand||'yamaha')===brand; })
+    .slice()
+    .sort(function(a,b){ return String(a.created_at).localeCompare(String(b.created_at)); });
+  if (!rows.length){ alert('ยังไม่มีข้อความให้ดาวน์โหลดในช่วง/แบรนด์ที่เลือก'); return; }
+  function cell(v){ v = String(v==null?'':v); return /[",\n\r]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
+  function dt(s){ const d=_dashThDate(s); if(!d) return ''; const p=function(n){return String(n).padStart(2,'0');}; return d.getUTCFullYear()+'-'+p(d.getUTCMonth()+1)+'-'+p(d.getUTCDate())+' '+p(d.getUTCHours())+':'+p(d.getUTCMinutes()); }
+  const lines = [['วันเวลา (ไทย)','แบรนด์','ประเภท','line_user_id','ข้อความ'].map(cell).join(',')];
+  rows.forEach(function(m){ lines.push([dt(m.created_at), m.brand||'', m.message_type||'', m.line_user_id||'', m.text||''].map(cell).join(',')); });
+  const csv = '﻿' + lines.join('\r\n');   // BOM ให้ Excel อ่านภาษาไทยถูก
+  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const fnBrand = (brand==='all') ? 'all' : brand;   // แยกไฟล์ตามแบรนด์ที่เลือก
+  a.href = url; a.download = fnBrand+'-messages-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 function renderDashboard(){
   const body = document.getElementById('dashBody');
@@ -1752,8 +1782,36 @@ function renderDashboard(){
     + _langModelCol('🇲🇲 พม่าสนใจ', _langTopModels('my'))
     + '</div>';
 
+  // ---------- 💬 ข้อความลูกค้าจาก LINE (ระบบเก็บคำถามอัตโนมัติ — Yamaha) ----------
+  // เก็บข้อมูลลง DB เพื่อดาวน์โหลดเป็นไฟล์ไปวิเคราะห์ต่อ (การจับกลุ่มคำถามทำทีหลังด้วย AI)
+  const msgs = _dashMsgs.filter(function(m){ return _inR(_dashIsoOf(m.created_at)); })
+    .filter(function(m){ return brand==='all' || (m.brand||'yamaha')===brand; });
+  // ปริมาณข้อความเข้า (3 ช่องย่อย)
+  const todayIso = _dashIsoOf(new Date().toISOString());
+  const msgToday = msgs.filter(function(m){ return _dashIsoOf(m.created_at)===todayIso; }).length;
+  const msgUsers = Object.keys(_dashCountBy(msgs, function(m){ return m.line_user_id; })).length;
+  let msgVolInner;
+  if (msgs.length) {
+    msgVolInner = '<div style="display:flex;gap:0.7rem;flex-wrap:wrap;">'
+      + _dashKpi('ข้อความในช่วงที่เลือก', msgs.length.toLocaleString('th-TH'), '#7b1fa2')
+      + _dashKpi('วันนี้', msgToday.toLocaleString('th-TH'), '#00897b')
+      + _dashKpi('ผู้ทักไม่ซ้ำ', msgUsers.toLocaleString('th-TH'), 'var(--blue)')
+    + '</div>';
+  } else {
+    msgVolInner = _dashEmpty('ยังไม่มีข้อความ — เปิดใช้เมื่อ import workflow เก็บข้อความแล้ว');
+  }
+  // การ์ดดาวน์โหลดไฟล์ (CSV) — ดึงข้อความไปให้ AI วิเคราะห์ต่อ
+  const dlDisabled = msgs.length ? '' : ' disabled style="opacity:.5;cursor:not-allowed;"';
+  const msgDownloadInner = '<div style="font-size:0.82rem;color:var(--text2);margin-bottom:12px;line-height:1.5;">'
+    + 'ดึงข้อความลูกค้าเป็นไฟล์ CSV (เปิดใน Excel ได้ / ส่งให้ AI วิเคราะห์ + จับกลุ่มคำถามต่อ)<br>'
+    + '<span style="color:#aaa;font-size:0.74rem;">เบอร์โทรถูกเซ็นเซอร์แล้ว · เลือกแบรนด์ (Honda/Yamaha) ด้านบนเพื่อแยกไฟล์</span></div>'
+    + '<button class="btn btn-primary btn-sm" onclick="dashExportMessages()"'+dlDisabled+'>⬇️ ดาวน์โหลด CSV ('+msgs.length.toLocaleString('th-TH')+' ข้อความ)</button>';
+
   // ---------- Assemble (จัดเป็นหมวดให้อ่านง่าย) ----------
   body.innerHTML = kpi
+    + _dashSection('💬 ข้อความลูกค้าจาก LINE (Honda + Yamaha)',
+        _dashCard('📨 ปริมาณข้อความเข้า', msgVolInner)
+      + _dashCard('📥 ดาวน์โหลดไฟล์ข้อความ', msgDownloadInner))
     + _dashSection('🌏 ลูกค้าไทย vs พม่า',
         _dashCard('🌏 สัดส่วนภาษา', langInner, 'เก็บใหม่ forward-only')
       + _dashCard('🏍️ รุ่นที่แต่ละภาษาสนใจ', langModelsInner, 'Top 5'))
