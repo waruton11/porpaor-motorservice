@@ -285,6 +285,11 @@ tr:hover td { background: #fafafa; }
             <option value="honda">🔴 Honda</option>
             <option value="yamaha">🔵 Yamaha</option>
           </select>
+          <span style="font-size:0.85rem;color:var(--text2);">ช่วงวันที่:</span>
+          <input type="date" id="dashFrom" onchange="dashSetDates()" style="padding:0.4rem 0.5rem;border:1.5px solid var(--gray2);border-radius:6px;font-size:0.85rem;">
+          <span style="font-size:0.85rem;color:var(--text2);">ถึง</span>
+          <input type="date" id="dashTo" onchange="dashSetDates()" style="padding:0.4rem 0.5rem;border:1.5px solid var(--gray2);border-radius:6px;font-size:0.85rem;">
+          <a onclick="dashResetDates()" style="cursor:pointer;color:var(--green);font-size:0.82rem;white-space:nowrap;">ทั้งหมด</a>
           <button class="btn btn-gray btn-sm" onclick="loadDashboard()">🔄 รีเฟรช</button>
           <span id="dashInfo" style="font-size:0.72rem;color:#999;white-space:nowrap;"></span>
         </div>
@@ -1396,8 +1401,8 @@ async function loadDashboard(){
 
 // ===== คนเข้าเว็บรายวันจาก Google Analytics (GA4 Data API ผ่าน n8n ga-stats) =====
 var _gaRows = [];   // ข้อมูลดิบทั้งหมดที่ดึงมา (สูงสุด 30 วันจาก workflow)
-var _gaFrom = '';   // วันเริ่ม (YYYY-MM-DD) — '' = อัตโนมัติ = วันแรกที่มีข้อมูล
-var _gaTo   = '';   // วันสิ้นสุด (YYYY-MM-DD) — '' = อัตโนมัติ = วันล่าสุด
+var _dashFrom = ''; // ช่วงวันที่ (YYYY-MM-DD) คุมทั้งแดชบอร์ด — '' = อัตโนมัติ = เต็มช่วงข้อมูล
+var _dashTo   = '';
 async function loadGaStats(){
   const el = document.getElementById('dashGa');
   if (!el) return;
@@ -1415,17 +1420,8 @@ async function loadGaStats(){
 }
 function renderGaCard(rows){
   _gaRows = Array.isArray(rows) ? rows.slice() : [];
-  _gaFrom = ''; _gaTo = '';   // รีเซ็ตเป็นช่วงเต็มทุกครั้งที่โหลดข้อมูลใหม่
   _gaDrawCard();
 }
-function gaSetDates(){
-  const f = document.getElementById('gaFrom');
-  const t = document.getElementById('gaTo');
-  if (f) _gaFrom = f.value;
-  if (t) _gaTo = t.value;
-  _gaDrawCard();
-}
-function gaResetDates(){ _gaFrom = ''; _gaTo = ''; _gaDrawCard(); }
 function _gaIso(d){ return (d && d.length===8) ? (d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8)) : ''; }
 function _gaDrawCard(){
   const el = document.getElementById('dashGa');
@@ -1456,24 +1452,12 @@ function _gaDrawCard(){
       + '<div style="color:#bbb;font-size:0.85rem;margin-top:8px;">ยังไม่มีข้อมูลผู้เข้าชมสำหรับแบรนด์นี้</div></div>';
     return;
   }
-  // ช่วงวันที่มีข้อมูล (YYYYMMDD เรียงจากน้อยไปมาก)
-  const dates = rows2.map(function(r){ return r.date; }).sort();
-  const dmin = dates[0] || '', dmax = dates[dates.length-1] || '';
-  if (!_gaFrom) _gaFrom = _gaIso(dmin);
-  if (!_gaTo)   _gaTo   = _gaIso(dmax);
-  let fromCmp = _gaFrom.replace(/-/g,''), toCmp = _gaTo.replace(/-/g,'');
+  // ใช้ช่วงวันที่รวมของแดชบอร์ด (_dashFrom/_dashTo) เป็นตัวกรองเดียว
+  let fromCmp = (_dashFrom||'').replace(/-/g,''), toCmp = (_dashTo||'').replace(/-/g,'');
   if (fromCmp && toCmp && fromCmp > toCmp) { const tmp = fromCmp; fromCmp = toCmp; toCmp = tmp; }
-  // ตัวเลือกวันที่แบบปฏิทิน
-  const inp = 'border:1px solid #ddd;border-radius:6px;padding:2px 6px;font-size:0.72rem;color:#555;';
-  const picker = '<span style="display:flex;gap:5px;align-items:center;font-size:0.72rem;color:#888;">'
-    + '<input type="date" id="gaFrom" value="'+_gaFrom+'" min="'+_gaIso(dmin)+'" max="'+_gaIso(dmax)+'" onchange="gaSetDates()" style="'+inp+'">'
-    + '<span>ถึง</span>'
-    + '<input type="date" id="gaTo" value="'+_gaTo+'" min="'+_gaIso(dmin)+'" max="'+_gaIso(dmax)+'" onchange="gaSetDates()" style="'+inp+'">'
-    + '<a onclick="gaResetDates()" style="cursor:pointer;color:var(--green);white-space:nowrap;">ทั้งหมด</a>'
-    + '</span>';
-  const head = '<div class="card-title" style="flex-wrap:wrap;gap:6px;">'+titleB+picker+'</div>';
+  const head = '<div class="card-title">'+titleB+'</div>';
 
-  const last = rows2.filter(function(r){ const d = r.date; return d>=fromCmp && d<=toCmp; });
+  const last = rows2.filter(function(r){ const d = r.date; return (!fromCmp || d>=fromCmp) && (!toCmp || d<=toCmp); });
   const totalU = last.reduce(function(a,r){ return a + (r.users||0); }, 0);
   const totalV = last.reduce(function(a,r){ return a + (r.views||0); }, 0);
   if (!last.length) {
@@ -1505,7 +1489,7 @@ function _gaDrawCard(){
   });
   el.innerHTML = '<div class="card" style="margin-bottom:1rem;">'+head
     + '<div style="font-size:0.75rem;color:#999;margin:2px 0 6px;">'
-    +   'ช่วง '+_gaFrom+' ถึง '+_gaTo+' · รวม <b style="color:var(--green);">'+totalU.toLocaleString('th-TH')+'</b> คน · '
+    +   'ช่วง '+_dashFrom+' ถึง '+_dashTo+' · รวม <b style="color:var(--green);">'+totalU.toLocaleString('th-TH')+'</b> คน · '
     +   '<b>'+totalV.toLocaleString('th-TH')+'</b> วิว · จาก Google Analytics</div>'
     + '<div style="display:flex;align-items:flex-end;justify-content:flex-start;gap:3px;height:'+(H+10)+'px;">' + cols + '</div>'
     + '<div style="display:flex;gap:14px;align-items:center;font-size:0.68rem;color:#999;margin-top:6px;">'
@@ -1516,16 +1500,45 @@ function _gaDrawCard(){
   + '</div>';
 }
 
+// ===== ตัวกรองช่วงวันที่ (คุมทั้งแดชบอร์ด) =====
+function _dashIsoOf(ts){ const d = _dashThDate(ts); if(!d) return ''; return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); }
+function _dashBounds(){
+  var min='', max='';
+  function c(iso){ if(!iso) return; if(!min||iso<min) min=iso; if(!max||iso>max) max=iso; }
+  _dashLeads.forEach(function(l){ c(_dashIsoOf(l.created_at)); });
+  _dashCust.forEach(function(x){ c(_dashIsoOf(x.first_seen||x.last_seen||x.created_at)); });
+  _gaRows.forEach(function(r){ c(_gaIso(r.date)); });
+  return { min:min, max:max };
+}
+function dashSetDates(){
+  var f = document.getElementById('dashFrom'), t = document.getElementById('dashTo');
+  if (f) _dashFrom = f.value;
+  if (t) _dashTo = t.value;
+  renderDashboard(); _gaDrawCard();
+}
+function dashResetDates(){ var b = _dashBounds(); _dashFrom = b.min; _dashTo = b.max; renderDashboard(); _gaDrawCard(); }
+
 function renderDashboard(){
   const body = document.getElementById('dashBody');
   if (!body) return;
   const brand = (document.getElementById('dashBrand') || {}).value || 'all';
-  const leads = brand==='all' ? _dashLeads : _dashLeads.filter(function(l){ return _dashBrandOf(l.model)===brand; });
-  const cust  = brand==='all' ? _dashCust  : _dashCust.filter(function(c){ return _dashBrandOf(c.interest_model)===brand; });
+  // ช่วงวันที่ — ตั้งค่าเริ่มต้นเป็นเต็มช่วงข้อมูล + ซิงก์ช่องปฏิทินบนหัว
+  const bnd = _dashBounds();
+  if (!_dashFrom) _dashFrom = bnd.min;
+  if (!_dashTo)   _dashTo   = bnd.max;
+  const fEl = document.getElementById('dashFrom'), tEl = document.getElementById('dashTo');
+  if (fEl) { fEl.min = bnd.min; fEl.max = bnd.max; fEl.value = _dashFrom; }
+  if (tEl) { tEl.min = bnd.min; tEl.max = bnd.max; tEl.value = _dashTo; }
+  const _fromD = _dashFrom, _toD = _dashTo;
+  function _inR(iso){ return !iso || ((!_fromD || iso>=_fromD) && (!_toD || iso<=_toD)); }
+  const leads = _dashLeads.filter(function(l){ return _inR(_dashIsoOf(l.created_at)); })
+    .filter(function(l){ return brand==='all' || _dashBrandOf(l.model)===brand; });
+  const cust  = _dashCust.filter(function(c){ return _inR(_dashIsoOf(c.first_seen||c.last_seen||c.created_at)); })
+    .filter(function(c){ return brand==='all' || _dashBrandOf(c.interest_model)===brand; });
 
   // ---------- KPI ----------
   const now = Date.now();
-  const leads30 = leads.filter(function(l){ return l.created_at && (now - new Date(l.created_at).getTime()) <= 30*86400000; }).length;
+  const leadsInRange = leads.length;
   const totalCust = cust.length;
   const newCust  = cust.filter(function(c){ return c.status==='new'; }).length;
   const approved = cust.filter(function(c){ return c.status==='approved'; }).length;
@@ -1534,7 +1547,7 @@ function renderDashboard(){
   const closeRate = decided>0 ? Math.round(approved/decided*100) : 0;
   const kpi = '<div style="display:flex;gap:0.8rem;flex-wrap:wrap;margin-bottom:1rem;">'
     + _dashKpi('ลูกค้าทั้งหมด', totalCust.toLocaleString('th-TH'), 'var(--blue)')
-    + _dashKpi('ลีดใหม่ (30 วัน)', leads30.toLocaleString('th-TH'), 'var(--green)')
+    + _dashKpi('ลีดในช่วงที่เลือก', leadsInRange.toLocaleString('th-TH'), 'var(--green)')
     + _dashKpi('รอติดต่อ (ค้าง)', newCust.toLocaleString('th-TH'), '#e53935')
     + _dashKpi('อัตราปิดการขาย', (decided>0? closeRate+'%' : '—'), '#f9a825', 'อนุมัติ '+approved+' จากที่ตัดสินแล้ว '+decided)
   + '</div>';
