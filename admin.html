@@ -280,7 +280,7 @@ tr:hover td { background: #fafafa; }
         <p class="page-sub">สรุปความสนใจของลูกค้าและช่องทางการขาย จากลีดและลูกค้าในระบบ (ไม่รวมชื่อ/เบอร์)</p>
         <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;margin-bottom:1.2rem;">
           <span style="font-size:0.85rem;color:var(--text2);">แบรนด์:</span>
-          <select id="dashBrand" onchange="renderDashboard()" style="padding:0.5rem 0.8rem;border:1.5px solid var(--gray2);border-radius:6px;font-size:0.9rem;">
+          <select id="dashBrand" onchange="renderDashboard();_gaDrawCard();" style="padding:0.5rem 0.8rem;border:1.5px solid var(--gray2);border-radius:6px;font-size:0.9rem;">
             <option value="all">ทั้งหมด (Honda + Yamaha)</option>
             <option value="honda">🔴 Honda</option>
             <option value="yamaha">🔵 Yamaha</option>
@@ -1437,8 +1437,27 @@ function _gaDrawCard(){
       + '<div style="color:#bbb;font-size:0.8rem;margin-top:6px;">ยังไม่มีข้อมูลผู้เข้าชม</div></div>';
     return;
   }
+  // แบรนด์ที่เลือกจากตัวกรองด้านบน (ทั้งหมด/honda/yamaha) — กรอง GA ตามแบรนด์เดียวกัน
+  const brand = (document.getElementById('dashBrand') || {}).value || 'all';
+  const bName = brand==='honda' ? ' · Honda' : (brand==='yamaha' ? ' · Yamaha' : '');
+  // GA ส่งข้อมูลมา 1 แถวต่อ (วัน × แบรนด์) → กรองแบรนด์แล้วรวมยอดต่อวัน
+  const byDate = {};
+  _gaRows.forEach(function(r){
+    if (brand!=='all' && (r.brand||'') !== brand) return;
+    const d = r.date||''; if (d.length!==8) return;
+    if (!byDate[d]) byDate[d] = { date:d, users:0, views:0 };
+    byDate[d].users += (r.users||0);
+    byDate[d].views += (r.views||0);
+  });
+  const rows2 = Object.keys(byDate).sort().map(function(k){ return byDate[k]; });
+  const titleB = '<span>🌐 คนเข้าเว็บรายวัน'+bName+'</span>';
+  if (!rows2.length) {
+    el.innerHTML = '<div class="card" style="margin-bottom:1rem;"><div class="card-title">'+titleB+'</div>'
+      + '<div style="color:#bbb;font-size:0.85rem;margin-top:8px;">ยังไม่มีข้อมูลผู้เข้าชมสำหรับแบรนด์นี้</div></div>';
+    return;
+  }
   // ช่วงวันที่มีข้อมูล (YYYYMMDD เรียงจากน้อยไปมาก)
-  const dates = _gaRows.map(function(r){ return r.date||''; }).filter(function(d){ return d.length===8; }).sort();
+  const dates = rows2.map(function(r){ return r.date; }).sort();
   const dmin = dates[0] || '', dmax = dates[dates.length-1] || '';
   if (!_gaFrom) _gaFrom = _gaIso(dmin);
   if (!_gaTo)   _gaTo   = _gaIso(dmax);
@@ -1452,9 +1471,9 @@ function _gaDrawCard(){
     + '<input type="date" id="gaTo" value="'+_gaTo+'" min="'+_gaIso(dmin)+'" max="'+_gaIso(dmax)+'" onchange="gaSetDates()" style="'+inp+'">'
     + '<a onclick="gaResetDates()" style="cursor:pointer;color:var(--green);white-space:nowrap;">ทั้งหมด</a>'
     + '</span>';
-  const head = '<div class="card-title" style="flex-wrap:wrap;gap:6px;">'+title+picker+'</div>';
+  const head = '<div class="card-title" style="flex-wrap:wrap;gap:6px;">'+titleB+picker+'</div>';
 
-  const last = _gaRows.filter(function(r){ const d = r.date||''; return d.length===8 && d>=fromCmp && d<=toCmp; });
+  const last = rows2.filter(function(r){ const d = r.date; return d>=fromCmp && d<=toCmp; });
   const totalU = last.reduce(function(a,r){ return a + (r.users||0); }, 0);
   const totalV = last.reduce(function(a,r){ return a + (r.views||0); }, 0);
   if (!last.length) {
