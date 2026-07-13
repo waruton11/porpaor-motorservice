@@ -1395,6 +1395,9 @@ async function loadDashboard(){
 }
 
 // ===== คนเข้าเว็บรายวันจาก Google Analytics (GA4 Data API ผ่าน n8n ga-stats) =====
+var _gaRows = [];   // ข้อมูลดิบทั้งหมดที่ดึงมา (สูงสุด 30 วันจาก workflow)
+var _gaFrom = '';   // วันเริ่ม (YYYY-MM-DD) — '' = อัตโนมัติ = วันแรกที่มีข้อมูล
+var _gaTo   = '';   // วันสิ้นสุด (YYYY-MM-DD) — '' = อัตโนมัติ = วันล่าสุด
 async function loadGaStats(){
   const el = document.getElementById('dashGa');
   if (!el) return;
@@ -1411,30 +1414,86 @@ async function loadGaStats(){
   }
 }
 function renderGaCard(rows){
+  _gaRows = Array.isArray(rows) ? rows.slice() : [];
+  _gaFrom = ''; _gaTo = '';   // รีเซ็ตเป็นช่วงเต็มทุกครั้งที่โหลดข้อมูลใหม่
+  _gaDrawCard();
+}
+function gaSetDates(){
+  const f = document.getElementById('gaFrom');
+  const t = document.getElementById('gaTo');
+  if (f) _gaFrom = f.value;
+  if (t) _gaTo = t.value;
+  _gaDrawCard();
+}
+function gaResetDates(){ _gaFrom = ''; _gaTo = ''; _gaDrawCard(); }
+function _gaIso(d){ return (d && d.length===8) ? (d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8)) : ''; }
+function _gaDrawCard(){
   const el = document.getElementById('dashGa');
   if (!el) return;
-  const last = rows.slice(-30);
-  if (!last.length) { el.innerHTML = '<div class="card" style="margin-bottom:1rem;"><div class="card-title"><span>🌐 คนเข้าเว็บรายวัน</span></div><div style="color:#bbb;font-size:0.8rem;">ยังไม่มีข้อมูลผู้เข้าชม</div></div>'; return; }
-  const max = Math.max.apply(null, [1].concat(last.map(function(r){ return r.users||0; })));
+  const title = '<span>🌐 คนเข้าเว็บรายวัน</span>';
+
+  if (!_gaRows.length) {
+    el.innerHTML = '<div class="card" style="margin-bottom:1rem;"><div class="card-title">'+title+'</div>'
+      + '<div style="color:#bbb;font-size:0.8rem;margin-top:6px;">ยังไม่มีข้อมูลผู้เข้าชม</div></div>';
+    return;
+  }
+  // ช่วงวันที่มีข้อมูล (YYYYMMDD เรียงจากน้อยไปมาก)
+  const dates = _gaRows.map(function(r){ return r.date||''; }).filter(function(d){ return d.length===8; }).sort();
+  const dmin = dates[0] || '', dmax = dates[dates.length-1] || '';
+  if (!_gaFrom) _gaFrom = _gaIso(dmin);
+  if (!_gaTo)   _gaTo   = _gaIso(dmax);
+  let fromCmp = _gaFrom.replace(/-/g,''), toCmp = _gaTo.replace(/-/g,'');
+  if (fromCmp && toCmp && fromCmp > toCmp) { const tmp = fromCmp; fromCmp = toCmp; toCmp = tmp; }
+  // ตัวเลือกวันที่แบบปฏิทิน
+  const inp = 'border:1px solid #ddd;border-radius:6px;padding:2px 6px;font-size:0.72rem;color:#555;';
+  const picker = '<span style="display:flex;gap:5px;align-items:center;font-size:0.72rem;color:#888;">'
+    + '<input type="date" id="gaFrom" value="'+_gaFrom+'" min="'+_gaIso(dmin)+'" max="'+_gaIso(dmax)+'" onchange="gaSetDates()" style="'+inp+'">'
+    + '<span>ถึง</span>'
+    + '<input type="date" id="gaTo" value="'+_gaTo+'" min="'+_gaIso(dmin)+'" max="'+_gaIso(dmax)+'" onchange="gaSetDates()" style="'+inp+'">'
+    + '<a onclick="gaResetDates()" style="cursor:pointer;color:var(--green);white-space:nowrap;">ทั้งหมด</a>'
+    + '</span>';
+  const head = '<div class="card-title" style="flex-wrap:wrap;gap:6px;">'+title+picker+'</div>';
+
+  const last = _gaRows.filter(function(r){ const d = r.date||''; return d.length===8 && d>=fromCmp && d<=toCmp; });
   const totalU = last.reduce(function(a,r){ return a + (r.users||0); }, 0);
   const totalV = last.reduce(function(a,r){ return a + (r.views||0); }, 0);
-  const step = Math.max(1, Math.ceil(last.length/8));
+  if (!last.length) {
+    el.innerHTML = '<div class="card" style="margin-bottom:1rem;">'+head
+      + '<div style="color:#bbb;font-size:0.85rem;margin-top:8px;">ไม่มีข้อมูลในช่วงวันที่เลือก</div></div>';
+    return;
+  }
+  // สเกลตามค่าสูงสุดของทั้ง คน และ วิว เพื่อให้เทียบกันได้ในกราฟเดียว
+  const maxY = Math.max.apply(null, [1].concat(last.map(function(r){ return Math.max(r.users||0, r.views||0); })));
+  const H = 58; // ความสูงพื้นที่กราฟ (px)
+  // ให้แท่งผอมและชิดซ้ายเมื่อข้อมูลน้อย: คิดความกว้างจากอย่างน้อย 18 ช่อง
+  const slots = Math.max(last.length, 18);
+  const slotW = (100/slots);
+  const step = Math.max(1, Math.ceil(last.length/10));
   let cols = '';
   last.forEach(function(r,i){
-    const ht = Math.round((r.users||0)/max*54);
     const d = r.date || '';
+    const uH = (r.users>0) ? Math.max(Math.round((r.users)/maxY*H), 2) : 0;
+    const vH = (r.views>0) ? Math.max(Math.round((r.views)/maxY*H), 2) : 0;
     const lab = (i % step === 0 && d.length===8) ? String(Number(d.slice(6,8))) : '';
     const tip = (d.length===8 ? d.slice(6,8)+'/'+d.slice(4,6) : d) + ' — ' + (r.users||0) + ' คน / ' + (r.views||0) + ' วิว';
-    cols += '<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:2px;" title="'+tip+'">'
-      + '<div style="width:70%;background:var(--green);height:'+((r.users>0)?Math.max(ht,2):0)+'px;border-radius:2px 2px 0 0;"></div>'
-      + '<div style="font-size:0.48rem;color:#aaa;height:8px;">'+lab+'</div>'
+    cols += '<div title="'+tip+'" style="width:'+slotW+'%;max-width:30px;display:flex;flex-direction:column;align-items:center;gap:2px;">'
+      + '<div style="height:'+H+'px;width:100%;display:flex;align-items:flex-end;justify-content:center;position:relative;">'
+      +   '<div style="width:78%;background:rgba(76,175,80,0.25);height:'+vH+'px;border-radius:2px 2px 0 0;"></div>'   // วิว (จาง)
+      +   '<div style="position:absolute;bottom:0;width:44%;background:var(--green);height:'+uH+'px;border-radius:2px 2px 0 0;"></div>' // คน (เข้ม)
+      + '</div>'
+      + '<div style="font-size:0.5rem;color:#aaa;height:8px;line-height:8px;">'+lab+'</div>'
     + '</div>';
   });
-  el.innerHTML = '<div class="card" style="margin-bottom:1rem;">'
-    + '<div class="card-title"><span>🌐 คนเข้าเว็บรายวัน (30 วัน)</span>'
-    +   '<span style="font-weight:400;font-size:0.75rem;color:#999;">รวม ' + totalU.toLocaleString('th-TH') + ' คน · ' + totalV.toLocaleString('th-TH') + ' วิว · จาก Google Analytics</span></div>'
-    + '<div style="display:flex;align-items:flex-end;gap:2px;height:74px;">' + cols + '</div>'
-    + '<div style="font-size:0.68rem;color:#bbb;margin-top:4px;">💡 เทียบวันที่โปรโมทโพสกับกราฟ ดูว่าคนเข้าเยอะขึ้นไหม</div>'
+  el.innerHTML = '<div class="card" style="margin-bottom:1rem;">'+head
+    + '<div style="font-size:0.75rem;color:#999;margin:2px 0 6px;">'
+    +   'ช่วง '+_gaFrom+' ถึง '+_gaTo+' · รวม <b style="color:var(--green);">'+totalU.toLocaleString('th-TH')+'</b> คน · '
+    +   '<b>'+totalV.toLocaleString('th-TH')+'</b> วิว · จาก Google Analytics</div>'
+    + '<div style="display:flex;align-items:flex-end;justify-content:flex-start;gap:3px;height:'+(H+10)+'px;">' + cols + '</div>'
+    + '<div style="display:flex;gap:14px;align-items:center;font-size:0.68rem;color:#999;margin-top:6px;">'
+    +   '<span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:var(--green);border-radius:2px;display:inline-block;"></span>คน (ผู้ใช้)</span>'
+    +   '<span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:rgba(76,175,80,0.25);border-radius:2px;display:inline-block;"></span>วิว (หน้าที่เปิด)</span>'
+    +   '<span style="margin-left:auto;">💡 เทียบวันโปรโมทโพสกับกราฟ ดูว่าคนเข้าเยอะขึ้นไหม</span>'
+    + '</div>'
   + '</div>';
 }
 
