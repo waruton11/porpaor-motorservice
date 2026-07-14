@@ -895,10 +895,10 @@ function saveCategoriesToDB(brand, cats) {
   brand = brand || activeBrand;
   cats = cats || (data.categories || []);
   try {
-    apiFetch('https://n8n-wt11.onrender.com/webhook/save-categories', {
+    _catalogSyncGuard('รุ่นรถ & ราคา', apiFetch('https://n8n-wt11.onrender.com/webhook/save-categories', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ brand: brand, categories: cats })
-    }).catch(function(){});
+    }));
   } catch(e) {}
 }
 
@@ -931,6 +931,22 @@ async function apiFetch(url, opts) {
     throw new Error('unauthorized');
   }
   return r;
+}
+
+// กันบันทึกไม่ติดแบบเงียบๆ: การ sync แคตตาล็อกขึ้น DB เดิม .catch() เฉยๆ ทำให้ HTTP error (เช่น 500/502
+// ตอน Render ตื่นช้า) หลุดไปโดยไม่มีใครรู้ — ทั้งที่ toast ของ news/shop ขึ้น "สำเร็จ" ไปแล้ว
+// helper นี้เช็ค res.ok + แจ้งเตือนชัดๆ ให้กดบันทึกอีกครั้ง (401 ปล่อยให้ apiFetch จัดการ logout เอง)
+function _catalogSyncGuard(label, promise) {
+  return promise.then(function(res) {
+    if (res && !res.ok) {
+      console.warn('save "' + label + '" failed: HTTP ' + res.status);
+      try { showToast('⚠️ บันทึก "' + label + '" ขึ้น server ไม่สำเร็จ (server อาจตื่นช้า) — กดบันทึกอีกครั้ง', 'error', 9000); } catch(e) {}
+    }
+  }).catch(function(e) {
+    if (e && e.message === 'unauthorized') return; // apiFetch แจ้ง + logout ให้แล้ว
+    console.warn('save "' + label + '" failed:', e && e.message);
+    try { showToast('⚠️ บันทึก "' + label + '" ขึ้น server ไม่สำเร็จ — กดบันทึกอีกครั้ง', 'error', 9000); } catch(err) {}
+  });
 }
 
 async function doLogin() {
@@ -1160,11 +1176,11 @@ function syncRatesToDB() {
     });
   });
   if (rates.length === 0) return;
-  apiFetch('https://n8n-wt11.onrender.com/webhook/update-catalog-rates', {
+  _catalogSyncGuard('ค่างวด/ดอกเบี้ย', apiFetch('https://n8n-wt11.onrender.com/webhook/update-catalog-rates', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ rates })
-  }).catch(function(e) { console.warn('syncRatesToDB failed:', e.message); });
+  }));
 }
 
 function saveData() {
@@ -1188,11 +1204,11 @@ function syncFreebiesToDB() {
     });
   });
   if (items.length === 0) return;
-  apiFetch('https://n8n-wt11.onrender.com/webhook/update-catalog-freebies', {
+  _catalogSyncGuard('ของแถม', apiFetch('https://n8n-wt11.onrender.com/webhook/update-catalog-freebies', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ items })
-  }).catch(function(e) { console.warn('syncFreebiesToDB failed:', e.message); });
+  }));
 }
 
 // ส่งข้อมูลไป n8n — ถ้าล้มเหลวครั้งแรก รอ 35 วิแล้วลองใหม่อัตโนมัติ
