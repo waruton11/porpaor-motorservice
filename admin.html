@@ -2879,9 +2879,6 @@ async function uploadToN8n(type) {
   const isSmall = type === 'small';
   const inputId = isSmall ? 'excelUploadSmall' : 'excelUploadBig';
   const resultId = isSmall ? 'uploadResultSmall' : 'uploadResultBig';
-  const webhook = isSmall
-    ? 'https://n8n-wt11.onrender.com/webhook/upload-prices'
-    : 'https://n8n-wt11.onrender.com/webhook/upload-prices-big';
   const label = isSmall ? 'รถเล็ก' : 'Big Bike';
   const priceKey = isSmall ? 'small' : 'big';
 
@@ -2892,10 +2889,8 @@ async function uploadToN8n(type) {
   const resultDiv = document.getElementById(resultId);
   resultDiv.innerHTML = '<span style="color:var(--blue);">⏳ กำลังอัพโหลด กรุณารอสักครู่...</span>';
 
-  // Yamaha: ดันราคาเข้า price_list อย่างเดียว (= ราคาที่ขึ้นเว็บลูกค้า)
-  // ไม่ส่งไฟล์เข้า upload-prices/car_prices เพราะ workflow นั้น hardcode sheet HONDA
-  // (car_prices = ตารางเทียบราคา 2 ดีลเลอร์ของ Honda เท่านั้น — เว็บลูกค้าไม่ได้ใช้)
-  const isYamaha = activeBrand === 'yamaha';
+  // อัปโหลด Excel → ดันราคาเข้า price_list (= ราคาที่ขึ้นเว็บลูกค้า) ทั้ง Honda และ Yamaha
+  // เลิกส่งเข้า car_prices แล้ว (ตารางเทียบราคา 2 ดีลเลอร์ที่ไม่ได้ใช้/ไม่ปลอดภัย — ปลดออก)
 
   // === Parse สำหรับ catalog dropdown + sync ราคาไป price_list ===
   _parsePriceXlsx(file, priceKey, async function(count, perr) {
@@ -2908,55 +2903,27 @@ async function uploadToN8n(type) {
     }
     if (count > 0) {
       const sync = await _syncPriceListToServer(false); // → price_list (silent)
-      // Yamaha จบที่นี่ — ไม่แตะ car_prices ของ Honda
-      if (isYamaha) {
-        if (sync && sync.ok) {
-          resultDiv.innerHTML = `<div style="background:#e8f5e9;border:1.5px solid var(--green);border-radius:8px;padding:1rem;color:var(--green);">
-            <strong>✅ อัพเดทราคา${label} (Yamaha) สำเร็จ!</strong><br>
-            ดันราคา ${sync.count} รายการเข้า price_list แล้ว — ราคาบนเว็บลูกค้าจะเปลี่ยนทันทีเมื่อ Refresh หน้า<br>
-            <small style="opacity:.8;">ข้อมูลรุ่น/แบบบันทึกแล้ว — dropdown ในหน้า แคตตาล็อก พร้อมใช้งาน ✅</small>
-          </div>`;
-          showToast('อัพเดทราคา' + label + ' (Yamaha) สำเร็จ! ✅', 'success');
-          fileInput.value = '';
-        } else {
-          resultDiv.innerHTML = `<div style="background:#ffebee;border:1.5px solid #e53935;border-radius:8px;padding:1rem;color:#c62828;">
-            <strong>❌ ซิงค์ราคาไป server ไม่สำเร็จ</strong><br>${(sync && sync.error) || 'HTTP error'}
-          </div>`;
-          showToast('เกิดข้อผิดพลาด ❌', 'error');
-        }
+      if (sync && sync.ok) {
+        resultDiv.innerHTML = `<div style="background:#e8f5e9;border:1.5px solid var(--green);border-radius:8px;padding:1rem;color:var(--green);">
+          <strong>✅ อัพเดทราคา${label}สำเร็จ!</strong><br>
+          ดันราคา ${sync.count} รายการเข้า price_list แล้ว — ราคาบนเว็บลูกค้าจะเปลี่ยนทันทีเมื่อ Refresh หน้า<br>
+          <small style="opacity:.8;">ข้อมูลรุ่น/แบบบันทึกแล้ว — dropdown ในหน้า แคตตาล็อก พร้อมใช้งาน ✅</small>
+        </div>`;
+        showToast('อัพเดทราคา' + label + 'สำเร็จ! ✅', 'success');
+        fileInput.value = '';
+      } else {
+        resultDiv.innerHTML = `<div style="background:#ffebee;border:1.5px solid #e53935;border-radius:8px;padding:1rem;color:#c62828;">
+          <strong>❌ ซิงค์ราคาไป server ไม่สำเร็จ</strong><br>${(sync && sync.error) || 'HTTP error'}
+        </div>`;
+        showToast('เกิดข้อผิดพลาด ❌', 'error');
       }
-    } else if (isYamaha) {
+    } else {
       resultDiv.innerHTML = `<div style="background:#ffebee;border:1.5px solid #e53935;border-radius:8px;padding:1rem;color:#c62828;">
-        <strong>❌ ไม่พบราคาในไฟล์</strong><br>เช็คว่าเลือกไฟล์ถูกต้อง และแบรนด์บนทอปบาร์ = Yamaha
+        <strong>❌ ไม่พบราคาในไฟล์</strong><br>เช็คว่าเลือกไฟล์ถูกต้อง
       </div>`;
       showToast('ไม่พบราคา ❌', 'error');
     }
   });
-
-  // Yamaha: ไม่ส่งไฟล์เข้า car_prices (Honda-only) → จบ
-  if (isYamaha) return;
-
-  // === Honda: ส่งไฟล์ไปยัง n8n → car_prices (เดิม ไม่แตะ) ===
-  const formData = new FormData();
-  formData.append('data', file, file.name);
-  try {
-    const res = await fetch(webhook, { method: 'POST', body: formData });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    let json = {};
-    try { json = await res.json(); } catch(e) {}
-    resultDiv.innerHTML = `<div style="background:#e8f5e9;border:1.5px solid var(--green);border-radius:8px;padding:1rem;color:var(--green);">
-      <strong>✅ อัพเดท${label}สำเร็จ!</strong><br>
-      ราคาบนเว็บไซต์จะเปลี่ยนทันทีเมื่อ Refresh หน้า<br>
-      <small style="opacity:.8;">ข้อมูลรุ่น/แบบบันทึกแล้ว — dropdown ในหน้า แคตตาล็อก พร้อมใช้งาน ✅</small>
-    </div>`;
-    showToast('อัพเดทราคา' + label + 'สำเร็จ! ✅', 'success');
-    fileInput.value = '';
-  } catch(e) {
-    resultDiv.innerHTML = `<div style="background:#ffebee;border:1.5px solid #e53935;border-radius:8px;padding:1rem;color:#c62828;">
-      <strong>❌ เกิดข้อผิดพลาด</strong><br>${e.message}
-    </div>`;
-    showToast('เกิดข้อผิดพลาด ❌', 'error');
-  }
 }
 
 // ========== CUSTOM SELECT HELPERS ==========
