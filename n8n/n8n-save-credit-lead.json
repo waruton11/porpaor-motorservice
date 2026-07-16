@@ -1,0 +1,110 @@
+{
+  "name": "POST save-credit-lead",
+  "nodes": [
+    {
+      "id": "cr-001",
+      "name": "POST save-credit-lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "save-credit-lead",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "save-credit-lead",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "cr-002",
+      "name": "Build SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const b = $input.first().json.body || $input.first().json;\nconst esc = (s) => (s == null || s === '') ? 'NULL' : `'${String(s).replace(/'/g, \"''\")}'`;\nconst num = (n) => (n == null || n === '' || isNaN(Number(n))) ? 'NULL' : Number(n);\nconst lit = (s) => String(s == null ? '' : s).replace(/'/g, \"''\");\n// เก็บ brand ไว้ใน detail ด้วย (การ์ดเครดิต model ว่าง → admin เดา brand จากชื่อรุ่นไม่ได้)\nconst detailObj = Object.assign({}, b.detail || {}, { brand: b.brand || '' });\nconst detail = JSON.stringify(detailObj).replace(/'/g, \"''\");\n\nconst insertLead = `INSERT INTO leads (lead_type, model, variant, color, pay_type, down_pct, installment, period, price, cust_name, cust_phone, line_user_id, detail, lang)\nVALUES (${esc(b.lead_type)}, ${esc(b.model)}, ${esc(b.variant)}, ${esc(b.color)}, ${esc(b.pay_type)}, ${num(b.down_pct)}, ${num(b.installment)}, ${num(b.period)}, ${num(b.price)}, ${esc(b.cust_name)}, ${esc(b.cust_phone)}, ${esc(b.line_user_id)}, '${detail}'::jsonb, ${esc(b.lang)});`;\n\n// ลูกค้า credit → เข้า customers เพื่อโผล่ใน CRM (เฉพาะเมื่อมี line_user_id จาก LIFF)\nconst interest = b.model || '';\nconst dispName = b.line_name || b.cust_name || '';\nconst uid = lit(b.line_user_id);\nlet upsertCust = '';\nif (uid) {\n  upsertCust = `INSERT INTO customers (line_user_id, display_name, phone, interest_model, lead_count, last_seen, updated_at)\nVALUES ('${uid}', ${esc(dispName)}, ${esc(b.cust_phone)}, ${esc(interest)}, 1, NOW(), NOW())\nON CONFLICT (line_user_id) DO UPDATE SET\n  display_name = COALESCE(customers.display_name, NULLIF(EXCLUDED.display_name, '')),\n  phone = COALESCE(NULLIF(EXCLUDED.phone, ''), customers.phone),\n  interest_model = COALESCE(NULLIF(EXCLUDED.interest_model, ''), customers.interest_model),\n  lead_count = customers.lead_count + 1,\n  status = CASE WHEN customers.status IN ('approved','rejected') THEN 'new' ELSE customers.status END,\n  assignee = CASE WHEN customers.status IN ('approved','rejected') THEN NULL ELSE customers.assignee END,\n  last_seen = NOW(),\n  updated_at = NOW();`;\n}\n\nreturn [{ json: { sql: insertLead + '\\n' + upsertCust } }];"
+      }
+    },
+    {
+      "id": "cr-003",
+      "name": "Insert",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        680,
+        300
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "cr-004",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        300
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true }) }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "POST save-credit-lead": {
+      "main": [
+        [
+          {
+            "node": "Build SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build SQL": {
+      "main": [
+        [
+          {
+            "node": "Insert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert": {
+      "main": [
+        [
+          {
+            "node": "Respond OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

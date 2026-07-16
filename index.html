@@ -714,6 +714,30 @@ img { display: block; max-width: 100%; }
   font-weight: 700;
   margin-top: 0.1rem;
 }
+.mcard-inst { margin-top: 0.15rem; }
+.mcard-inst-lead {
+  display: block;
+  font-size: 0.62rem;
+  color: var(--text2);
+  line-height: 1.2;
+}
+.mcard-inst-amt {
+  color: var(--red);
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.15;
+}
+.mcard-inst-per {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text2);
+}
+.mcard-inst-sub {
+  font-size: 0.64rem;
+  color: var(--text2);
+  line-height: 1.25;
+  margin-top: 0.05rem;
+}
 .mcard-cta {
   display: block;
   margin-top: 0.5rem;
@@ -731,12 +755,26 @@ img { display: block; max-width: 100%; }
   text-align: center;
 }
 .mcard-cta:hover { opacity: 0.88; }
+/* ===== Micro-animations (scroll reveal + hover) — เคารพ prefers-reduced-motion ===== */
+@media (prefers-reduced-motion: no-preference) {
+  .mcard { transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease; }
+  .mcard:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(0,0,0,0.10); border-color: var(--red); }
+  .mcard:active { transform: translateY(-1px); }
+  .mcard-cta:active { transform: scale(0.98); }
+  .reveal { transition: opacity 0.5s ease, transform 0.5s ease; }
+  body.js-reveal .reveal { opacity: 0; transform: translateY(18px); }
+  body.js-reveal .reveal.in { opacity: 1; transform: none; }
+}
 @media (min-width: 768px) {
   .mcard-img-wrap { height: 180px; }
   .mcard-img-wrap img { max-height: 155px; }
   .mcard-name { font-size: 1rem; }
   .mcard-sub { font-size: 0.78rem; }
   .mcard-price { font-size: 0.9rem; }
+  .mcard-inst-lead { font-size: 0.72rem; }
+  .mcard-inst-amt { font-size: 1.4rem; }
+  .mcard-inst-per { font-size: 0.78rem; }
+  .mcard-inst-sub { font-size: 0.74rem; }
   .mcard-cta { font-size: 0.88rem; padding: 0.6rem; }
 }
 
@@ -947,11 +985,13 @@ img { display: block; max-width: 100%; }
   bottom: 0;
   background: white;
   border-top: 1px solid var(--gray2);
-  padding: 0.75rem 1rem;
+  padding: 0.7rem 1rem 0.75rem;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.6rem;
   flex-shrink: 0;
   box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
 }
@@ -977,6 +1017,87 @@ img { display: block; max-width: 100%; }
   transition: opacity 0.15s;
 }
 .modal-cta-btn:hover { opacity: 0.88; }
+.modal-sticky-btns {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+.modal-credit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background: #12a150;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.65rem 0.9rem;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  line-height: 1.2;
+}
+.modal-credit-btn:hover { opacity: 0.9; }
+.modal-credit-btn:active { transform: scale(0.98); }
+.modal-credit-ico { flex-shrink: 0; display: inline-flex; }
+.modal-credit-ico svg { width: 17px; height: 17px; }
+.modal-credit-main { font-size: 0.85rem; font-weight: 700; }
+/* โหมดใช้รูปปุ่ม (Honda) — เหลือแต่รูป วางข้างปุ่มคำนวณ (ปุ่มคำนวณยืดสูงเท่ากันด้วย stretch) */
+.modal-credit-btn.has-img { background: none; padding: 0; border-radius: 0; height: 64px; }
+.modal-credit-btn.has-img:hover { opacity: 0.94; }
+.credit-btn-img { display: block; height: 100%; width: auto; }
+/* consent เช็กเครดิต */
+.credit-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text2);
+  line-height: 1.45;
+  cursor: pointer;
+}
+.credit-consent input { margin-top: 2px; width: 18px; height: 18px; flex-shrink: 0; accent-color: #12a150; cursor: pointer; }
+/* ปุ่มลอย (Honda เท่านั้น) */
+#creditFloat {
+  display: none;
+  position: fixed;
+  right: 12px;
+  top: calc(var(--nav-h) + 12px);
+  z-index: 150;
+  width: 210px;
+  max-width: 52vw;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.28));
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.brand-honda #creditFloat.on { display: block; }
+#creditFloat:hover { transform: translateY(-2px); }
+#creditFloat:active { transform: scale(0.97); }
+#creditFloat img { display: block; width: 100%; height: auto; }
+#creditFloatClose {
+  position: absolute;
+  top: -8px; right: -8px;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid var(--gray2);
+  color: #666;
+  font-size: 14px;
+  line-height: 22px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  padding: 0;
+}
+@media (min-width: 768px) {
+  #creditFloat { top: calc(var(--nav-h) + 16px); right: 20px; width: 260px; max-width: 32vw; }
+}
 
 @media (min-width: 768px) {
   .modal-overlay { align-items: center; padding: 1rem; }
@@ -1245,6 +1366,48 @@ img { display: block; max-width: 100%; }
   color: var(--red);
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
+/* ===== ไอคอนเส้นพรีเมียมในหน้าคำนวณ (แทนอิโมจิ) ===== */
+#calcPayToggle .pay-opt { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.calc-ico-slot { display: inline-flex; align-items: center; flex-shrink: 0; }
+.calc-ico-slot svg { width: 18px; height: 18px; }
+.calc-btn-ico { display: flex; align-items: center; justify-content: center; gap: 7px; }
+/* ===== ปุ่มลอย "รุ่นที่สนใจ" + รูปรถจอดซ้อนอยู่ด้านบน ===== */
+#interestFabWrap {
+  display: none;                 /* updateInterestedFab เปิดเป็น flex เมื่อมีรุ่นในตะกร้า */
+  position: fixed;
+  right: 14px;
+  bottom: 84px;
+  z-index: 1500;
+  flex-direction: column;
+  align-items: center;
+}
+#interestFabBikes {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  margin-bottom: -8px;           /* ให้รถ "จอด" คร่อมบนปุ่มเล็กน้อย */
+  pointer-events: none;
+}
+.fab-bike {
+  width: 48px;
+  height: 34px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 5px rgba(0,0,0,0.35));
+  animation: fabBikeIn 0.28s ease-out both;
+}
+@keyframes fabBikeIn { from { opacity: 0; transform: translateY(-6px) scale(0.85); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .fab-bike { animation: none; } }
+/* รูปรถในตะกร้า "รุ่นที่สนใจ" */
+.interest-thumb { width: 64px; height: 46px; object-fit: contain; flex-shrink: 0; }
+.customer-info-title { display: flex; align-items: center; }
+.customer-info-title .calc-ico-slot { color: var(--red); margin-right: 5px; }
+.customer-info-title .calc-ico-slot svg { width: 16px; height: 16px; }
+.slbl .calc-ico-slot { color: var(--red); margin-right: 5px; }
+.slbl .calc-ico-slot svg { width: 15px; height: 15px; }
+.slbl { display: inline-flex; align-items: center; }
+.slider-top .slbl, .calc-inner .slbl { display: inline-flex; align-items: center; }
+.cash-preview-ico { color: #1eaa5c; display: flex; justify-content: center; margin-bottom: 0.3rem; }
+.cash-preview-ico svg { width: 34px; height: 34px; }
 /* ปุ่มเลือกรุ่นทดลองขับแบบมีรูปรถ "ทะลุกล่อง" (Yamaha) — scope เฉพาะ testBikeToggle */
 #testBikeToggle.has-bike-img { margin-top: 52px; }
 #testBikeToggle.has-bike-img .pay-opt {
@@ -1366,6 +1529,19 @@ img { display: block; max-width: 100%; }
   margin-bottom: 0.5rem;
 }
 .customer-input:focus { outline: none; border-color: var(--red); }
+/* dropdown ให้หน้าตาเข้าชุดกับ input (มีลูกศรเอง) */
+select.customer-input {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+  background-size: 16px;
+  padding-right: 2rem;
+  color: var(--text);
+  cursor: pointer;
+}
 /* Custom down amount input */
 .custom-down-row {
   display: flex;
@@ -1896,7 +2072,13 @@ footer .footer-brand {
         <div class="slabel" data-i18n="lbl_cash_price">ราคาเงินสด</div>
         <div class="sval" id="mStickyPrice">—</div>
       </div>
-      <button class="modal-cta-btn" onclick="openCalcFromModal()" data-i18n="cta_calc">คำนวณค่างวด →</button>
+      <div class="modal-sticky-btns">
+        <button class="modal-credit-btn" onclick="openCreditCheck()">
+          <span class="modal-credit-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 7.3-7 8.5-4-1.2-7-4.1-7-8.5V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></span>
+          <span class="modal-credit-main" data-i18n="credit_check_btn">เช็กเครดิตฟรี</span>
+        </button>
+        <button class="modal-cta-btn" onclick="openCalcFromModal()" data-i18n="cta_calc">คำนวณค่างวด →</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1953,14 +2135,18 @@ footer .footer-brand {
       <div id="calcStep2" style="display:none;">
         <!-- Color picker (แสดงทั้งเงินผ่อน/เงินสด) -->
         <div id="calcColorSection" style="margin-bottom:1rem;">
-          <div class="slbl" style="margin-bottom:8px;"><span data-i18n="calc_color">เลือกสี</span> <span id="calcColorName" style="color:#888;font-weight:400;"></span></div>
+          <div class="slbl" style="margin-bottom:8px;"><span class="calc-ico-slot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 0 1 0 -18c4.97 0 9 3.582 9 8c0 1.06 -.474 2.078 -1.318 2.828c-.844 .75 -1.989 1.172 -3.182 1.172h-2.5a2 2 0 0 0 -1 3.75a1.3 1.3 0 0 1 -1 2.25"/><path d="M7.5 10.5m-.5 0a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0"/><path d="M12 7.5m-.5 0a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0"/><path d="M16.5 10.5m-.5 0a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0"/></svg></span><span data-i18n="calc_color">เลือกสี</span> <span id="calcColorName" style="color:#888;font-weight:400;"></span></div>
           <div id="calcColorSwatches" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
         </div>
 
         <!-- Payment type toggle -->
-        <div class="pay-toggle">
-          <button class="pay-opt active" data-pay="installment" onclick="setPayType('installment')" data-i18n="pay_install">💳 เงินผ่อน</button>
-          <button class="pay-opt" data-pay="cash" onclick="setPayType('cash')" data-i18n="pay_cash">💵 เงินสด</button>
+        <div class="pay-toggle" id="calcPayToggle">
+          <button class="pay-opt active" data-pay="installment" onclick="setPayType('installment')">
+            <span class="calc-ico-slot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5m0 3a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3z"/><path d="M3 10l18 0"/><path d="M7 15l.01 0"/><path d="M11 15l2 0"/></svg></span><span data-i18n="pay_install">เงินผ่อน</span>
+          </button>
+          <button class="pay-opt" data-pay="cash" onclick="setPayType('cash')">
+            <span class="calc-ico-slot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9m0 2a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2z"/><path d="M14 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M17 9v-2a2 2 0 0 0 -2 -2h-10a2 2 0 0 0 -2 2v6a2 2 0 0 0 2 2h2"/></svg></span><span data-i18n="pay_cash">เงินสด</span>
+          </button>
         </div>
 
         <!-- Installment-only section -->
@@ -1981,7 +2167,7 @@ footer .footer-brand {
           <!-- Down % slider -->
           <div class="slider-section">
             <div class="slider-top">
-              <span class="slbl" data-i18n="lbl_down">เงินดาวน์</span>
+              <span class="slbl"><span class="calc-ico-slot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14c0 1.657 2.686 3 6 3s6 -1.343 6 -3s-2.686 -3 -6 -3s-6 1.343 -6 3z"/><path d="M9 14v4c0 1.656 2.686 3 6 3s6 -1.344 6 -3v-4"/><path d="M3 6c0 1.072 1.144 2.062 3 2.598s4.144 .536 6 0s3 -1.526 3 -2.598s-1.144 -2.062 -3 -2.598s-4.144 -.536 -6 0s-3 1.526 -3 2.598z"/><path d="M3 6v10c0 .888 .772 1.45 2 2"/><path d="M3 11c0 .888 .772 1.45 2 2"/></svg></span><span data-i18n="lbl_down">เงินดาวน์</span></span>
               <span><b id="sDownPct">15</b>% &nbsp;<span class="samt" id="sDownAmt"></span></span>
             </div>
             <input type="range" id="sliderDown" min="0" max="50" step="5" value="15" oninput="onSliderChange()">
@@ -1995,7 +2181,7 @@ footer .footer-brand {
 
           <!-- Period pills -->
           <div class="slider-section">
-            <div class="slbl" style="margin-bottom:8px;" data-i18n="lbl_period">ระยะเวลาผ่อน</div>
+            <div class="slbl" style="margin-bottom:8px;"><span class="calc-ico-slot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/><path d="M11 15h1"/><path d="M12 15v3"/></svg></span><span data-i18n="lbl_period">ระยะเวลาผ่อน</span></div>
             <div id="periodPills" style="display:flex;gap:6px;flex-wrap:wrap;">
               <button class="period-pill" data-mo="24" onclick="selectPeriod(24)">24 <span data-i18n="unit_month">เดือน</span></button>
               <button class="period-pill" data-mo="30" onclick="selectPeriod(30)">30 <span data-i18n="unit_month">เดือน</span></button>
@@ -2009,7 +2195,7 @@ footer .footer-brand {
         <!-- Cash-only section -->
         <div id="cashOnly" style="display:none;">
           <div class="cash-preview">
-            <div class="cash-preview-icon">💵</div>
+            <div class="cash-preview-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9m0 2a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2z"/><path d="M14 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M17 9v-2a2 2 0 0 0 -2 -2h-10a2 2 0 0 0 -2 2v6a2 2 0 0 0 2 2h2"/></svg></div>
             <div class="cash-preview-label" data-i18n="lbl_cash_price">ราคาเงินสด</div>
             <div class="cash-preview-amt" id="cashPriceDisplay">—</div>
             <div class="cash-preview-sub" data-i18n="cash_perk">รับสิทธิพิเศษเมื่อซื้อสด</div>
@@ -2025,7 +2211,10 @@ footer .footer-brand {
           </div>
         </div>
 
-        <button class="calc-primary-btn" onclick="goCalcStep3()" data-i18n="calc_see_result">ดูผลลัพธ์ →</button>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button class="calc-primary-btn" onclick="goCalcStep3()" data-i18n="calc_see_result">ดูข้อเสนอเบื้องต้น →</button>
+          <button class="calc-secondary-btn" onclick="goBackToStep1()" data-i18n="calc_change_model">← เปลี่ยนรุ่นรถ</button>
+        </div>
       </div>
 
       <!-- Step 3: result -->
@@ -2057,16 +2246,16 @@ footer .footer-brand {
 
         <!-- Customer info (แสดงเสมอ ทั้ง LIFF และ browser) -->
         <div id="customerInfoBox" class="customer-info">
-          <div class="customer-info-title" data-i18n="ci_title">📝 ข้อมูลติดต่อ (ไม่บังคับ)</div>
-          <div class="customer-info-note" data-i18n="ci_note">ใส่เบอร์ไว้ ให้เจ้าหน้าที่โทรช่วยจัดไฟแนนซ์ให้ผ่านง่ายขึ้น 😊</div>
-          <input type="text" id="custName" class="customer-input" placeholder="ชื่อ-นามสกุล (ถ้าสะดวก)" data-i18n-ph="ph_name">
-          <input type="tel" id="custPhone" class="customer-input" placeholder="เบอร์โทร — ให้เจ้าหน้าที่โทรช่วยจัดไฟแนนซ์" data-i18n-ph="ph_phone">
+          <div class="customer-info-title"><span class="calc-ico-slot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"/><path d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z"/><path d="M9 12h6"/><path d="M9 16h6"/></svg></span><span data-i18n="ci_title">ข้อมูลติดต่อ (ไม่บังคับ)</span></div>
+          <div class="customer-info-note" data-i18n="ci_note">หากสะดวก สามารถฝากข้อมูลไว้ เพื่อให้เจ้าหน้าที่ช่วยแนะนำแผนการผ่อนที่เหมาะกับคุณ (ไม่บังคับ)</div>
+          <input type="text" id="custName" class="customer-input" autocomplete="name" placeholder="ชื่อ-นามสกุล" data-i18n-ph="ph_name">
+          <input type="tel" id="custPhone" class="customer-input" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="เบอร์โทรศัพท์" data-i18n-ph="ph_phone">
         </div>
 
         <!-- ปลอบใจเครดิต ลดความกังวลตรงจุดตัดสินใจ -->
         <div style="background:#e9f9ef;border:1px solid #b6e6c6;border-radius:10px;padding:.8rem .95rem;margin-bottom:.85rem;display:flex;gap:.55rem;align-items:flex-start;">
-          <span style="font-size:1.3rem;flex-shrink:0;line-height:1.3;">💬</span>
-          <div style="font-size:.82rem;color:#1a8c47;line-height:1.55;"><b data-i18n="reassure_t">กังวลเรื่องการอนุมัติ หรือไม่แน่ใจว่าผ่อนได้ไหม?</b><br><span data-i18n="reassure_s">ส่งข้อมูลนี้ให้ทีมงานช่วยตรวจสอบและแนะนำแนวทางได้ฟรี ไม่มีค่าใช้จ่าย และไม่มีข้อผูกมัดในการออกรถ</span></div>
+          <span class="calc-ico-slot" style="color:#1a8c47;margin-top:1px;" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4 -3 7.3 -7 8.5c-4 -1.2 -7 -4.1 -7 -8.5v-5l7 -3z"/><path d="M9 12l2 2l4 -4"/></svg></span>
+          <div style="font-size:.82rem;color:#1a8c47;line-height:1.55;"><b data-i18n="reassure_t">ต้องการประเมินเครดิตเบื้องต้นก่อนตัดสินใจ?</b><br><span data-i18n="reassure_s">ทีมงานพร้อมช่วยประเมินเบื้องต้น พร้อมแนะนำแนวทางที่เหมาะกับคุณ โดยไม่มีค่าใช้จ่าย</span></div>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:8px;">
@@ -2076,9 +2265,14 @@ footer .footer-brand {
             <span data-i18n="send_shop_liff">ส่งข้อมูลนี้ให้ร้าน</span>
           </button>
           <!-- ปุ่มปกติ: ซ่อนเมื่ออยู่ใน LINE -->
-          <button id="calcContactBtn" class="calc-primary-btn" onclick="sendToLineViaBrowser()" style="display:block;text-align:center;" data-i18n="send_line">💬 ส่งข้อมูลให้ร้านทาง LINE</button>
-          <button id="addInterestBtn" class="calc-secondary-btn" onclick="addToInterested()" style="border-color:#1eaa5c;color:#1eaa5c;" data-i18n="add_compare">➕ เพิ่มในรายการเปรียบเทียบ</button>
-          <button class="calc-secondary-btn" onclick="goBackToStep2()">← ปรับค่าใหม่</button>
+          <button id="calcContactBtn" class="calc-primary-btn liff-send-btn" onclick="sendToLineViaBrowser()" style="display:flex;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+            <span data-i18n="send_line">ส่งข้อมูลเพื่อรับข้อเสนอ ผ่าน LINE</span>
+          </button>
+          <button id="addInterestBtn" class="calc-secondary-btn calc-btn-ico" onclick="addToInterested()" style="border-color:#1eaa5c;color:#1eaa5c;">
+            <span class="calc-ico-slot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M15 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M17 17h-11v-14h-2"/><path d="M6 5l14 1l-1 7h-13"/></svg></span><span data-i18n="add_compare">เก็บรุ่นนี้ไว้เทียบกับรุ่นอื่น</span>
+          </button>
+          <button class="calc-secondary-btn" onclick="goBackToStep2()" data-i18n="calc_edit_calc">← แก้ไขการคำนวณ</button>
         </div>
       </div>
 
@@ -2087,16 +2281,22 @@ footer .footer-brand {
 </div><!-- end .calc-overlay -->
 
 <!-- ===== รายการสนใจ (เปรียบเทียบหลายรุ่น) ===== -->
-<button id="interestFab" onclick="openInterestedModal()" style="display:none;position:fixed;right:14px;bottom:84px;z-index:1500;background:#1eaa5c;color:#fff;border:none;border-radius:30px;padding:.7rem 1.1rem;box-shadow:0 4px 14px rgba(0,0,0,.28);font-size:.9rem;font-weight:700;align-items:center;gap:6px;cursor:pointer;">🛒 รุ่นที่สนใจ (<span id="interestFabCount">0</span>)</button>
+<div id="interestFabWrap">
+  <div id="interestFabBikes" aria-hidden="true"></div>
+  <button id="interestFab" onclick="openInterestedModal()" style="background:#1eaa5c;color:#fff;border:none;border-radius:30px;padding:.7rem 1.1rem;box-shadow:0 4px 14px rgba(0,0,0,.28);font-size:.9rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;cursor:pointer;"><span class="calc-ico-slot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M15 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M17 17h-11v-14h-2"/><path d="M6 5l14 1l-1 7h-13"/></svg></span><span data-i18n="interest_fab">รุ่นที่สนใจ</span> (<span id="interestFabCount">0</span>)</button>
+</div>
 <div id="interestOverlay" style="display:none;position:fixed;inset:0;z-index:1600;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center;">
   <div style="background:#fff;width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:1rem 1.1rem 1.5rem;max-height:82vh;overflow:auto;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.2rem;">
-      <div style="font-weight:800;font-size:1.05rem;" data-i18n="interest_title">🛒 รุ่นที่สนใจ</div>
+      <div style="font-weight:800;font-size:1.05rem;display:flex;align-items:center;gap:6px;"><span class="calc-ico-slot" style="color:#1eaa5c;" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M15 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M17 17h-11v-14h-2"/><path d="M6 5l14 1l-1 7h-13"/></svg></span><span data-i18n="interest_title">รุ่นที่สนใจ</span></div>
       <button onclick="closeInterestedModal()" style="background:#eef0f3;border:none;width:34px;height:34px;border-radius:50%;font-size:1.1rem;line-height:1;cursor:pointer;color:#555;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
     </div>
     <div style="font-size:.8rem;color:#888;margin-bottom:.9rem;" data-i18n="interest_sub">ส่งทุกรุ่นให้ทีมงานทีเดียว เปรียบเทียบง่าย ไม่ต้องส่งทีละคัน</div>
     <div id="interestListBody"></div>
-    <button onclick="sendAllInterested()" class="calc-primary-btn" style="margin-top:.7rem;width:100%;text-align:center;" data-i18n="send_all">💬 สนใจหลายรุ่น ให้เซลล์ช่วยแนะนำ</button>
+    <button onclick="sendAllInterested()" class="calc-primary-btn liff-send-btn" style="margin-top:.7rem;width:100%;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+      <span data-i18n="send_all">ส่งทุกรุ่นที่เก็บไว้ ผ่าน LINE</span>
+    </button>
   </div>
 </div>
 
@@ -2127,6 +2327,54 @@ footer .footer-brand {
       <button class="calc-primary-btn liff-send-btn" onclick="submitTradeIn()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
         <span data-i18n="ti_submit">ส่งข้อมูลเทิร์นให้ร้าน</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CREDIT-CHECK OVERLAY ===== -->
+<div class="calc-overlay" id="creditOverlay">
+  <div class="calc-sheet">
+    <div class="calc-head">
+      <button class="calc-close" onclick="closeCreditCheck()">✕</button>
+      <div class="calc-title" data-i18n="cr_title">🔎 เช็กเครดิตฟรี</div>
+    </div>
+    <div class="calc-inner">
+      <div style="background:#e9f9ef;border:1.5px solid #b6e6c6;border-radius:10px;padding:.85rem 1rem;margin-bottom:1rem;">
+        <div style="font-size:1rem;font-weight:700;color:#1a8c47;" data-i18n="cr_hero">ตรวจสอบเครดิตเบื้องต้น</div>
+        <div style="font-size:.82rem;color:#3a7d56;margin-top:3px;" data-i18n="cr_hero_sub">กรอกข้อมูลสั้นๆ ทีมงานช่วยประเมินให้ฟรี ไม่มีค่าใช้จ่าย ไม่ผูกมัด</div>
+      </div>
+      <div class="customer-info" style="margin-bottom:.9rem;">
+        <input type="text" id="crName" class="customer-input" autocomplete="name" placeholder="ชื่อ-นามสกุล *" data-i18n-ph="cr_ph_name">
+        <input type="tel" id="crPhone" class="customer-input" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="เบอร์โทร *" data-i18n-ph="cr_ph_phone">
+        <select id="crOccupation" class="customer-input" onchange="onCreditOccChange()">
+          <option value="" data-i18n="cr_occ_pick">— เลือกอาชีพ * —</option>
+          <option value="พนักงานบริษัท / เอกชน" data-i18n="cr_occ_1">พนักงานบริษัท / เอกชน</option>
+          <option value="ข้าราชการ / รัฐวิสาหกิจ" data-i18n="cr_occ_2">ข้าราชการ / รัฐวิสาหกิจ</option>
+          <option value="ค้าขาย / ธุรกิจส่วนตัว" data-i18n="cr_occ_3">ค้าขาย / ธุรกิจส่วนตัว</option>
+          <option value="รับจ้างทั่วไป / ฟรีแลนซ์" data-i18n="cr_occ_4">รับจ้างทั่วไป / ฟรีแลนซ์</option>
+          <option value="เกษตรกร" data-i18n="cr_occ_5">เกษตรกร</option>
+          <option value="อื่นๆ" data-i18n="cr_occ_6">อื่นๆ (ระบุเอง)</option>
+        </select>
+        <input type="text" id="crOccOther" class="customer-input" style="display:none;" placeholder="ระบุอาชีพของคุณ *" data-i18n-ph="cr_ph_occ_other">
+        <select id="crYears" class="customer-input">
+          <option value="" data-i18n="cr_yr_pick">— เลือกอายุงาน —</option>
+          <option value="น้อยกว่า 6 เดือน" data-i18n="cr_yr_1">น้อยกว่า 6 เดือน</option>
+          <option value="6 เดือน – 1 ปี" data-i18n="cr_yr_2">6 เดือน – 1 ปี</option>
+          <option value="1 – 2 ปี" data-i18n="cr_yr_3">1 – 2 ปี</option>
+          <option value="3 – 5 ปี" data-i18n="cr_yr_4">3 – 5 ปี</option>
+          <option value="มากกว่า 5 ปี" data-i18n="cr_yr_5">มากกว่า 5 ปี</option>
+        </select>
+        <input type="text" id="crIncome" class="customer-input" inputmode="numeric" oninput="formatCreditIncome(this)" placeholder="เงินเดือน / รายได้ต่อเดือน (บาท) *" data-i18n-ph="cr_ph_income">
+      </div>
+      <label class="credit-consent">
+        <input type="checkbox" id="crConsent">
+        <span data-i18n="cr_consent">ข้าพเจ้ายินยอมให้ทางร้านเก็บรวบรวมและใช้ข้อมูลส่วนบุคคลข้างต้น เพื่อตรวจสอบเครดิตเบื้องต้นและติดต่อกลับ ตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562</span>
+      </label>
+      <div style="height:.9rem;"></div>
+      <button class="calc-primary-btn liff-send-btn" onclick="submitCreditCheck()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.07 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+        <span data-i18n="cr_submit">ส่งขอเช็กเครดิตฟรี</span>
       </button>
     </div>
   </div>
@@ -2243,6 +2491,11 @@ footer .footer-brand {
   <button class="bottom-nav-item" id="bnSocial" onclick="bottomNav('Social')"><div class="nav-ico">📱</div><div class="nav-lbl" data-i18n="nav_social2">โซเชียล</div></button>
 </nav>
 
+<!-- ปุ่มลอย เช็กเครดิตฟรี (Honda เท่านั้น — ใส่รูปใน applyBrand) -->
+<button id="creditFloat" aria-label="เช็กเครดิตฟรี" onclick="openCreditCheck()">
+  <span id="creditFloatClose" role="button" aria-label="ปิด" onclick="event.stopPropagation();dismissCreditFloat()">✕</span>
+</button>
+
 <script>
 // ===== CONSTANTS =====
 const RATE = 0.065;
@@ -2312,6 +2565,42 @@ function scrollToModels() {
   bottomNav('Models');
 }
 
+// ===== ค่างวดหน้าการ์ด (ดาวน์ต่ำสุดที่รุ่นอนุญาต + งวดยาวสุด = ค่างวดถูกสุด) =====
+// mirror ตรรกะ getCalcInstallment: financed = ฐาน - ดาวน์ + ค่าธรรมเนียมพม่า
+function variantInstallment(v) {
+  if (!v) return null;
+  const cashPrice = parseInt(v.price) || 0;
+  if (!cashPrice) return null;
+  const calcBase = (v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
+  const ra = getAutoRate(v);
+  const terms = calcTermsFor(v);
+  const term = terms[terms.length - 1]; // งวดยาวสุด
+  // ดาวน์ต่ำสุดที่รุ่นนี้อนุญาต (บิ๊กไบค์มักเริ่ม 10% ไม่มีฟรีดาวน์)
+  const dp = (v.autoDownPcts && v.autoDownPcts.length) ? v.autoDownPcts.slice().sort(function(a, b) { return a - b; }) : null;
+  const pct = dp ? dp[0] : 0;
+  const dn = pct === 0 ? 0 : Math.ceil(calcBase * pct / 100);
+  const financed = calcBase - dn + mySurchargeFor(v);
+  let inst;
+  if (ra.rate > 0) {
+    const er = effRateForTerm(ra, term, pct);
+    inst = ra.isAnnual ? calcInstFlatAnnual(financed, er, term) : calcInstFlat(financed, er, term);
+  } else {
+    inst = Math.ceil(financed / term);
+  }
+  if (!(inst > 0)) return null;
+  return { inst: inst, pct: pct, term: term };
+}
+// เลือก variant ที่ค่างวดถูกสุดในรุ่น → "เริ่มเพียง ฿X / เดือน"
+function cardInstallment(m) {
+  if (!m.variants || !m.variants.length) return null;
+  let best = null;
+  m.variants.forEach(function(v) {
+    const r = variantInstallment(v);
+    if (r && (!best || r.inst < best.inst)) best = r;
+  });
+  return best;
+}
+
 // ===== RENDER ALL ROWS =====
 function renderAllRows() {
   const c = document.getElementById('catRows');
@@ -2331,11 +2620,16 @@ function renderAllRows() {
       const imgHtml = firstColor && firstColor.img
         ? '<img src="' + firstColor.img + '" alt="' + m.name + '" loading="lazy">'
         : '<span style="font-size:3rem;">' + m.icon + '</span>';
-      const price = m.variants && m.variants[0] && m.variants[0].price
-        ? '฿' + fmt(m.variants[0].price)
-        : '';
+      const ins = cardInstallment(m);
+      const priceHtml = ins
+        ? '<div class="mcard-inst">' +
+            '<span class="mcard-inst-lead">' + t('inst_from') + '</span>' +
+            '<div class="mcard-inst-amt">฿' + fmt(ins.inst) + '<span class="mcard-inst-per"> / ' + t('unit_month') + '</span></div>' +
+            '<div class="mcard-inst-sub">' + t('down_word') + ' ' + (ins.pct === 0 ? '0' : ins.pct + '%') + ' • ' + t('inst_word') + ' ' + ins.term + ' ' + t('unit_month') + '</div>' +
+          '</div>'
+        : '<div class="mcard-price" style="color:#888;font-size:.72rem;">' + t('ask_price') + '</div>';
       const typeCC = m.variants && m.variants[0] ? m.variants.map(v => variantMY(v.name)).join(' / ') : '';
-      return '<div class="mcard" onclick="oM(' + ci + ',' + mi + ')">' +
+      return '<div class="mcard reveal" onclick="oM(' + ci + ',' + mi + ')">' +
         '<div class="mcard-img-wrap">' +
         (m.badge ? '<div class="mcard-badge">' + m.badge + '</div>' : '') +
         imgHtml +
@@ -2343,7 +2637,7 @@ function renderAllRows() {
         '<div class="mcard-body">' +
         '<div class="mcard-name">' + m.name + '</div>' +
         (typeCC ? '<div class="mcard-sub">' + typeCC + '</div>' : '') +
-        (price ? '<div class="mcard-price">' + t('price_from') + price + '</div>' : '<div class="mcard-price" style="color:#888;font-size:.72rem;">' + t('ask_price') + '</div>') +
+        priceHtml +
         '<button class="mcard-cta" onclick="event.stopPropagation();oM(' + ci + ',' + mi + ')">' + t('view_detail') + '</button>' +
         '</div>' +
         '</div>';
@@ -2352,12 +2646,44 @@ function renderAllRows() {
   ).join('');
   c.innerHTML = '<div class="cat-tabs-wrap"><div class="cat-tabs">' + tabs + '</div></div>' + panels;
   renderCatIcons();
+  initReveals();
+}
+
+// ===== SCROLL REVEAL (การ์ด/ปุ่มขึ้นนุ่มๆ ตอนเลื่อนเข้ามา) =====
+// ใช้ scroll handler ตรงๆ (ไม่พึ่ง IntersectionObserver) — .reveal จะถูกซ่อนเฉพาะเมื่อ
+// body.js-reveal ถูกเซ็ต และเผยทันทีที่เข้าจอ → ถ้า JS พลาด การ์ดจะไม่มีวันหาย
+let _revealScanFn = null;
+function initReveals() {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  document.body.classList.add('js-reveal');
+  if (!_revealScanFn) {
+    _revealScanFn = function() {
+      const vh = window.innerHeight || 800;
+      document.querySelectorAll('.reveal:not(.in)').forEach(function(e) {
+        if (e.offsetParent === null) return;               // ซ่อนอยู่ (แท็บอื่น) — ข้าม
+        const r = e.getBoundingClientRect();
+        if (r.top < vh * 0.92 && r.bottom > 0) e.classList.add('in');
+      });
+    };
+    // throttle ด้วย timestamp (ไม่พึ่ง requestAnimationFrame ที่อาจถูก throttle ตอนแท็บไม่โฟกัส)
+    let last = 0;
+    const onScroll = function() { const now = Date.now(); if (now - last > 80) { last = now; _revealScanFn(); } };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+  }
+  _revealScanFn();
+}
+// เปิดการ์ดในแท็บที่เพิ่งสลับมา (เดิม display:none → getBoundingClientRect เพิ่งใช้ได้)
+function revealActivePanel() {
+  if (_revealScanFn) _revealScanFn();
+  else document.querySelectorAll('.cat-panel.active .reveal:not(.in)').forEach(e => e.classList.add('in'));
 }
 
 // ===== SWITCH CATEGORY (DESKTOP TABS) =====
 function switchCat(ci) {
   document.querySelectorAll('.cat-tab').forEach((t, i) => t.classList.toggle('active', i === ci));
   document.querySelectorAll('.cat-panel').forEach((p, i) => p.classList.toggle('active', i === ci));
+  revealActivePanel();
 }
 
 // ===== CATEGORY ICONS (MOBILE) =====
@@ -2747,7 +3073,11 @@ function getSelectedColorName() {
   return (colors[calcColorIdx] && colors[calcColorIdx].name) ? colors[calcColorIdx].name : '';
 }
 
+// จำว่าเปิดเครื่องคำนวณมาจากโมดอลรุ่นไหน (null = เปิดตรงจากเมนู) — ใช้กับปุ่ม "← เปลี่ยนรุ่นรถ"
+let _calcFromModal = null;
+
 function openCalc() {
+  _calcFromModal = null;   // เปิดตรงจากเมนู → ปุ่มย้อนกลับใช้หน้าเลือกรุ่น (openCalcFromModal จะเซ็ตทับทีหลัง)
   document.getElementById('calcOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
   populateCalcModels();
@@ -3002,11 +3332,151 @@ async function submitTestRide() {
   }
 }
 
+// วางรูปปุ่มเครดิต (Honda) ทั้งในโมดอลและปุ่มลอย — Yamaha ใช้ปุ่ม CSS เดิม (ยังไม่มีรูปแบรนด์)
+function setupCreditButtons() {
+  const img = BRAND_CFG.creditBtnImg;
+  const modalBtn = document.querySelector('.modal-credit-btn');
+  if (modalBtn) {
+    if (img) {
+      modalBtn.classList.add('has-img');
+      modalBtn.innerHTML = '<img class="credit-btn-img" src="' + img + '" alt="เช็กเครดิตฟรี">';
+    }
+    // ไม่มีรูป → คง innerHTML/ปุ่ม CSS เดิมไว้
+  }
+  const floatBtn = document.getElementById('creditFloat');
+  if (floatBtn) {
+    if (img) {
+      if (!floatBtn.querySelector('img')) {
+        const im = document.createElement('img');
+        im.src = img; im.alt = 'เช็กเครดิตฟรี';
+        floatBtn.insertBefore(im, floatBtn.firstChild);
+      }
+      floatBtn.classList.add('on');
+    } else {
+      floatBtn.classList.remove('on');
+    }
+  }
+}
+// ปิดปุ่มลอยแค่ชั่วคราว (ไม่จำ) — รีเฟรชแล้วกลับมาเสมอ
+function dismissCreditFloat() {
+  const f = document.getElementById('creditFloat');
+  if (f) f.classList.remove('on');
+}
+
+// ===== เช็กเครดิตฟรี — เปิดฟอร์ม → ส่งการ์ดเข้าแชท OA 1:1 + บันทึกลีด (ไม่เข้ากลุ่มเซลส์) =====
+function openCreditCheck() {
+  const co = document.getElementById('creditOverlay');
+  if (co) co.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeCreditCheck() {
+  const co = document.getElementById('creditOverlay');
+  if (co) co.classList.remove('open');
+  document.body.style.overflow = '';
+}
+// เลือก "อื่นๆ" → โชว์ช่องให้ระบุอาชีพเอง
+function onCreditOccChange() {
+  const sel = document.getElementById('crOccupation');
+  const other = document.getElementById('crOccOther');
+  if (!sel || !other) return;
+  const isOther = sel.value === 'อื่นๆ';
+  other.style.display = isOther ? '' : 'none';
+  if (isOther) { try { other.focus(); } catch(e) {} } else { other.value = ''; }
+}
+// ใส่คอมมาระหว่างพิมพ์ให้อ่านง่าย (เก็บจริงเป็นตัวเลขล้วน)
+function formatCreditIncome(el) {
+  const digits = (el.value || '').replace(/\D/g, '');
+  el.value = digits ? Number(digits).toLocaleString('en-US') : '';
+}
+function creditData() {
+  const g = function(id){ const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  const cc = document.getElementById('crConsent');
+  let occ = g('crOccupation');
+  if (occ === 'อื่นๆ') occ = g('crOccOther');   // "อื่นๆ" → ใช้อาชีพที่ลูกค้าพิมพ์เอง
+  return { name: g('crName'), phone: g('crPhone'), occupation: occ, years: g('crYears'),
+    income: g('crIncome').replace(/\D/g, ''), consent: !!(cc && cc.checked) };
+}
+// ลีดเช็กเครดิต — pack ข้อมูลอาชีพ/อายุงาน/รายได้ ใน detail (ไม่ต้อง migrate คอลัมน์)
+function creditLead(d) {
+  return { lead_type: 'creditcheck', model: '', cust_name: d.name, cust_phone: d.phone,
+    detail: { occupation: d.occupation || '', work_years: d.years || '', income: d.income || '', consent: d.consent ? 'yes' : 'no' } };
+}
+function buildCreditCard(d) {
+  const rows = [
+    cardBanner('🔎 ขอเช็กเครดิตฟรี', CARD_GREEN),
+    { type: 'text', text: d.name || 'ลูกค้า', weight: 'bold', size: 'lg', color: CARD_GREEN, wrap: true, margin: 'md' }
+  ];
+  const kv = [];
+  if (d.phone) kv.push(['📞 เบอร์', d.phone]);
+  if (d.occupation) kv.push(['💼 อาชีพ', d.occupation]);
+  if (d.years) kv.push(['📆 อายุงาน', d.years]);
+  if (d.income) kv.push(['💰 รายได้/เดือน', Number(d.income).toLocaleString('en-US') + ' บาท']);
+  rows.push({ type: 'separator', margin: 'md' });
+  kv.forEach(function(p, i) {
+    rows.push({
+      type: 'box', layout: 'horizontal', margin: i === 0 ? 'md' : 'sm',
+      contents: [
+        { type: 'text', text: p[0], size: 'sm', color: '#888888', flex: 3 },
+        { type: 'text', text: p[1], size: 'sm', align: 'end', flex: 4, wrap: true, weight: p[0].indexOf('เบอร์') !== -1 ? 'bold' : 'regular', color: p[0].indexOf('เบอร์') !== -1 ? '#22aa55' : '#333333' }
+      ]
+    });
+  });
+  rows.push({ type: 'text', text: 'ขอเช็กเครดิตเบื้องต้น รบกวนทีมงานติดต่อกลับด้วยครับ', size: 'xs', color: '#aaaaaa', wrap: true, margin: 'md' });
+  return { type: 'flex', altText: 'ขอเช็กเครดิตฟรี: ' + (d.name || ''),
+    contents: { type: 'bubble', body: { type: 'box', layout: 'vertical', spacing: 'sm', contents: rows } } };
+}
+function buildCreditText(d) {
+  const parts = ['🔎 ขอเช็กเครดิตฟรี'];
+  if (d.name) parts.push('ชื่อ: ' + d.name);
+  if (d.phone) parts.push('เบอร์: ' + d.phone);
+  if (d.occupation) parts.push('อาชีพ: ' + d.occupation);
+  if (d.years) parts.push('อายุงาน: ' + d.years);
+  if (d.income) parts.push('รายได้/เดือน: ' + Number(d.income).toLocaleString('en-US') + ' บาท');
+  parts.push('รบกวนทีมงานช่วยเช็กเครดิตเบื้องต้นให้ด้วยครับ');
+  return parts.join('\n');
+}
+// บันทึกลีดเช็กเครดิตไป endpoint แยก (ไม่ push เข้ากลุ่มเซลส์ — ต่างจาก saveLead)
+function saveCreditLead(lead) {
+  if (!lead) return;
+  try {
+    lead.lang = langMode; lead.brand = BRAND;
+    fetch(SAVE_CREDIT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(lead) }).catch(function(){});
+  } catch(_) {}
+}
+async function submitCreditCheck() {
+  const d = creditData();
+  const occSel = (document.getElementById('crOccupation') || {}).value || '';
+  if (!d.name) { alert('กรุณากรอกชื่อ-นามสกุลครับ'); return; }
+  if (d.phone.replace(/\D/g, '').length < 9) { alert('กรุณากรอกเบอร์โทรให้ถูกต้องครับ'); return; }
+  if (!occSel) { alert('กรุณาเลือกอาชีพครับ'); return; }
+  if (occSel === 'อื่นๆ' && !d.occupation) { alert('กรุณาระบุอาชีพของคุณครับ'); return; }
+  if (!d.income) { alert('กรุณากรอกเงินเดือน/รายได้ครับ'); return; }
+  if (!d.consent) { alert('กรุณาติ๊กยืนยันความยินยอมก่อนส่งครับ'); return; }
+  if (isInLiff) {
+    await deliverFlexToLine(buildCreditCard(d), buildCreditText(d), { creditLead: creditLead(d) });
+    closeCreditCheck();
+  } else {
+    // เบราว์เซอร์ (นอกแอป LINE): บันทึกข้อมูล (ไม่ใส่ PII/รายได้ใน URL) + เปิดแชท OA ให้คุยต่อ
+    saveCreditLead(creditLead(d));
+    closeCreditCheck();
+    alert('ส่งข้อมูลแล้วครับ 🙏 ทีมงานจะติดต่อกลับ — กำลังเปิดแชท LINE ให้พูดคุยต่อ');
+    window.open('https://line.me/R/ti/p/' + BRAND_CFG.oa, '_blank');
+  }
+}
+
 function openCalcFromModal() {
   const prevModel = modalModel;
   const prevVariantIdx = modalVariantIdx; // จำ variant ที่เลือกไว้ในโมดอล
+  // หา index ของรุ่นใน catalog เพื่อให้ปุ่ม "← เปลี่ยนรุ่นรถ" ย้อนกลับไปโมดอลเดิมได้
+  let fci = -1, fmi = -1;
+  outer: for (let i = 0; i < categories.length; i++) {
+    for (let j = 0; j < categories[i].models.length; j++) {
+      if (categories[i].models[j] === prevModel) { fci = i; fmi = j; break outer; }
+    }
+  }
   closeModal();
-  openCalc();
+  openCalc();                                   // openCalc รีเซ็ต _calcFromModal = null
+  if (fci >= 0) _calcFromModal = { ci: fci, mi: fmi, vi: prevVariantIdx };
   if (prevModel) {
     const sel = document.getElementById('calcModelSelect');
     for (let i = 0; i < sel.options.length; i++) {
@@ -3107,13 +3577,17 @@ function myFeeByCc(cc) {
   if (cc >= 150 && cc <= 160) return 3200;
   return 0; // บิ๊กไบค์ 300+, EV(0), อื่นๆ
 }
-function mySurcharge() {
-  if (langMode !== 'my' || !calcModel) return 0;
+// ค่าธรรมเนียมพม่า (my) ต่อ variant — Yamaha คงที่ 1,000, Honda คิดตาม cc
+function mySurchargeFor(v) {
+  if (langMode !== 'my') return 0;
   // Yamaha: บวกคงที่ 1,000 บาท ทั้งรถเล็กและบิ๊กไบค์
   if (BRAND === 'yamaha') return 1000;
   // Honda: คิดตาม cc
-  const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
   return v ? myFeeByCc(v.engineCc) : 0;
+}
+function mySurcharge() {
+  if (!calcModel) return 0;
+  return mySurchargeFor(calcModel.variants[calcVariantIdx] || calcModel.variants[0]);
 }
 
 // ===== i18n ไทย/พม่า =====
@@ -3124,27 +3598,33 @@ const I18N = {
     svc_tradein_t: 'เทิร์นรถเก่า', svc_tradein_s: 'รับเทิร์นทุกรุ่น · ตีราคาที่ร้าน',
     svc_testride_t: 'ทดลองขับขี่ฟรี', svc_testride_s: 'PCX160 & UC3 · ที่วังน้อย',
     faq_t: 'คำถามที่พบบ่อย', faq_s: 'ผ่อนไม่ผ่าน? ติดแบล็คลิสต์? ดาวน์เท่าไหร่? — อ่านคำตอบ',
-    add_compare: '➕ เพิ่มในรายการเปรียบเทียบ',
-    send_all: '💬 สนใจหลายรุ่น ให้เซลล์ช่วยแนะนำ',
-    send_line: '💬 ส่งข้อมูลให้ร้านทาง LINE',
-    interest_title: '🛒 รุ่นที่สนใจ', interest_sub: 'ส่งทุกรุ่นให้ทีมงานทีเดียว เปรียบเทียบง่าย ไม่ต้องส่งทีละคัน',
+    add_compare: 'เก็บรุ่นนี้ไว้เทียบกับรุ่นอื่น', add_compare_done: '✓ เก็บแล้ว — เลือกรุ่นอื่นต่อได้เลย', calc_edit_calc: '← แก้ไขการคำนวณ',
+    send_all: 'ส่งทุกรุ่นที่เก็บไว้ ผ่าน LINE',
+    send_line: 'ส่งข้อมูลเพื่อรับข้อเสนอ ผ่าน LINE',
+    interest_title: 'รุ่นที่สนใจ', interest_fab: 'รุ่นที่สนใจ', interest_sub: 'เก็บไว้หลายรุ่นแล้วส่งทีเดียว ให้ทีมงานเปรียบเทียบและแนะนำให้',
     free_badge: 'ฟรี!', cat_pick: 'เลือกตามประเภท',
     models_title: 'รุ่นรถฮอนด้า', models_sub: 'กดรถที่สนใจเพื่อดูสีและรุ่นย่อย · สอบถามราคาและตารางผ่อนได้ที่ร้าน',
     nav_home: 'หน้าหลัก', nav_bikes: 'รุ่นรถ', nav_calc: 'ค่างวด', nav_chat: 'แชท LINE', nav_social2: 'โซเชียล',
     calc_title: 'คำนวณค่างวด', cta_calc: 'คำนวณค่างวด →', gifts_title: '🎁 ของแถมรุ่นนี้', price_hint: '💬 กดปุ่มคำนวณค่างวดด้านล่าง เพื่อดูตารางผ่อนและสอบถามราคา', step_choose: 'เลือกรุ่น', step_setup: 'ตั้งค่า', step_result: 'ผลลัพธ์',
     calc_next: 'ถัดไป →', calc_color: 'เลือกสี', pick_variant: 'เลือกรุ่นย่อย', color_prefix: 'สี: ', unit_models: 'รุ่น', price_from: 'เริ่มต้น ', ask_price: 'สอบถามราคา', view_detail: 'ดูรายละเอียด →', drag_to_spin: 'ลากเพื่อหมุน 360°',
+    inst_from: 'ผ่อนเริ่มเพียง', down_word: 'ดาวน์', inst_word: 'ผ่อน',
+    credit_check_btn: 'เช็กเครดิตฟรี', credit_check_sub: 'ไม่มีค่าใช้จ่าย · ไม่ผูกมัด · ผ่านค่อยตัดสินใจ', credit_msg: 'สนใจเช็กเครดิตฟรีครับ/ค่ะ ไม่แน่ใจว่าจัดไฟแนนซ์ผ่านไหม รบกวนทีมงานช่วยตรวจสอบให้หน่อยครับ/ค่ะ 🙏',
+    cr_title: '🔎 เช็กเครดิตฟรี', cr_hero: 'ตรวจสอบเครดิตเบื้องต้น', cr_hero_sub: 'กรอกข้อมูลสั้นๆ ทีมงานช่วยประเมินให้ฟรี ไม่มีค่าใช้จ่าย ไม่ผูกมัด', cr_ph_name: 'ชื่อ-นามสกุล *', cr_ph_phone: 'เบอร์โทร *', cr_ph_income: 'เงินเดือน / รายได้ต่อเดือน (บาท) *', cr_ph_occ_other: 'ระบุอาชีพของคุณ *',
+    cr_occ_pick: '— เลือกอาชีพ * —', cr_occ_1: 'พนักงานบริษัท / เอกชน', cr_occ_2: 'ข้าราชการ / รัฐวิสาหกิจ', cr_occ_3: 'ค้าขาย / ธุรกิจส่วนตัว', cr_occ_4: 'รับจ้างทั่วไป / ฟรีแลนซ์', cr_occ_5: 'เกษตรกร', cr_occ_6: 'อื่นๆ (ระบุเอง)',
+    cr_yr_pick: '— เลือกอายุงาน —', cr_yr_1: 'น้อยกว่า 6 เดือน', cr_yr_2: '6 เดือน – 1 ปี', cr_yr_3: '1 – 2 ปี', cr_yr_4: '3 – 5 ปี', cr_yr_5: 'มากกว่า 5 ปี',
+    cr_consent: 'ข้าพเจ้ายินยอมให้ทางร้านเก็บรวบรวมและใช้ข้อมูลส่วนบุคคลข้างต้น เพื่อตรวจสอบเครดิตเบื้องต้นและติดต่อกลับ ตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562', cr_submit: 'ส่งขอเช็กเครดิตฟรี',
     unit_month: 'เดือน', free_down: 'ฟรีดาวน์', rate_prefix: 'ดอกเบี้ย ', pct_per_year: '%/ปี', pct_per_month: '%/เดือน', no_rate: 'ไม่มีข้อมูลดอกเบี้ย', min_suffix: '% ขั้นต่ำ', ask_price2: 'ติดต่อสอบถามราคา', opt_pick: '-- เลือกรุ่น --', strip_pick: 'เลือกรุ่นรถ',
-    pay_install: '💳 เงินผ่อน', pay_cash: '💵 เงินสด',
+    pay_install: 'เงินผ่อน', pay_cash: 'เงินสด', calc_change_model: '← เปลี่ยนรุ่นรถ',
     lbl_financed: 'ยอดจัดไฟแนนซ์', lbl_est_install: 'ค่างวดโดยประมาณ', lbl_down: 'เงินดาวน์',
     lbl_custom_down: 'หรือกำหนดเงินดาวน์เอง', unit_baht: 'บาท', lbl_period: 'ระยะเวลาผ่อน',
     lbl_cash_price: 'ราคาเงินสด', cash_perk: 'รับสิทธิพิเศษเมื่อซื้อสด',
     cash_b1: '✓ ฟรีทะเบียน', cash_b2: '✓ ฟรี พ.ร.บ.', cash_b3: '✓ ฟรีประกันรถหาย', cash_b4: '✓ ฟรีประกันอุบัติเหตุ',
     cash_note: '* ติดต่อร้านเพื่อยืนยันราคาและโปรโมชั่นล่าสุด อาจมีส่วนลดเพิ่มเติมสำหรับลูกค้าเงินสด',
-    calc_see_result: 'ดูผลลัพธ์ →', res_install_label: 'ค่างวดต่อเดือน (ประมาณ)', bd_price: 'ราคารถ',
-    bd_note: '* ตัวเลขเป็นการประมาณการเบื้องต้น เงื่อนไขตามบริษัทไฟแนนซ์กำหนด', bd_note_cash: '* ติดต่อร้านเพื่อยืนยันราคาและโปรโมชั่นล่าสุด',
-    ci_title: '📝 ข้อมูลติดต่อ (ไม่บังคับ)', ci_note: 'ใส่เบอร์ไว้ ให้เจ้าหน้าที่โทรช่วยจัดไฟแนนซ์ให้ผ่านง่ายขึ้น 😊',
-    ph_name: 'ชื่อ-นามสกุล (ถ้าสะดวก)', ph_phone: 'เบอร์โทร — ให้เจ้าหน้าที่โทรช่วยจัดไฟแนนซ์',
-    reassure_t: 'กังวลเรื่องการอนุมัติ หรือไม่แน่ใจว่าผ่อนได้ไหม?', reassure_s: 'ส่งข้อมูลนี้ให้ทีมงานช่วยตรวจสอบและแนะนำแนวทางได้ฟรี ไม่มีค่าใช้จ่าย และไม่มีข้อผูกมัดในการออกรถ',
+    calc_see_result: 'ดูข้อเสนอเบื้องต้น →', res_install_label: 'ค่างวดต่อเดือน (ประมาณ)', bd_price: 'ราคารถ',
+    bd_note: 'ประมาณการจากข้อมูลที่เลือก ทั้งนี้ เงื่อนไขเป็นไปตามการอนุมัติของบริษัทไฟแนนซ์', bd_note_cash: '* ติดต่อร้านเพื่อยืนยันราคาและโปรโมชั่นล่าสุด',
+    ci_title: 'ข้อมูลติดต่อ (ไม่บังคับ)', ci_note: 'หากสะดวก สามารถฝากข้อมูลไว้ เพื่อให้เจ้าหน้าที่ช่วยแนะนำแผนการผ่อนที่เหมาะกับคุณ (ไม่บังคับ)',
+    ph_name: 'ชื่อ-นามสกุล', ph_phone: 'เบอร์โทรศัพท์',
+    reassure_t: 'ต้องการประเมินเครดิตเบื้องต้นก่อนตัดสินใจ?', reassure_s: 'ทีมงานพร้อมช่วยประเมินเบื้องต้น พร้อมแนะนำแนวทางที่เหมาะกับคุณ โดยไม่มีค่าใช้จ่าย',
     send_shop_liff: 'ส่งข้อมูลนี้ให้ร้าน',
     ti_title: '🔄 เทิร์นรถเก่า', ti_info: 'รับเทิร์นทุกรุ่นครับ 🔄 กรอกข้อมูลรถเก่า เดี๋ยวเจ้าหน้าที่โทรนัดเอารถมาตีราคาที่ร้าน', ti_info_sub: '* การตีราคาต้องดูสภาพรถจริงที่ร้าน',
     ti_old_title: '🏍️ รถเก่าที่จะเทิร์น', ti_old_note: 'ดูรุ่นรถได้ที่เล่มทะเบียนรถ (สมุดคู่มือจดทะเบียน)', ti_contact: '📝 ข้อมูลติดต่อ', ti_submit: 'ส่งข้อมูลเทิร์นให้ร้าน',
@@ -3160,27 +3640,33 @@ const I18N = {
     svc_tradein_t: 'ဆိုင်ကယ်အဟောင်း လဲရန်', svc_tradein_s: 'အမျိုးအစားအားလုံး · ဆိုင်တွင်တန်ဖိုးဖြတ်',
     svc_testride_t: 'အခမဲ့ စမ်းသပ်စီးနင်း', svc_testride_s: 'PCX160 & UC3 · ဝမ်ညွိုင်',
     faq_t: 'မေးလေ့ရှိသောမေးခွန်းများ', faq_s: 'အရစ်ကျမအောင်? Blacklist? စရံဘယ်လောက်? — အဖြေဖတ်ရန်',
-    add_compare: '➕ နှိုင်းယှဉ်ရန် စာရင်းထည့်ရန်',
-    send_all: '💬 မော်ဒယ်များစွာ စိတ်ဝင်စား · ဝန်ထမ်းအကြံပြုပေးပါမည်',
-    send_line: '💬 ဆိုင်သို့ အချက်အလက်ပို့ရန် (LINE)',
-    interest_title: '🛒 စိတ်ဝင်စားသော မော်ဒယ်များ', interest_sub: 'မော်ဒယ်အားလုံးကို တစ်ကြိမ်တည်းပို့ပြီး လွယ်ကူစွာ နှိုင်းယှဉ်နိုင်သည်',
+    add_compare: 'ဤမော်ဒယ်ကို သိမ်းပြီး အခြားနှင့် နှိုင်းယှဉ်ရန်', add_compare_done: '✓ သိမ်းပြီးပါပြီ — အခြားမော်ဒယ် ဆက်ရွေးနိုင်ပါသည်', calc_edit_calc: '← တွက်ချက်မှု ပြင်ရန်',
+    send_all: 'သိမ်းထားသော မော်ဒယ်အားလုံး LINE ဖြင့် ပို့ရန်',
+    send_line: 'အဆိုပြုချက်ရယူရန် LINE ဖြင့် အချက်အလက်ပို့ရန်',
+    interest_title: 'စိတ်ဝင်စားသော မော်ဒယ်များ', interest_fab: 'စိတ်ဝင်စားသော မော်ဒယ်များ', interest_sub: 'မော်ဒယ်များစွာ သိမ်းပြီး တစ်ကြိမ်တည်းပို့ပါ ဝန်ထမ်းများ နှိုင်းယှဉ်၍ အကြံပြုပေးပါမည်',
     free_badge: 'အခမဲ့!', cat_pick: 'အမျိုးအစားအလိုက် ရွေးရန်',
     models_title: 'Honda ဆိုင်ကယ်များ', models_sub: 'စိတ်ဝင်စားသော ဆိုင်ကယ်ကိုနှိပ်၍ အရောင်/မော်ဒယ်ခွဲ ကြည့်ရန် · ဈေးနှင့် အရစ်ကျဇယား ဆိုင်တွင်မေးနိုင်သည်',
     nav_home: 'ပင်မ', nav_bikes: 'ဆိုင်ကယ်', nav_calc: 'အရစ်ကျ', nav_chat: 'LINE ချတ်', nav_social2: 'Social',
     calc_title: 'အရစ်ကျ တွက်ချက်ရန်', cta_calc: 'အရစ်ကျ တွက်ချက်ရန် →', gifts_title: '🎁 ဤမော်ဒယ်အတွက် လက်ဆောင်များ', price_hint: '💬 အောက်ရှိ အရစ်ကျတွက်ချက်ရန် ခလုတ်ကိုနှိပ်၍ အရစ်ကျဇယားနှင့် ဈေးကြည့်ရှုနိုင်သည်', step_choose: 'မော်ဒယ်ရွေး', step_setup: 'သတ်မှတ်', step_result: 'ရလဒ်',
     calc_next: 'ဆက်သွား →', calc_color: 'အရောင်ရွေး', pick_variant: 'မော်ဒယ်ခွဲ ရွေးပါ', color_prefix: 'အရောင်: ', unit_models: 'မော်ဒယ်', price_from: 'စတင်ဈေး ', ask_price: 'ဈေးမေးရန်', view_detail: 'အသေးစိတ်ကြည့်ရန် →', drag_to_spin: 'လှည့်ရန် ဆွဲပါ 360°',
+    inst_from: 'အရစ်ကျ စတင်', down_word: 'စရံ', inst_word: 'ကာလ',
+    credit_check_btn: 'ခရက်ဒစ် အခမဲ့စစ်ဆေး', credit_check_sub: 'အခမဲ့ · ကတိမရှိ · အရင်စစ်ပြီးမှ ဆုံးဖြတ်ပါ', credit_msg: 'ခရက်ဒစ် အခမဲ့ စစ်ဆေးလိုပါတယ်။ အရစ်ကျ ရမရ မသေချာလို့ ဝန်ထမ်းများ ကူညီစစ်ဆေးပေးပါ 🙏',
+    cr_title: '🔎 ခရက်ဒစ် အခမဲ့စစ်ဆေး', cr_hero: 'ခရက်ဒစ် ကနဦးစစ်ဆေးခြင်း', cr_hero_sub: 'အချက်အလက်အနည်းငယ်ဖြည့်ပါ ဝန်ထမ်းများ အခမဲ့ကူညီစစ်ဆေးပေးပါမည် ကတိမရှိ', cr_ph_name: 'အမည် *', cr_ph_phone: 'ဖုန်းနံပါတ် *', cr_ph_income: 'လစဉ်ဝင်ငွေ (ဘတ်) *', cr_ph_occ_other: 'အလုပ်အကိုင် ဖော်ပြပါ *',
+    cr_occ_pick: '— အလုပ်အကိုင် ရွေးပါ * —', cr_occ_1: 'ကုမ္ပဏီဝန်ထမ်း / ပုဂ္ဂလိက', cr_occ_2: 'အစိုးရဝန်ထမ်း', cr_occ_3: 'ရောင်းဝယ်ရေး / ကိုယ်ပိုင်လုပ်ငန်း', cr_occ_4: 'အလုပ်ကြမ်း / ဖရီးလန့်စ်', cr_occ_5: 'လယ်သမား', cr_occ_6: 'အခြား (ဖော်ပြပါ)',
+    cr_yr_pick: '— အလုပ်သက်တမ်း ရွေးပါ —', cr_yr_1: '၆ လအောက်', cr_yr_2: '၆ လ – ၁ နှစ်', cr_yr_3: '၁ – ၂ နှစ်', cr_yr_4: '၃ – ၅ နှစ်', cr_yr_5: '၅ နှစ်အထက်',
+    cr_consent: 'ကနဦး ခရက်ဒစ်စစ်ဆေးရန်နှင့် ပြန်လည်ဆက်သွယ်ရန်အတွက် အထက်ပါ ကိုယ်ရေးအချက်အလက်များကို ဆိုင်မှ စုဆောင်း/အသုံးပြုရန် ကျွန်ုပ် သဘောတူပါသည် (PDPA ၂၀၁၉)', cr_submit: 'ခရက်ဒစ် အခမဲ့စစ်ဆေးရန် ပို့မည်',
     unit_month: 'လ', free_down: 'အခမဲ့စရံ', rate_prefix: 'အတိုး ', pct_per_year: '%/နှစ်', pct_per_month: '%/လ', no_rate: 'အတိုးအချက်အလက် မရှိ', min_suffix: '% အနည်းဆုံး', ask_price2: 'ဈေးမေးမြန်းရန် ဆက်သွယ်ပါ', opt_pick: '-- မော်ဒယ်ရွေးပါ --', strip_pick: 'ဆိုင်ကယ်ရွေးပါ',
-    pay_install: '💳 အရစ်ကျ', pay_cash: '💵 ေငြသား',
+    pay_install: 'အရစ်ကျ', pay_cash: 'ေငြသား', calc_change_model: '← ဆိုင်ကယ် ပြောင်းရန်',
     lbl_financed: 'ချေးငွေပမာဏ', lbl_est_install: 'ခန့်မှန်း လစဉ်ပေးချေ', lbl_down: 'စရံ',
     lbl_custom_down: 'သို့မဟုတ် စရံ ကိုယ်တိုင်သတ်မှတ်', unit_baht: 'ဘတ်', lbl_period: 'အရစ်ကျ ကာလ',
     lbl_cash_price: 'ေငြသားဈေး', cash_perk: 'ေငြသားဝယ်လျှင် အထူးအခွင့်အရေး',
     cash_b1: '✓ မှတ်ပုံတင် အခမဲ့', cash_b2: '✓ พ.ร.บ. အာမခံ အခမဲ့', cash_b3: '✓ ဆိုင်ကယ်ပျောက်အာမခံ အခမဲ့', cash_b4: '✓ မတော်တဆအာမခံ အခမဲ့',
     cash_note: '* နောက်ဆုံးဈေးနှင့် ပရိုမိုးရှင်းအတွက် ဆိုင်သို့ဆက်သွယ်ပါ · ေငြသားဝယ်သူအတွက် လျှော့ဈေးထပ်ရှိနိုင်သည်',
-    calc_see_result: 'ရလဒ်ကြည့်ရန် →', res_install_label: 'လစဉ်ပေးချေငွေ (ခန့်မှန်း)', bd_price: 'ဆိုင်ကယ်ဈေး',
-    bd_note: '* ဂဏန်းများသည် ခန့်မှန်းခြေဖြစ်ပြီး ဖိုင်နန့်စ်ကုမ္ပဏီ စည်းကမ်းအတိုင်းဖြစ်သည်', bd_note_cash: '* နောက်ဆုံးဈေးနှင့် ပရိုမိုးရှင်းအတွက် ဆိုင်သို့ဆက်သွယ်ပါ',
-    ci_title: '📝 ဆက်သွယ်ရန်အချက်အလက် (မဖြစ်မနေမဟုတ်)', ci_note: 'ဖုန်းနံပါတ်ထည့်ထားပါ ဝန်ထမ်းက ဖိုင်နန့်စ်အဆင်ပြေအောင် ကူညီပေးပါမည် 😊',
-    ph_name: 'အမည် (အဆင်ပြေလျှင်)', ph_phone: 'ဖုန်းနံပါတ် — ဖိုင်နန့်စ်ကူညီရန်',
-    reassure_t: 'အတည်ပြုခြင်း စိုးရိမ်ပါသလား? အရစ်ကျနိုင်မလား မသေချာဘူးလား?', reassure_s: 'ဤအချက်အလက်ကို ဝန်ထမ်းထံပို့ပါ စစ်ဆေးပြီးလမ်းညွှန်ပေးပါမည် အခမဲ့ ကုန်ကျစရိတ်မရှိ ဝယ်ရန်တာဝန်မရှိ',
+    calc_see_result: 'ကနဦး အဆိုပြုချက် ကြည့်ရန် →', res_install_label: 'လစဉ်ပေးချေငွေ (ခန့်မှန်း)', bd_price: 'ဆိုင်ကယ်ဈေး',
+    bd_note: 'ရွေးချယ်ထားသော အချက်အလက်အရ ခန့်မှန်းထားခြင်းဖြစ်ပြီး စည်းကမ်းချက်များမှာ ဖိုင်နန့်စ်ကုမ္ပဏီ၏ အတည်ပြုချက်အတိုင်း ဖြစ်ပါသည်', bd_note_cash: '* နောက်ဆုံးဈေးနှင့် ပရိုမိုးရှင်းအတွက် ဆိုင်သို့ဆက်သွယ်ပါ',
+    ci_title: 'ဆက်သွယ်ရန်အချက်အလက် (မဖြစ်မနေမဟုတ်)', ci_note: 'အဆင်ပြေပါက အချက်အလက်ထားခဲ့နိုင်ပါသည် ဝန်ထမ်းများက သင့်နှင့်ကိုက်ညီသော အရစ်ကျအစီအစဉ်ကို အကြံပြုပေးပါမည် (မဖြစ်မနေမဟုတ်)',
+    ph_name: 'အမည်', ph_phone: 'ဖုန်းနံပါတ်',
+    reassure_t: 'မဆုံးဖြတ်မီ ခရက်ဒစ် ကနဦးအကဲဖြတ်လိုပါသလား?', reassure_s: 'ဝန်ထမ်းများ ကနဦးအကဲဖြတ်ပေးပြီး သင့်နှင့်ကိုက်ညီသော လမ်းကြောင်းကို အခမဲ့ အကြံပြုပေးပါမည်',
     send_shop_liff: 'ဤအချက်အလက်ကို ဆိုင်သို့ပို့ရန်',
     ti_title: '🔄 ဆိုင်ကယ်အဟောင်း လဲရန်', ti_info: 'အမျိုးအစားအားလုံး လဲပေးပါသည် 🔄 ဆိုင်ကယ်အဟောင်းအချက်အလက်ဖြည့်ပါ ဝန်ထမ်းကဆိုင်သို့ယူလာတန်ဖိုးဖြတ်ရန် ဖုန်းဆက်ပါမည်', ti_info_sub: '* တန်ဖိုးဖြတ်ရန် ဆိုင်ကယ်အခြေအနေအစစ်ကို ဆိုင်တွင်ကြည့်ရပါသည်',
     ti_old_title: '🏍️ လဲမည့် ဆိုင်ကယ်အဟောင်း', ti_old_note: 'ဆိုင်ကယ်မော်ဒယ်ကို မှတ်ပုံတင်စာအုပ်တွင်ကြည့်နိုင်သည်', ti_contact: '📝 ဆက်သွယ်ရန်အချက်အလက်', ti_submit: 'လဲလှယ်အချက်အလက် ဆိုင်သို့ပို့ရန်',
@@ -3388,7 +3874,8 @@ function updateSliderRange() {
 
 function setPayType(type) {
   calcPayType = type;
-  document.querySelectorAll('.pay-opt').forEach(b => b.classList.toggle('active', b.dataset.pay === type));
+  // จำกัดเฉพาะปุ่มในเครื่องคำนวณ — ปุ่มเลือกรุ่นทดลองขับใช้คลาส .pay-opt เหมือนกัน เดิมโดนล้าง active ทิ้ง
+  document.querySelectorAll('#calcPayToggle .pay-opt').forEach(b => b.classList.toggle('active', b.dataset.pay === type));
   document.getElementById('installmentOnly').style.display = (type === 'installment') ? 'block' : 'none';
   document.getElementById('cashOnly').style.display = (type === 'cash') ? 'block' : 'none';
   // ซ่อนราคารถบน car-strip เมื่อเงินผ่อน (ลูกค้าจะเห็นเฉพาะค่างวด ไม่งงตัวเลข)
@@ -3444,6 +3931,24 @@ function goBackToStep2() {
   document.getElementById('calcStep2').style.display = 'block';
   document.getElementById('calcStep3').style.display = 'none';
   updateStepIndicators(2);
+}
+
+// ปุ่ม "← เปลี่ยนรุ่นรถ" — กลับไปหน้าโมดอลรุ่นรถที่กดมา (พร้อมรุ่นย่อยเดิม)
+// ถ้าเปิดเครื่องคำนวณตรงจากเมนู (ไม่มีโมดอลต้นทาง) → กลับไปหน้าเลือกรุ่นแบบดรอปดาวน์แทน
+function goBackToStep1() {
+  const from = _calcFromModal;
+  if (from) {
+    closeCalc();
+    oM(from.ci, from.mi);            // oM รีเซ็ต variant = 0
+    if (from.vi) sV(from.vi);        // คืนรุ่นย่อยที่ลูกค้าเลือกไว้
+    return;
+  }
+  document.getElementById('calcStep1').style.display = 'block';
+  document.getElementById('calcStep2').style.display = 'none';
+  document.getElementById('calcStep3').style.display = 'none';
+  updateStepIndicators(1);
+  const inner = document.querySelector('.calc-inner');
+  if (inner) inner.scrollTop = 0;
 }
 
 function updateStepIndicators(active) {
@@ -3701,8 +4206,8 @@ function renderServiceIcons() {
 // ===== Brand (Honda / Yamaha) — parameterize: ?brand=yamaha → โหมด Yamaha =====
 const BRAND = (new URLSearchParams(location.search).get('brand') === 'yamaha') ? 'yamaha' : 'honda';
 const BRAND_CFG = ({
-  honda:  { name: 'ป.เปา มอเตอร์เซอร์วิส', tagline: 'ตัวแทนจำหน่าย Honda · วังน้อย', color: '#cc0000', colorDark: '#990000', oa: '@975ltwhp', title: 'ป.เปา มอเตอร์เซอร์วิส | Honda วังน้อย', liffId: '2010228940-rjXFOkmc', modelsTitle: 'รุ่นรถฮอนด้า', modelsTitleMy: 'Honda ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Honda · 189-191 ม.7 ต.ลำไทร อ.วังน้อย จ.พระนครศรีอยุธยา<br>เปิดทุกวัน 08:00 – 17:30 น. · โทร. 092-249968-6', social: { fb: 'https://www.facebook.com/profile.php?id=100064036530646', tt: 'https://www.tiktok.com/@porpaor.wangnoi', line: 'https://lin.ee/wX63SBB' }, tel: '0922499686', faqBanner: 'images/faq-honda.jpg', tradeIn: { cardImage: 'images/svc-tradein-honda.jpg' }, testRide: { locShort: 'วังน้อย', cardImage: 'images/svc-testride-honda.jpg', mapUrl: 'https://maps.app.goo.gl/WExhokKJEB9JxvjGA', bikes: [ { value: 'Honda PCX160 Roadsync (สีน้ำเงิน)', title: 'PCX160 Roadsync', sub: 'สีน้ำเงิน', img: 'images/bike-pcx160.png' }, { value: 'Honda UC3 ไฟฟ้า (สีดำ)', title: 'UC3 ไฟฟ้า', sub: 'สีดำ', img: 'images/bike-uc3.png', badge: 'EV' } ] } },
-  yamaha: { name: 'สิงห์ชัยสยามยนต์', tagline: 'ตัวแทนจำหน่ายรถจักรยานยนต์ Yamaha · พระนครศรีอยุธยา', color: '#0a3aa0', colorDark: '#062a78', oa: '@459eeeog', title: 'สิงห์ชัยสยามยนต์ | Yamaha อยุธยา', liffId: '2010557863-oPg9ROHK', modelsTitle: 'รุ่นรถยามาฮ่า', modelsTitleMy: 'Yamaha ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Yamaha — สิงห์ชัยสยามยนต์ · จ.พระนครศรีอยุธยา<br>เปิดทุกวัน 08:00 – 17:30 น. · โทร. 092-249968-1', social: { fb: 'https://www.facebook.com/profile.php?id=61566402556399', tt: 'https://www.tiktok.com/@singchaiyamaha', line: 'https://lin.ee/X9Vbj7i' }, tel: '0922499681', faqBanner: 'images/faq-yamaha.jpg', tradeIn: { cardImage: 'images/svc-tradein-yamaha.jpg' }, testRide: { locShort: 'อยุธยา', cardImage: 'images/svc-testride-yamaha.jpg', mapUrl: 'https://maps.app.goo.gl/RqXQoUT3woy2Jwgz8', bikes: [ { value: 'Yamaha NMAX TECH MAX (2026)', title: 'NMAX TECH MAX', sub: 'รุ่นปี 2026', img: 'images/bike-nmax.png' }, { value: 'Yamaha PG-1', title: 'PG-1', sub: 'รุ่นปี 2025', img: 'images/bike-pg1.png' } ] } }
+  honda:  { name: 'ป.เปา มอเตอร์เซอร์วิส', tagline: 'ตัวแทนจำหน่าย Honda · วังน้อย', color: '#cc0000', colorDark: '#990000', oa: '@975ltwhp', title: 'ป.เปา มอเตอร์เซอร์วิส | Honda วังน้อย', liffId: '2010228940-rjXFOkmc', modelsTitle: 'รุ่นรถฮอนด้า', modelsTitleMy: 'Honda ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Honda · 189-191 ม.7 ต.ลำไทร อ.วังน้อย จ.พระนครศรีอยุธยา<br>เปิดทุกวัน 08:00 – 17:30 น. · โทร. 092-249968-6', social: { fb: 'https://www.facebook.com/profile.php?id=100064036530646', tt: 'https://www.tiktok.com/@porpaor.wangnoi', line: 'https://lin.ee/wX63SBB' }, tel: '0922499686', creditBtnImg: 'images/credit-btn-honda.png', faqBanner: 'images/faq-honda.jpg', tradeIn: { cardImage: 'images/svc-tradein-honda.jpg' }, testRide: { locShort: 'วังน้อย', cardImage: 'images/svc-testride-honda.jpg', mapUrl: 'https://maps.app.goo.gl/WExhokKJEB9JxvjGA', bikes: [ { value: 'Honda PCX160 Roadsync (สีน้ำเงิน)', title: 'PCX160 Roadsync', sub: 'สีน้ำเงิน', img: 'images/bike-pcx160.png' }, { value: 'Honda UC3 ไฟฟ้า (สีดำ)', title: 'UC3 ไฟฟ้า', sub: 'สีดำ', img: 'images/bike-uc3.png', badge: 'EV' } ] } },
+  yamaha: { name: 'สิงห์ชัยสยามยนต์', tagline: 'ตัวแทนจำหน่ายรถจักรยานยนต์ Yamaha · พระนครศรีอยุธยา', color: '#0a3aa0', colorDark: '#062a78', oa: '@459eeeog', title: 'สิงห์ชัยสยามยนต์ | Yamaha อยุธยา', liffId: '2010557863-oPg9ROHK', modelsTitle: 'รุ่นรถยามาฮ่า', modelsTitleMy: 'Yamaha ဆိုင်ကယ်များ', footer: 'ตัวแทนจำหน่ายและศูนย์บริการ Yamaha — สิงห์ชัยสยามยนต์ · จ.พระนครศรีอยุธยา<br>เปิดทุกวัน 08:00 – 17:30 น. · โทร. 092-249968-1', social: { fb: 'https://www.facebook.com/profile.php?id=61566402556399', tt: 'https://www.tiktok.com/@singchaiyamaha', line: 'https://lin.ee/X9Vbj7i' }, tel: '0922499681', creditBtnImg: '', faqBanner: 'images/faq-yamaha.jpg', tradeIn: { cardImage: 'images/svc-tradein-yamaha.jpg' }, testRide: { locShort: 'อยุธยา', cardImage: 'images/svc-testride-yamaha.jpg', mapUrl: 'https://maps.app.goo.gl/RqXQoUT3woy2Jwgz8', bikes: [ { value: 'Yamaha NMAX TECH MAX (2026)', title: 'NMAX TECH MAX', sub: 'รุ่นปี 2026', img: 'images/bike-nmax.png' }, { value: 'Yamaha PG-1', title: 'PG-1', sub: 'รุ่นปี 2025', img: 'images/bike-pg1.png' } ] } }
 })[BRAND];
 function brandUrl(u) { return u + (u.indexOf('?') >= 0 ? '&' : '?') + 'brand=' + BRAND; }
 function applyBrand() {
@@ -3711,6 +4216,8 @@ function applyBrand() {
     r.setProperty('--red', BRAND_CFG.color);
     r.setProperty('--red-dark', BRAND_CFG.colorDark);
     document.documentElement.classList.add('brand-' + BRAND);   // scope CSS ราย brand (เช่น Trust Strip Yamaha) — html มีเสมอ ไม่ขึ้นกับลำดับโหลด
+    // ปุ่มเช็กเครดิตฟรี: ถ้ามีรูปปุ่มแบรนด์ (Honda) ใช้รูป, ไม่งั้นใช้ปุ่ม CSS (Yamaha)
+    setupCreditButtons();
     document.title = BRAND_CFG.title;
     const tb = document.querySelector('.top-bar-brand');
     if (tb) tb.innerHTML = BRAND_CFG.name + '<small>' + BRAND_CFG.tagline + '</small>';
@@ -4019,6 +4526,10 @@ function buildCalcCard() {
   const custPhone = (document.getElementById('custPhone')?.value || '').trim();
 
   const colorName = getSelectedColorName();
+  // รูปรถตามสีที่ลูกค้าเลือก — ใช้โชว์ในตะกร้า "รุ่นที่สนใจ" + ปุ่มลอย
+  const _cc = getCalcColors();
+  const cardImg = (_cc[calcColorIdx] && _cc[calcColorIdx].img)
+    || (calcModel.colors && calcModel.colors[0] && calcModel.colors[0].img) || '';
 
   // สร้าง body components
   const bodyContents = [
@@ -4139,7 +4650,7 @@ function buildCalcCard() {
     cust_phone: custPhone
   };
 
-  return { flexMsg: flexMsg, fallbackText: fallbackText, leadObj: leadObj, label: calcModel.name + (variantName ? ' ' + variantName : '') };
+  return { flexMsg: flexMsg, fallbackText: fallbackText, leadObj: leadObj, img: cardImg, label: calcModel.name + (variantName ? ' ' + variantName : '') };
 }
 
 async function sendToLine() {
@@ -4152,6 +4663,7 @@ async function sendToLine() {
 // ===== รายการสนใจ (เลือกหลายรุ่น → ส่งรวดเป็น carousel) =====
 let interestedList = [];
 const SAVE_LEADS_URL = 'https://n8n-wt11.onrender.com/webhook/save-leads';
+const SAVE_CREDIT_URL = 'https://n8n-wt11.onrender.com/webhook/save-credit-lead';
 const ACK_LEAD_URL = 'https://n8n-wt11.onrender.com/webhook/ack-lead' + (BRAND === 'yamaha' ? '-yamaha' : '');
 const PUSH_CARD_URL = 'https://n8n-wt11.onrender.com/webhook/push-lead-card' + (BRAND === 'yamaha' ? '-yamaha' : '');
 
@@ -4164,17 +4676,36 @@ function addToInterested() {
   if (interestedList.some(it => key(it) === key(card))) { alert('รุ่นนี้อยู่ในรายการแล้วครับ'); return; }
   interestedList.push(card);
   updateInterestedFab();
+  // สลับเฉพาะข้อความ (ไม่แตะ innerHTML) — ไอคอนไม่หาย + กดรัวๆ ก็ไม่ค้าง + สลับภาษาแล้วยังถูก
   const btn = document.getElementById('addInterestBtn');
-  if (btn) { const o = btn.innerHTML; btn.innerHTML = '✓ เพิ่มในรายการแล้ว'; setTimeout(function(){ btn.innerHTML = o; }, 1300); }
+  const lbl = btn && btn.querySelector('[data-i18n="add_compare"]');
+  if (lbl) {
+    clearTimeout(btn._restoreTimer);
+    lbl.textContent = t('add_compare_done');
+    btn._restoreTimer = setTimeout(function() { lbl.textContent = t('add_compare'); }, 1600);
+  }
 }
 
 function updateInterestedFab() {
   const fab = document.getElementById('interestFab');
   if (!fab) return;
   const n = interestedList.length;
-  fab.style.display = n > 0 ? 'inline-flex' : 'none';
+  const wrap = document.getElementById('interestFabWrap');
+  if (wrap) wrap.style.display = n > 0 ? 'flex' : 'none';
   const c = document.getElementById('interestFabCount');
   if (c) c.textContent = n;
+  // รูปรถจอดซ้อนกันบนปุ่ม — ซ้อนถี่ขึ้นตามจำนวน แต่คุมความกว้างไม่ให้ล้นจอ (ยังเห็นทุกคัน)
+  const bikes = document.getElementById('interestFabBikes');
+  if (bikes) {
+    const list = interestedList.filter(function(it) { return it.img; });
+    const W = 48, MAXW = 190, MIN_VISIBLE = 13;
+    let step = W - 14;                                  // ระยะห่างระหว่างคัน (คันเดียว = ไม่ซ้อน)
+    if (list.length > 1) step = Math.max(MIN_VISIBLE, Math.min(W - 14, (MAXW - W) / (list.length - 1)));
+    bikes.innerHTML = list.map(function(it, i) {
+      const ml = i === 0 ? 0 : -(W - step);
+      return '<img class="fab-bike" src="' + it.img + '" alt="" style="margin-left:' + ml.toFixed(1) + 'px;z-index:' + (i + 1) + ';">';
+    }).join('');
+  }
 }
 
 function openInterestedModal() { renderInterestedList(); document.getElementById('interestOverlay').style.display = 'flex'; }
@@ -4189,8 +4720,10 @@ function renderInterestedList() {
     const L = it.leadObj;
     const price = L.pay_type === 'cash' ? ('เงินสด ฿' + fmt(L.price || 0)) : ('ค่างวด ฿' + fmt(L.installment || 0) + '/' + (L.period || '-') + 'ด.');
     const sub = [L.variant, L.color].filter(Boolean).join(' · ');
+    const thumb = it.img ? '<img class="interest-thumb" src="' + it.img + '" alt="" loading="lazy">' : '';
     return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid #e5e5e5;border-radius:8px;padding:.6rem .8rem;margin-bottom:.5rem;">' +
-      '<div style="min-width:0;"><div style="font-weight:700;font-size:.92rem;">' + L.model + '</div>' +
+      thumb +
+      '<div style="min-width:0;flex:1;"><div style="font-weight:700;font-size:.92rem;">' + L.model + '</div>' +
       (sub ? '<div style="font-size:.78rem;color:#888;">' + sub + '</div>' : '') +
       '<div style="font-size:.82rem;color:#1eaa5c;font-weight:600;">' + price + '</div></div>' +
       '<button onclick="removeInterested(' + i + ')" style="background:#fee;color:#c33;border:none;border-radius:6px;padding:.4rem .7rem;cursor:pointer;font-size:.8rem;flex-shrink:0;">ลบ</button>' +
@@ -4278,6 +4811,8 @@ async function deliverFlexToLine(flexMsg, fallbackText, opts) {
 
   // บันทึก lead ลง DB (แนบ userId + ชื่อไลน์ลูกค้า)
   if (opts.lead) { opts.lead.line_user_id = userId || ''; opts.lead.line_name = displayName; saveLead(opts.lead); }
+  // ลีดเช็กเครดิต → endpoint แยก (ไม่เข้ากลุ่มเซลส์)
+  if (opts.creditLead) { opts.creditLead.line_user_id = userId || ''; opts.creditLead.line_name = displayName; saveCreditLead(opts.creditLead); }
 
   function fireAck() {
     if (!userId || !opts.ack) return;

@@ -1183,12 +1183,44 @@ function syncRatesToDB() {
   }));
 }
 
+// sync สี/รูปสี → bike_catalog (ตารางที่เว็บลูกค้าอ่าน)
+// เดิมสีที่แก้ในหน้า "รุ่นรถ & ราคา" ลงแค่ brand_categories → เว็บลูกค้าไม่เคยเห็นรูปใหม่
+// จับคู่แบบเดียวกับ syncRatesToDB: ทุก submodel ที่ขึ้นต้นด้วยชื่อรุ่นนั้น
+function syncColorsToDB() {
+  const items = [];
+  (data.categories || []).forEach(function(cat) {
+    (cat.models || []).forEach(function(model) {
+      const colors = Array.isArray(model.colors) ? model.colors : [];
+      if (!colors.length) return;
+      (data.catalog || []).forEach(function(c) {
+        if (!c.submodelName) return;
+        const parts = String(c.submodelName).split(' / ');
+        const cBikeName = parts[0].trim();
+        if (cBikeName !== model.name) return;
+        const cVariant = parts.slice(1).join(' / ').trim();
+        // เก็บเฉพาะสีของรุ่นย่อยนี้ (สีที่ไม่ระบุ variant = ใช้ได้ทุกรุ่นย่อย)
+        // สำคัญ: ห้ามยัดสีทั้งรุ่นลงทุกแถว — bike_catalog เก็บสีแยกตามรุ่นย่อย (เช่น Giorno+ ABS/CBS คนละชุด)
+        const forThis = colors.filter(function(col) { return !col.variant || col.variant === cVariant; });
+        if (!forThis.length) return;
+        items.push({ submodel_name: c.submodelName, colors: forThis });
+      });
+    });
+  });
+  if (items.length === 0) return;
+  _catalogSyncGuard('สี/รูปรถ', apiFetch('https://n8n-wt11.onrender.com/webhook/update-catalog-colors', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items })
+  }));
+}
+
 function saveData() {
   data.savedAt = Date.now(); // บันทึก timestamp ทุกครั้ง
   localStorage.setItem('papao_data', JSON.stringify(data));
   _syncToN8n(false); // sync ไป server — retry อัตโนมัติถ้า Render หลับ
   syncRatesToDB();   // sync rates ไปยัง bike_catalog ใน DB
   syncFreebiesToDB(); // sync ของแถม (ต่อรุ่นย่อย) ไปยัง bike_catalog
+  syncColorsToDB();  // sync สี/รูปสี ไปยัง bike_catalog (ไม่งั้นรูปใหม่ไม่ขึ้นเว็บลูกค้า)
   try { saveCategoriesToDB(); } catch(e) {}  // sync "รุ่นรถ & ราคา" (categories) ขึ้น DB ต่อแบรนด์
 }
 
