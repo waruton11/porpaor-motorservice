@@ -3421,7 +3421,6 @@ function buildCreditCard(d) {
       ]
     });
   });
-  rows.push({ type: 'text', text: 'ขอเช็กเครดิตเบื้องต้น รบกวนทีมงานติดต่อกลับด้วยครับ', size: 'xs', color: '#aaaaaa', wrap: true, margin: 'md' });
   return { type: 'flex', altText: 'ขอเช็กเครดิตฟรี: ' + (d.name || ''),
     contents: { type: 'bubble', body: { type: 'box', layout: 'vertical', spacing: 'sm', contents: rows } } };
 }
