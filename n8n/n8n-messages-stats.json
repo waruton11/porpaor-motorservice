@@ -66,7 +66,7 @@
       "position": [1060, 200],
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id, line_user_id, brand, message_type, text, created_at FROM messages ORDER BY created_at DESC LIMIT 5000;",
+        "query": "SELECT id, line_user_id, brand, source, message_type, text, created_at FROM messages ORDER BY created_at DESC LIMIT 5000;",
         "options": {}
       },
       "credentials": { "postgres": { "name": "Postgres account" } }

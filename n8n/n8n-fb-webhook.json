@@ -1,0 +1,129 @@
+{
+  "name": "Facebook Messenger Capture",
+  "nodes": [
+    {
+      "id": "fb-get-webhook",
+      "name": "FB Verify (GET)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 200],
+      "webhookId": "fb-messenger",
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "fb-messenger",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "fb-verify-code",
+      "name": "Verify Challenge",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 200],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// ยืนยัน webhook ตอนตั้งค่าครั้งแรก (Meta ยิง GET มาพร้อม hub.challenge)\n// VERIFY_TOKEN ต้องตรงกับที่กรอกใน Meta App → Messenger → Webhooks → Verify Token\nconst VERIFY_TOKEN = 'porpaor_fb_verify_2026';\nconst q = ($input.first().json.query) || {};\nconst mode = q['hub.mode'] || '';\nconst token = q['hub.verify_token'] || '';\nconst challenge = q['hub.challenge'] || '';\nconst ok = (mode === 'subscribe' && token === VERIFY_TOKEN);\nreturn [{ json: { ok: ok, challenge: challenge } }];"
+      }
+    },
+    {
+      "id": "fb-verify-if",
+      "name": "Token OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [640, 200],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [
+            {
+              "id": "cond-ok",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": { "type": "boolean", "operation": "true", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "fb-respond-challenge",
+      "name": "Echo Challenge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [860, 120],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.challenge }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "fb-respond-403",
+      "name": "Respond 403",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [860, 300],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "forbidden",
+        "options": { "responseCode": 403 }
+      }
+    },
+    {
+      "id": "fb-post-webhook",
+      "name": "FB Events (POST)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 480],
+      "webhookId": "fb-messenger",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fb-messenger",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "fb-log-code",
+      "name": "Log FB Messages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 480],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// เก็บเฉพาะข้อความตัวอักษรที่ลูกค้าพิมพ์เข้ามาทาง Facebook Messenger\n// เก็บเงียบๆ (capture-only) — ไม่ตอบกลับ, ไม่ต้องใช้ page access token\n// เซ็นเซอร์เบอร์โทร (PDPA) + escape ' กัน SQL injection จากข้อความลูกค้า\n\n// ⚙️ map: page id (entry.id) → แบรนด์ — เจ้าของต้องใส่ page id จริงของแต่ละเพจ\n// (ดูได้ใน Meta: Graph API me?fields=id ตอนออก token / หน้าเพจ → เกี่ยวกับ → รหัสเพจ)\n// ถ้า page id ไม่อยู่ใน map จะเก็บเป็น brand='unknown' (ไม่ทิ้งข้อมูล) แล้วค่อยแก้ map ทีหลัง\nconst PAGE_BRAND = {\n  '274137326323079': 'honda',\n  'PAGE_ID_YAMAHA':  'yamaha'\n};\n\nconst body = $input.first().json.body || $input.first().json;\nif (!body || body.object !== 'page') return [];\nconst entries = body.entry || [];\nconst esc = (s) => String(s).replace(/'/g, \"''\");\nconst rows = [];\n\nfor (const entry of entries) {\n  const pageId = String(entry.id || '');\n  const brand = PAGE_BRAND[pageId] || 'unknown';\n  const events = entry.messaging || [];\n  for (const ev of events) {\n    const msg = ev.message;\n    if (!msg || msg.is_echo) continue;   // ข้าม echo (ข้อความที่เพจส่งออก) + event ที่ไม่ใช่ message\n    let text = (msg.text || '').trim();\n    if (!text) continue;                 // ข้าม sticker/รูป/ไฟล์แนบ (เก็บเฉพาะ text)\n    text = text.replace(/0[\\d\\s-]{8,12}/g, (m) => {\n      const d = m.replace(/\\D/g, '');\n      return (d.length >= 9 && d.length <= 10) ? '[เบอร์โทร]' : m;\n    });\n    const psid = (ev.sender && ev.sender.id) ? ev.sender.id : '';\n    rows.push({ json: {\n      sql: \"INSERT INTO messages (line_user_id, brand, source, message_type, text) VALUES ('\"\n        + esc(psid) + \"', '\" + esc(brand) + \"', 'facebook', 'text', '\" + esc(text) + \"');\"\n    }});\n  }\n}\nreturn rows;"
+      }
+    },
+    {
+      "id": "fb-save-msg",
+      "name": "Save FB Message",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [640, 480],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "credentials": { "postgres": { "name": "Postgres account" } }
+    }
+  ],
+  "connections": {
+    "FB Verify (GET)": { "main": [ [ { "node": "Verify Challenge", "type": "main", "index": 0 } ] ] },
+    "Verify Challenge": { "main": [ [ { "node": "Token OK?", "type": "main", "index": 0 } ] ] },
+    "Token OK?": {
+      "main": [
+        [ { "node": "Echo Challenge", "type": "main", "index": 0 } ],
+        [ { "node": "Respond 403", "type": "main", "index": 0 } ]
+      ]
+    },
+    "FB Events (POST)": { "main": [ [ { "node": "Log FB Messages", "type": "main", "index": 0 } ] ] },
+    "Log FB Messages": { "main": [ [ { "node": "Save FB Message", "type": "main", "index": 0 } ] ] }
+  },
+  "active": true,
+  "settings": { "executionOrder": "v1" }
+}

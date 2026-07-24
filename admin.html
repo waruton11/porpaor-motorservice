@@ -1560,6 +1560,9 @@ function dashSetDates(){
 }
 function dashResetDates(){ var b = _dashBounds(); _dashFrom = b.min; _dashTo = b.max; renderDashboard(); _gaDrawCard(); }
 
+// ป้ายชื่อช่องทาง (source) ให้อ่านง่าย — แถวเดิมที่ยังไม่มี source ถือเป็น LINE
+function _srcLabel(s){ s = (s||'line'); return s==='facebook' ? 'Facebook' : (s==='line' ? 'LINE' : s); }
+
 // ดาวน์โหลดข้อความลูกค้าเป็นไฟล์ CSV (ตามช่วงวันที่/แบรนด์ที่เลือก) — ไว้ส่งให้ AI วิเคราะห์ต่อ
 function dashExportMessages(){
   const brand = (document.getElementById('dashBrand')||{}).value || 'all';
@@ -1573,8 +1576,8 @@ function dashExportMessages(){
   if (!rows.length){ alert('ยังไม่มีข้อความให้ดาวน์โหลดในช่วง/แบรนด์ที่เลือก'); return; }
   function cell(v){ v = String(v==null?'':v); return /[",\n\r]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
   function dt(s){ const d=_dashThDate(s); if(!d) return ''; const p=function(n){return String(n).padStart(2,'0');}; return d.getUTCFullYear()+'-'+p(d.getUTCMonth()+1)+'-'+p(d.getUTCDate())+' '+p(d.getUTCHours())+':'+p(d.getUTCMinutes()); }
-  const lines = [['วันเวลา (ไทย)','แบรนด์','ประเภท','line_user_id','ข้อความ'].map(cell).join(',')];
-  rows.forEach(function(m){ lines.push([dt(m.created_at), m.brand||'', m.message_type||'', m.line_user_id||'', m.text||''].map(cell).join(',')); });
+  const lines = [['วันเวลา (ไทย)','ช่องทาง','แบรนด์','ประเภท','user_id','ข้อความ'].map(cell).join(',')];
+  rows.forEach(function(m){ lines.push([dt(m.created_at), _srcLabel(m.source), m.brand||'', m.message_type||'', m.line_user_id||'', m.text||''].map(cell).join(',')); });
   const csv = '﻿' + lines.join('\r\n');   // BOM ให้ Excel อ่านภาษาไทยถูก
   const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
@@ -1827,13 +1830,18 @@ function renderDashboard(){
   const todayIso = _dashIsoOf(new Date().toISOString());
   const msgToday = msgs.filter(function(m){ return _dashIsoOf(m.created_at)===todayIso; }).length;
   const msgUsers = Object.keys(_dashCountBy(msgs, function(m){ return m.line_user_id; })).length;
+  // แยกตามช่องทาง (LINE / Facebook) — ให้เห็นชัดว่าแต่ละช่องเก็บได้เท่าไหร่
+  const bySrc = _dashCountBy(msgs, function(m){ return m.source || 'line'; });
+  const srcBreak = Object.keys(bySrc).sort()
+    .map(function(k){ return _srcLabel(k)+' '+bySrc[k].toLocaleString('th-TH'); }).join('  ·  ');
   let msgVolInner;
   if (msgs.length) {
     msgVolInner = '<div style="display:flex;gap:0.7rem;flex-wrap:wrap;">'
       + _dashKpi('ข้อความในช่วงที่เลือก', msgs.length.toLocaleString('th-TH'), '#7b1fa2')
       + _dashKpi('วันนี้', msgToday.toLocaleString('th-TH'), '#00897b')
       + _dashKpi('ผู้ทักไม่ซ้ำ', msgUsers.toLocaleString('th-TH'), 'var(--blue)')
-    + '</div>';
+    + '</div>'
+    + '<div style="margin-top:10px;font-size:0.8rem;color:var(--text2);">ตามช่องทาง: <b>'+srcBreak+'</b></div>';
   } else {
     msgVolInner = _dashEmpty('ยังไม่มีข้อความ — เปิดใช้เมื่อ import workflow เก็บข้อความแล้ว');
   }
@@ -1846,7 +1854,7 @@ function renderDashboard(){
 
   // ---------- Assemble (จัดเป็นหมวดให้อ่านง่าย) ----------
   body.innerHTML = kpi
-    + _dashSection('💬 ข้อความลูกค้าจาก LINE (Honda + Yamaha)',
+    + _dashSection('💬 ข้อความลูกค้า — LINE + Facebook (Honda + Yamaha)',
         _dashCard('📨 ปริมาณข้อความเข้า', msgVolInner)
       + _dashCard('📥 ดาวน์โหลดไฟล์ข้อความ', msgDownloadInner))
     + _dashSection('🌏 ลูกค้าไทย vs พม่า',
