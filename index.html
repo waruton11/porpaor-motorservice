@@ -2575,20 +2575,26 @@ function variantInstallment(v) {
   const ra = getAutoRate(v);
   const terms = calcTermsFor(v);
   const term = terms[terms.length - 1]; // งวดยาวสุด
-  // ดาวน์ต่ำสุดที่รุ่นนี้อนุญาต (บิ๊กไบค์มักเริ่ม 10% ไม่มีฟรีดาวน์)
-  const dp = (v.autoDownPcts && v.autoDownPcts.length) ? v.autoDownPcts.slice().sort(function(a, b) { return a - b; }) : null;
-  const pct = dp ? dp[0] : 0;
-  const dn = pct === 0 ? 0 : Math.ceil(calcBase * pct / 100);
+  // ดาวน์ต่ำสุดที่รุ่นนี้อนุญาต: PCX = บาทตายตัว (ไม่มีฟรีดาวน์), บิ๊กไบค์ = 10%, รุ่นอื่น = ฟรีดาวน์ 0
+  const minBaht = minDownBahtFor(v);
+  let pct, dn;
+  if (minBaht > 0) {
+    dn = minBaht; pct = null;
+  } else {
+    const dp = (v.autoDownPcts && v.autoDownPcts.length) ? v.autoDownPcts.slice().sort(function(a, b) { return a - b; }) : null;
+    pct = dp ? dp[0] : 0;
+    dn = pct === 0 ? 0 : Math.ceil(calcBase * pct / 100);
+  }
   const financed = calcBase - dn + mySurchargeFor(v);
   let inst;
   if (ra.rate > 0) {
-    const er = effRateForTerm(ra, term, pct);
+    const er = effRateForTerm(ra, term, pct || 0);
     inst = ra.isAnnual ? calcInstFlatAnnual(financed, er, term) : calcInstFlat(financed, er, term);
   } else {
     inst = Math.ceil(financed / term);
   }
   if (!(inst > 0)) return null;
-  return { inst: inst, pct: pct, term: term };
+  return { inst: inst, pct: pct, term: term, downBaht: minBaht };
 }
 // เลือก variant ที่ค่างวดถูกสุดในรุ่น → "เริ่มเพียง ฿X / เดือน"
 function cardInstallment(m) {
@@ -2625,7 +2631,7 @@ function renderAllRows() {
         ? '<div class="mcard-inst">' +
             '<span class="mcard-inst-lead">' + t('inst_from') + '</span>' +
             '<div class="mcard-inst-amt">฿' + fmt(ins.inst) + '<span class="mcard-inst-per"> / ' + t('unit_month') + '</span></div>' +
-            '<div class="mcard-inst-sub">' + t('down_word') + ' ' + (ins.pct === 0 ? '0' : ins.pct + '%') + ' • ' + t('inst_word') + ' ' + ins.term + ' ' + t('unit_month') + '</div>' +
+            '<div class="mcard-inst-sub">' + t('down_word') + ' ' + (ins.downBaht > 0 ? '฿' + fmt(ins.downBaht) : (ins.pct === 0 ? '0' : ins.pct + '%')) + ' • ' + t('inst_word') + ' ' + ins.term + ' ' + t('unit_month') + '</div>' +
           '</div>'
         : '<div class="mcard-price" style="color:#888;font-size:.72rem;">' + t('ask_price') + '</div>';
       const typeCC = m.variants && m.variants[0] ? m.variants.map(v => variantMY(v.name)).join(' / ') : '';
@@ -2941,12 +2947,25 @@ function parseRatesByTerm(v) {
   return keys.length ? o : null;
 }
 
+// ดอกเบี้ยรายงวด Honda รถเล็ก (ตารางไฟแนนซ์ 1 ส.ค. 2026) — เท่ากันทุกรุ่นเล็ก
+// %/เดือน แบบ flat: 48/42=1.11, 36=1.09, 30=1.07, 24=1.06 (บิ๊กไบค์ 300cc+ ใช้เรตรายปีเดิม ไม่กระทบ)
+const HONDA_RATES_BY_TERM = { '24': 1.06, '30': 1.07, '36': 1.09, '42': 1.11, '48': 1.11 };
+
+// รถเล็ก Honda: มีเฉพาะ PCX160 ที่ต้องมีเงินดาวน์ (ไม่มีฟรีดาวน์) — ดาวน์ขั้นต่ำเป็นบาทตามตารางไฟแนนซ์
+// key = โค้ดรุ่น (bike_catalog.model_name) · รุ่นอื่นฟรีดาวน์ (0) ตามปกติ
+const HONDA_MIN_DOWN = { 'WW160AS': 6900, 'WW160SS': 5800 };
+function minDownBahtFor(v) {
+  return (v && v.code && HONDA_MIN_DOWN[v.code]) ? HONDA_MIN_DOWN[v.code] : 0;
+}
+
 // ดึง rate + downPcts จาก variant สำหรับ Option C (auto-down)
 function getAutoRate(d) {
   const downPcts = d.autoDownPcts && d.autoDownPcts.length ? d.autoDownPcts : null;
   const rate2 = d.autoRate2 || 0;
   const rate2MinDown = d.autoRate2MinDown || 0;
-  const ratesByTerm = parseRatesByTerm(d.autoRatesByTerm);
+  let ratesByTerm = parseRatesByTerm(d.autoRatesByTerm);
+  // Honda รถเล็ก (ไม่ใช่บิ๊กไบค์) ที่ยังไม่มีเรตรายงวดของตัวเอง → ใช้เรตรายงวดมาตรฐาน Honda
+  if (!ratesByTerm && BRAND === 'honda' && !isBigBike(d)) ratesByTerm = HONDA_RATES_BY_TERM;
   if (d.autoRate && d.autoRate > 0) return {rate: d.autoRate, rate2, rate2MinDown, isAnnual: d.autoRateUnit === 'year', downPcts, ratesByTerm};
   // เรตรายงวดอย่างเดียว (ไม่มี autoRate เดี่ยว) — ใช้ค่างวดแรกเป็น rate ตัวแทนเพื่อให้ผ่านเงื่อนไข rate>0
   if (ratesByTerm) { const vals = Object.keys(ratesByTerm).map(k => parseFloat(ratesByTerm[k]) || 0).filter(x => x > 0); if (vals.length) return {rate: vals[0], rate2, rate2MinDown, isAnnual: d.autoRateUnit === 'year', downPcts, ratesByTerm}; }
@@ -3726,13 +3745,16 @@ function getCalcDown() {
   const v = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
   const cashPrice = v ? (parseInt(v.price) || 0) : 0;
   const base = (v && v.financePrice && v.financePrice > 0) ? v.financePrice : cashPrice;
+  const minBaht = minDownBahtFor(v); // PCX = ดาวน์ขั้นต่ำเป็นบาท (ห้ามต่ำกว่านี้ = ไม่มีฟรีดาวน์)
+  const pctOf = function(d) { return base > 0 ? Math.round(d / base * 1000) / 10 : 0; };
   if (calcCustomDownAmount !== null && calcCustomDownAmount >= 0) {
-    const dn = Math.min(calcCustomDownAmount, base);
-    const pct = base > 0 ? Math.round(dn / base * 1000) / 10 : 0;
-    return { dn, pct };
+    let dn = Math.min(calcCustomDownAmount, base);
+    if (minBaht > 0) dn = Math.max(dn, minBaht);
+    return { dn, pct: pctOf(dn) };
   }
   const pct = parseInt(document.getElementById('sliderDown').value);
-  const dn = pct === 0 ? 0 : Math.ceil(base * pct / 100);
+  let dn = pct === 0 ? 0 : Math.ceil(base * pct / 100);
+  if (minBaht > 0 && dn < minBaht) { dn = minBaht; return { dn, pct: pctOf(dn) }; }
   return { dn, pct };
 }
 
@@ -3847,6 +3869,14 @@ function goCalcStep2() {
   calcPeriod = _terms0[_terms0.length - 1];
   renderPeriodPills();
   updateSliderRange();
+  // PCX = ไม่มีฟรีดาวน์ → เปิดเครื่องคำนวณด้วยดาวน์ขั้นต่ำเป็นบาททันที
+  const _v0 = calcModel.variants[calcVariantIdx] || calcModel.variants[0];
+  const _minB = minDownBahtFor(_v0);
+  if (_minB > 0) {
+    calcCustomDownAmount = _minB;
+    const _cd = document.getElementById('customDown');
+    if (_cd) _cd.value = _minB.toLocaleString('en-US');
+  }
   renderCalcColors();
   setPayType(calcPayType);
   updateCalcLive();
@@ -4016,6 +4046,7 @@ function buildCategoriesFromAPI(rows) {
       if (!Array.isArray(fb)) fb = [];
       bike.variants.push({
         name: variantName, price: price, financePrice: financePrice, downs: downs, _sortOrder: row.sort_order || 0,
+        code: row.model_name || '',
         engineCc: parseInt(row.engine_cc) || 0,
         autoRate: parseFloat(row.auto_rate) || 0,
         autoRateUnit: row.auto_rate_unit || 'month',

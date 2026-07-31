@@ -606,7 +606,7 @@ tr:hover td { background: #fafafa; }
         <!-- รถเล็ก -->
         <div class="card">
           <div class="card-title">🛵 รถเล็ก (Honda: Wave, Click, PCX · Yamaha: Finn, Aerox, NMAX ฯลฯ)</div>
-          <p style="color:var(--text2);font-size:.875rem;margin-bottom:.5rem;">ไฟล์: <strong>ราคาขายใหม่ล่าสุด.xlsx</strong> · ระบบเลือก sheet ตาม<strong>แบรนด์ที่เลือกบนแถบบน</strong> — Honda = Sheet1 (โค้ด col A) · Yamaha = Sheet2 (โค้ด col B) · ราคาเงินสด col F</p>
+          <p style="color:var(--text2);font-size:.875rem;margin-bottom:.5rem;">ไฟล์: <strong>ราคาขายใหม่ล่าสุด.xlsx</strong> · ระบบเลือก sheet ตาม<strong>แบรนด์ที่เลือกบนแถบบน</strong> — Honda = Sheet1 (โค้ด col A · เงินสด=หัว "ราคาเงินสด" · ยอดจัด=หัว "สช.จีอี-เอส-เน็ค ระดับ2") · Yamaha = Sheet2 (โค้ด col B · ราคาเงินสด col F)</p>
           <input type="file" id="excelUploadSmall" accept=".xlsx,.xls" style="display:block;margin-bottom:1rem;padding:.5rem;border:1.5px dashed var(--gray2);border-radius:8px;width:100%;cursor:pointer;font-family:inherit;">
           <button class="btn btn-primary" onclick="uploadToN8n('small')" style="font-size:1rem;padding:.75rem 2rem;">📤 อัพโหลดราคารถเล็ก</button>
           <div id="uploadResultSmall" style="margin-top:1.25rem;"></div>
@@ -3148,25 +3148,49 @@ function _parsePriceXlsx(file, fileType, onDone) {
       const wb = XLSX.read(e.target.result, { type: 'array' });
 
       // เลือก sheet + คอลัมน์ตามแบรนด์ที่ active และประเภทไฟล์ (ไฟล์รวม Honda+Yamaha แยกด้วย sheet)
-      // โครงสร้างจริง (ยืนยันกับ owner + แกะไฟล์ 23/06/2569):
-      //   เล็ก Honda  = Sheet1 : A=โค้ด, B=แบบ, F=ราคาเงินสด, K=ไฟแนนซ์
+      // โครงสร้างจริง (ยืนยันกับ owner + แกะไฟล์ 23/06/2569, ทบทวน 31/07/2569):
+      //   เล็ก Honda  = Sheet1 : A=โค้ด, B=แบบ | ราคาหาจาก"ชื่อหัวตาราง" (owner เพิ่มคอลัมน์ 'นครหลวง'
+      //       ที่ตำแหน่ง F/K แล้ว layout อาจสลับได้อีก → อ่านตามหัวคอลัมน์แทน index จะทนกว่า):
+      //       เงินสด = หัว "ราคาเงินสด" (ล้วน = คอลัมน์ G)
+      //       ยอดจัด(ฐานคิดค่างวด) = หัว "สช.จีอี-เอส-เน็ค ระดับ2" (คอลัมน์ O = ยอดจัดไฟแนนซ์จริง = M+1000)
+      //       *ต้องแมตช์ชื่อแบบตรงเป๊ะ* เพื่อไม่ไปโดน "ราคาเงินสด นครหลวง" (F) / "ราคาขายไฟแนนซ์" (M, =ยอดจัด−1000)
+      //       ยืนยันกับ owner 31/07/2569: ค่างวดต้องอิงยอดจัด(O) จึงตรงตารางไฟแนนซ์ (48/42/36/30/24=1.11/1.11/1.09/1.07/1.06)
       //   เล็ก Yamaha = Sheet2 : A=รุ่น, B=โค้ด, F(idx5)=ราคาเงินสด, I(idx8)=ไฟแนนซ์(สช.จีอี-เอส-เน็ค)
       //       — col I ว่างในบางรุ่น (PG-1/R15/XSR155/AEROX SP/R15 M) → fallback ใช้ราคาเงินสด
       //       — col K="มากกว่าเงินสด" เป็นสูตร ว่าง/0 ห้ามใช้
       //   Big Honda   = sheet "HONDA"  : B=โค้ด, E(idx4)=ราคาขาย
       //   Big Yamaha  = sheet "YAMAHA" : B=โค้ด, E(idx4)=ราคาขาย (ใช้ทั้งเงินสด+ไฟแนนซ์)
       const isY = activeBrand === 'yamaha';
-      let L; // layout: {sheet, modelCol=คอลัมน์โค้ด(ค่า dropdown), variantCol(-1=ไม่มี), priceCol, financeCol(-1=ไม่มี), financeFallback}
+      let L; // layout: {sheet, modelCol=คอลัมน์โค้ด(ค่า dropdown), variantCol(-1=ไม่มี), priceCol, financeCol(-1=ไม่มี), financeFallback, priceHeader, financeHeader}
       if (fileType === 'big') {
         L = { sheet: isY ? 'YAMAHA' : 'HONDA', modelCol: 1, variantCol: -1, priceCol: 4, financeCol: -1 };
       } else {
         L = isY
           ? { sheet: 'Sheet2', modelCol: 1, variantCol: -1, priceCol: 5, financeCol: 8, financeFallback: true }
-          : { sheet: 'Sheet1', modelCol: 0, variantCol: 1, priceCol: 5, financeCol: 10 };
+          : { sheet: 'Sheet1', modelCol: 0, variantCol: 1, priceHeader: 'ราคาเงินสด', financeHeader: 'สช.จีอี-เอส-เน็ค ระดับ2' };
       }
       const wsName = wb.Sheets[L.sheet] ? L.sheet : wb.SheetNames[0];
       const ws = wb.Sheets[wsName];
       const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+      // ถ้า layout กำหนดราคาด้วย "ชื่อหัวคอลัมน์" (Honda เล็ก) → หา index จากแถวหัวตารางจริง
+      // ทนต่อการสลับคอลัมน์ และแมตช์ชื่อแบบตรงเป๊ะ (normalize ช่องว่าง) เพื่อไม่ไปโดนคอลัมน์ 'นครหลวง'
+      if (L.priceHeader || L.financeHeader) {
+        const norm = function(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim(); };
+        let pc = -1, fc = -1;
+        for (let ri = 0; ri < Math.min(rows.length, 8); ri++) {
+          const rr = rows[ri]; if (!rr) continue;
+          for (let ci = 0; ci < rr.length; ci++) {
+            const h = norm(rr[ci]);
+            if (pc < 0 && L.priceHeader   && h === L.priceHeader)   pc = ci;
+            if (fc < 0 && L.financeHeader && h === L.financeHeader) fc = ci;
+          }
+          if ((!L.priceHeader || pc >= 0) && (!L.financeHeader || fc >= 0)) break;
+        }
+        if (L.priceHeader && pc < 0)   throw new Error('หาคอลัมน์หัวตาราง "' + L.priceHeader + '" ไม่พบ — ไฟล์อาจเปลี่ยน layout (ตรวจชื่อหัวคอลัมน์)');
+        if (L.financeHeader && fc < 0) throw new Error('หาคอลัมน์หัวตาราง "' + L.financeHeader + '" ไม่พบ — ไฟล์อาจเปลี่ยน layout (ตรวจชื่อหัวคอลัมน์)');
+        L.priceCol = pc; L.financeCol = fc;
+      }
 
       const map = new Map();
       rows.forEach(function(row) {
