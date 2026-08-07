@@ -2518,8 +2518,8 @@ const MODEL_BANNERS = {
   'Yamaha WR155R': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2022/wr155r-2022/banner/yamaha-wr155r-2022_1900x550.jpg?sfvrsn=c1f78d45_2',
   'Yamaha XSR155': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2024/xsr155-2024/banner/yamaha-xsr155-2024-banner-1900x550.jpg?sfvrsn=c9ceb747_2',
   // ===== Honda lifestyle banners (จาก thaihonda.co.th, 1920x768) =====
-  'Honda PCX160': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/001-pcx-2025/Home_page_Banner-2.jpg',
-  'Honda Click160': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/2022_Product-Page/Automatic/All-New-Click160-2022/ThHonda_Product_Page_Click160.jpg',
+  'Honda PCX160': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/2026/newpcx160-2026/banner/Model/Home_Page_Banner-D.jpg',
+  'Honda Click160': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/2026/new-click-160-2026/banner/Honda_Click160-WEBbanner_MODEL_PAGE_W1920xH768px.jpg',
   'Honda Click125': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/Page_benner_Desktop_1920x768-02.jpg',
   'Honda Scoopy': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/2026/SCOOPY2026/banner/modelpage/SCOOPY-Modelpage-d.jpg',
   'Honda Giorno+': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/giorno-2026/HondaGiorno_-Modelpage_banner_Banner_W1920_x_H768_px.jpg',
@@ -2538,6 +2538,12 @@ const MODEL_BANNERS = {
   'Honda CRF300 L': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/CRF300L_2024/ThHonda_Desktop-CRF300L_2024-ModelPage-1920x768.jpg',
   // UC3 เป็นรถไฟฟ้า (EV) — แบนเนอร์มาจาก ev.thaihonda.co.th (1920x1080)
   'Honda UC3': 'https://ev.thaihonda.co.th/content/dam/e2w/apac/thai/products/uc3/image/vlcsnap-2026-01-09-15h14m56s128.png'
+};
+// แบนเนอร์เฉพาะรุ่นย่อย (เช่น Limited Edition) — key = "ชื่อรุ่นหลัก / ชื่อรุ่นย่อย"
+// ถ้าไม่มี key ตรงนี้ จะ fallback ไปใช้แบนเนอร์รุ่นหลักจาก MODEL_BANNERS
+const VARIANT_BANNERS = {
+  'Honda Super Cub / Tokyo 80s Limited Edition': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/2026_supercub_tokyo80s/ThHonda_Desktop-Supercub-tokyo80s_ModelpageBanner-1920x768.jpg',
+  'Honda Giorno+ / Buzz Lightyear Limited Edition': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/2026_Giorno_buzz/Honda_Giorno_x_Buzz_WEBbanner_Desktop_MODEL_PAGE_W1920xH768px.jpg'
 };
 let modalModel = null, modalVariantIdx = 0, modalColorIdx = 0;
 
@@ -2780,8 +2786,11 @@ function rFreebies() {
 // แสดงแบนเนอร์ lifestyle ด้านบนโมดอล ถ้ารุ่นนี้มีรูป
 function rBanner() {
   const b = document.getElementById('mBanner');
-  if (!b) return;
-  const url = MODEL_BANNERS[modalModel.name];
+  if (!b || !modalModel) return;
+  // เลือกแบนเนอร์ตามรุ่นย่อยที่กำลังเลือกอยู่ก่อน (Limited Edition ฯลฯ) แล้ว fallback รุ่นหลัก
+  const v = modalModel.variants && modalModel.variants[modalVariantIdx];
+  const vKey = v ? (modalModel.name + ' / ' + v.name) : '';
+  const url = (vKey && VARIANT_BANNERS[vKey]) || MODEL_BANNERS[modalModel.name];
   if (!url) { b.style.display = 'none'; b.innerHTML = ''; return; }
   b.style.display = 'block';
   b.innerHTML = '<img src="' + url + '" alt="' + modalModel.name + '" onerror="this.parentNode.style.display=\'none\';">';
@@ -2801,7 +2810,7 @@ function sV(i) {
   modalVariantIdx = i;
   modalColorIdx = 0;
   document.querySelectorAll('.variant-btn').forEach((b, j) => b.classList.toggle('active', j === i));
-  rC(); rFreebies(); uT();
+  rC(); rFreebies(); uT(); rBanner();
 }
 
 function rC() {
@@ -2953,7 +2962,8 @@ const HONDA_RATES_BY_TERM = { '24': 1.06, '30': 1.07, '36': 1.09, '42': 1.11, '4
 
 // รถเล็ก Honda: มีเฉพาะ PCX160 ที่ต้องมีเงินดาวน์ (ไม่มีฟรีดาวน์) — ดาวน์ขั้นต่ำเป็นบาทตามตารางไฟแนนซ์
 // key = โค้ดรุ่น (bike_catalog.model_name) · รุ่นอื่นฟรีดาวน์ (0) ตามปกติ
-const HONDA_MIN_DOWN = { 'WW160AS': 6900, 'WW160SS': 5800 };
+// PCX160: ดาวน์ขั้นต่ำเป็นบาท (ไม่มีฟรีดาวน์) — เก็บทั้งโค้ดเก่า(2025)+ใหม่(2026) กันช่วงสลับ DB โชว์ ฿0
+const HONDA_MIN_DOWN = { 'WW160AS': 6900, 'WW160SS': 5800, 'WW160AV': 6900, 'WW160SV': 5800 };
 function minDownBahtFor(v) {
   return (v && v.code && HONDA_MIN_DOWN[v.code]) ? HONDA_MIN_DOWN[v.code] : 0;
 }
