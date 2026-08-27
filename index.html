@@ -689,6 +689,10 @@ img { display: block; max-width: 100%; }
   letter-spacing: 0.5px;
   z-index: 1;
 }
+.mcard-badge--new {
+  background: #22aa55;
+  box-shadow: 0 2px 6px rgba(34,170,85,.35);
+}
 .mcard-body {
   padding: 0.6rem 0.75rem 0.8rem;
   display: flex;
@@ -2508,7 +2512,7 @@ const MODEL_BANNERS = {
   'Yamaha PG-1': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2025/pg-1-2025/banner/banner-yamaha-pg-1_2025-1900x550.jpg?sfvrsn=d087d1b9_2',
   'Yamaha FAZZIO': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2026/fazzio-2026/banner-website/top-banner_section-product_pc-1900x550.jpg?sfvrsn=e038fc38_2',
   'Yamaha EXCITER': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2025/exciter155-2025/banner/yamaha-exciter-155-2025_1900x550px.jpg?sfvrsn=a11312bd_2',
-  'Yamaha GRAND FILANO': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2026/grand-filano-hybrid-2026/banner-website-new/top-banner-section-product_pc_1900x550px.jpg?sfvrsn=867ad66b_2',
+  'Yamaha GRAND FILANO': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2026/grand-filano-hybrid-2026/banner-website-new-2026/top-banner-section-product_pc_1900x550px.jpg',
   'Yamaha AEROX': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2025/all-new-aerox-2025/banner/banner-all-new-yamaha-aerox-2025_1900x550.jpg?sfvrsn=1744bdbf_6',
   'Yamaha NMAX': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2026/nmax-2026/banner/yamaha-nmax-2026_1900x550px.jpg?sfvrsn=4d16b3b6_4',
   'Yamaha X-MAX300': 'https://storagetym.blob.core.windows.net/www2021/images/product-2021/commuter/model-year-2026/xmax-2026/banner/banner-yamaha-xmax-2026_1900x550px.jpg?sfvrsn=15e75c_2',
@@ -2545,6 +2549,8 @@ const VARIANT_BANNERS = {
   'Honda Super Cub / Tokyo 80s Limited Edition': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/2026_supercub_tokyo80s/ThHonda_Desktop-Supercub-tokyo80s_ModelpageBanner-1920x768.jpg',
   'Honda Giorno+ / Buzz Lightyear Limited Edition': 'https://www.thaihonda.co.th/honda/uploads/cache/1920/photos/shares/2026_Giorno_buzz/Honda_Giorno_x_Buzz_WEBbanner_Desktop_MODEL_PAGE_W1920xH768px.jpg'
 };
+// รุ่นที่ติดแท็ก "NEW" บนการ์ดหน้าเว็บ (แสดงเมื่อรุ่นนั้นยังไม่มี badge จาก DB) — เอาชื่อออกจาก list เมื่อเลิกเป็นรุ่นใหม่
+const NEW_MODELS = ['Yamaha GRAND FILANO'];
 let modalModel = null, modalVariantIdx = 0, modalColorIdx = 0;
 
 // ===== UTILITIES =====
@@ -2643,7 +2649,8 @@ function renderAllRows() {
       const typeCC = m.variants && m.variants[0] ? m.variants.map(v => variantMY(v.name)).join(' / ') : '';
       return '<div class="mcard reveal" onclick="oM(' + ci + ',' + mi + ')">' +
         '<div class="mcard-img-wrap">' +
-        (m.badge ? '<div class="mcard-badge">' + m.badge + '</div>' : '') +
+        (m.badge ? '<div class="mcard-badge">' + m.badge + '</div>'
+          : (NEW_MODELS.includes(m.name) ? '<div class="mcard-badge mcard-badge--new">NEW</div>' : '')) +
         imgHtml +
         '</div>' +
         '<div class="mcard-body">' +
