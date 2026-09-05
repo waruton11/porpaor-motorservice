@@ -3167,7 +3167,7 @@ function _parsePriceXlsx(file, fileType, onDone) {
       } else {
         L = isY
           ? { sheet: 'Sheet2', modelCol: 1, variantCol: -1, priceCol: 5, financeCol: 8, financeFallback: true }
-          : { sheet: 'Sheet1', modelCol: 0, variantCol: 1, priceHeader: 'ราคาเงินสด', financeHeader: 'สช.จีอี-เอส-เน็ค ระดับ2' };
+          : { sheet: 'Sheet1', modelCol: 0, variantCol: 1, priceHeader: 'ราคาเงินสด', financeHeader: 'สช.จีอี-เอส-เน็ค ระดับ2', financeFallback: true };
       }
       const wsName = wb.Sheets[L.sheet] ? L.sheet : wb.SheetNames[0];
       const ws = wb.Sheets[wsName];
